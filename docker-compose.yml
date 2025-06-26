@@ -1,0 +1,18 @@
+services:
+  app:
+    container_name: dashlit-app
+    image: ghcr.io/codewec/dashlit:latest
+    environment:
+      HOST_HEADER: '${HOST_HEADER:-HOST}'
+      NODE_ENV: '${NODE_ENV:-production}'
+      ADDRESS_HEADER: '${ADDRESS_HEADER:-X-Real-IP}'
+      PROTOCOL_HEADER: '${PROTOCOL_HEADER:-X-Forwarded-Proto}'
+    env_file:
+      - .env
+    restart: unless-stopped
+    ports:
+      - '5050:3000'
+    labels:
+      - 'com.centurylinklabs.watchtower.enable=false'
+    volumes:
+      - ./data:/data
