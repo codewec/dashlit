@@ -13,6 +13,7 @@
 	import ModalFormItem from '$lib/components/modalFormItem.svelte';
 	import ModalFormGroup from '$lib/components/modalFormGroup.svelte';
 	import { newGroup, newItem } from '$lib/factory.js';
+	import { page_title } from '$lib';
 
 	let { data } = $props();
 
@@ -144,6 +145,10 @@
 	};
 </script>
 
+<svelte:head>
+	<title>{page_title}</title>
+</svelte:head>
+
 <div class="bg-gray-50 p-4">
 	<Header
 		{editMode}
@@ -151,7 +156,6 @@
 		handleSave={handleSaveDashboard}
 		handleEdit={() => (editMode = !editMode)}
 	/>
-
 	<Dashboard
 		{editMode}
 		{groups}
@@ -186,7 +190,7 @@
 		if (item && editableItem) {
 			handleSaveItem(editableItem.groupId, item);
 		} else {
-			editableGroup = undefined;
+			editableItem = undefined;
 		}
 	}}
 />

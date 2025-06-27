@@ -22,7 +22,7 @@ export const load: PageServerLoad = async (event) => {
 		return '{}';
 	});
 	const dashboard: Dashboard = JSON.parse(data);
-	return { groups: dashboard.groups, canLogout: env.PASSWORD?.length ?? 0 > 0 };
+	return { groups: dashboard.groups, canLogout: (env.PASSWORD?.length ?? 0) > 0 };
 };
 
 export const actions = {
