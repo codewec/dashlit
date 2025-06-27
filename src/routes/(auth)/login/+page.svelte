@@ -6,7 +6,7 @@
 </script>
 
 <div
-	class="flex h-screen items-center justify-center bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200"
+	class="flex h-screen items-center justify-center bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 p-4"
 >
 	<Card class="p-4 sm:p-6 md:p-8">
 		<form

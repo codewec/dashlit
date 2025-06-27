@@ -2,7 +2,8 @@ import type { PageServerLoad } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import * as jose from 'jose';
-import { hashString } from '$lib/helpers';
+import { cookie_token_key } from '$lib';
+import { getSecretKey } from '$lib/server/helper';
 
 export const load: PageServerLoad = async (event) => {
 	if (event.locals.userAuthenticated) {
@@ -25,19 +26,19 @@ export const actions = {
 			return fail(401, { error: 'Invalid password' });
 		}
 
-		const secret = env.SECRET_KEY?.length > 0 ? env.SECRET_KEY : await hashString(password);
-		const secretKey = new TextEncoder().encode(secret);
+		const secretKey = await getSecretKey(password);
+		const sign = new TextEncoder().encode(secretKey);
 
 		const token = await new jose.SignJWT()
 			.setProtectedHeader({ alg: 'HS256' })
 			.setIssuedAt()
 			.setExpirationTime('4weeks')
-			.sign(secretKey);
+			.sign(sign);
 
-		cookies.set('token', token, {
+		cookies.set(cookie_token_key, token, {
 			path: '/',
 			httpOnly: true,
-			sameSite: 'strict',
+			sameSite: 'lax',
 			secure: process.env.NODE_ENV === 'production',
 			maxAge: 60 * 60 * 24 * 30
 		});
