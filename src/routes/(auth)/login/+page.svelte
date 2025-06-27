@@ -1,9 +1,14 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { page_title } from '$lib';
 	import { Card, Button, Label, Input, Helper } from 'flowbite-svelte';
 
 	let errorMessage: string | undefined = $state(undefined);
 </script>
+
+<svelte:head>
+	<title>{page_title}</title>
+</svelte:head>
 
 <div
 	class="flex h-screen items-center justify-center bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 p-4"
