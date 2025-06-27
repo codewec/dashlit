@@ -1,14 +1,15 @@
 <h1 align="center">DashLit</h1>
 <p align="center">
-  <i>DashLit is a simple, self-hosted Startpage solution. It’s incredibly easy to set up and use, and its built-in editors let you quickly create your own application hub – even with a convenient drag-and-drop interface. You don’t even need to edit any files!</i>
-  <br/><br/>
-  <img width="130" alt="DashLit" src="https://raw.githubusercontent.com/codewec/dashlit/main/static/favicon.svg"/>
-  <br/> <br/>
-<img src="https://img.shields.io/github/package-json/v/codewec/dashlit?logo=hackthebox&color=609966&logoColor=fff" alt="Current Version"/>
-<img src="https://img.shields.io/github/last-commit/codewec/dashlit?logo=github&color=609966&logoColor=fff" alt="Last commit"/>
-  <a href="https://github.com/codewec/dashlit/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-609966?logo=opensourceinitiative&logoColor=fff" alt="License MIT"/></a>
-  <br/><br/>
-  <img src="https://raw.githubusercontent.com/codewec/dashlit/main/.github/main_page.png" alt="DashLit" width="100%"/>
+    <i>DashLit is a simple, self-hosted Startpage solution. It’s incredibly easy to set up and use, and its built-in editors let you quickly create your own application hub – even with a convenient drag-and-drop interface. You don’t even need to edit any files!</i>
+    <br/><br/>
+    <img width="130" alt="DashLit" src="https://raw.githubusercontent.com/codewec/dashlit/main/static/favicon.svg"/>
+    <br/> <br/>
+    <img src="https://img.shields.io/github/v/release/codewec/dashlit?logo=hackthebox&color=609966&logoColor=fff" alt="Current Version"/>
+    <img src="https://img.shields.io/github/last-commit/codewec/dashlit?logo=github&color=609966&logoColor=fff" alt="Last commit"/>
+    <a href="https://github.com/codewec/dashlit/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-609966?logo=opensourceinitiative&logoColor=fff" alt="License MIT"/></a>
+    <a href="https://dashlit.cwec.dev/" target="_blank"><img src="https://img.shields.io/badge/live-demo-609966"/></a>
+    <br/><br/>
+    <img src="https://raw.githubusercontent.com/codewec/dashlit/main/.github/main_page.png" alt="DashLit" width="100%"/>
 </p>
 
 ## 🚀 Getting started
