@@ -12,8 +12,9 @@
 	import ModalDelete from '$lib/components/modalDelete.svelte';
 	import ModalFormItem from '$lib/components/modalFormItem.svelte';
 	import ModalFormGroup from '$lib/components/modalFormGroup.svelte';
-	import { newGroup, newItem } from '$lib/factory.js';
+	import { newGroup, newItem } from '$lib/factory';
 	import { page_title } from '$lib';
+	import toast from 'svelte-5-french-toast';
 
 	let { data } = $props();
 
@@ -31,12 +32,23 @@
 
 	// dashboard
 	const handleSaveDashboard = async () => {
+		if (data.isDemoMode) {
+			toast.success('Demo mode is enabled. Changes are not saved.');
+			editMode = false;
+			return;
+		}
+		const toastId = toast.loading('Saving...');
 		await fetch('', {
 			method: 'POST',
 			body: JSON.stringify(groups)
-		}).then(() => {
-			editMode = false;
-		});
+		})
+			.then(() => {
+				editMode = false;
+				toast.success('Saved!', { icon: '✅', id: toastId });
+			})
+			.catch(() => {
+				toast.error('Error saving dashboard', { icon: '⚠️', id: toastId });
+			});
 	};
 
 	const handleDeleteEntity = () => {
