@@ -123,7 +123,7 @@
 	{#each groups as group (`g_${group.id}`)}
 		<div
 			class:edit-mode={editMode}
-			class="rounded-md bg-gray-50 p-4 shadow-sm ring-1 ring-gray-200"
+			class="rounded-md bg-gray-50 p-4 shadow-sm ring-1 ring-gray-200 dark:bg-slate-900 dark:ring-slate-800"
 			use:draggable={{
 				container: group.id,
 				dragData: group,
@@ -144,7 +144,7 @@
 		>
 			<div class="mb-4 flex items-center justify-between">
 				<div class="inline-flex gap-2">
-					<h2 class="font-semibold text-gray-900 capitalize">
+					<h2 class="font-semibold text-gray-900 capitalize dark:text-gray-200">
 						{group.title}
 					</h2>
 					{#if group.description}
@@ -204,7 +204,7 @@
 								</div>
 							{/if}
 							<div>
-								<h3 class="font-medium text-gray-900">
+								<h3 class="font-medium text-gray-900 dark:text-gray-100">
 									{item.title}
 								</h3>
 								<p class="text-sm text-gray-500">
@@ -250,18 +250,18 @@
 	}
 
 	.item {
-		@apply relative rounded-lg bg-white p-3 shadow-sm ring-1 ring-gray-200 transition-all duration-200;
+		@apply relative rounded-lg bg-white p-3 shadow-sm ring-1 ring-gray-200 transition-all duration-200 dark:bg-black dark:ring-gray-800;
 	}
 
 	.item:not(.edit-mode) {
-		@apply cursor-pointer hover:shadow-md hover:ring-2 hover:ring-blue-300;
+		@apply cursor-pointer hover:shadow-md hover:ring-2 hover:ring-blue-300 dark:hover:ring-blue-900;
 	}
 
 	.edit-mode {
-		@apply cursor-move hover:shadow-md hover:ring-2 hover:ring-blue-200;
+		@apply cursor-move hover:shadow-md hover:ring-2 hover:ring-blue-200 dark:hover:ring-blue-900;
 
 		.item {
-			@apply cursor-move hover:shadow-md hover:ring-2 hover:ring-blue-200;
+			@apply cursor-move hover:shadow-md hover:ring-2 hover:ring-blue-200 dark:hover:ring-blue-900;
 		}
 	}
 </style>

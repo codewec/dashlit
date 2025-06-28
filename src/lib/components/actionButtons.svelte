@@ -27,7 +27,7 @@
 		onclick={() => {
 			handleClick(ActionType.EDIT);
 		}}
-		class="h-4 w-4 cursor-pointer p-3!"><EditOutline class="h-4 w-4" /></Button
+		class="h-4 w-4 cursor-pointer p-3!"><EditOutline class="h-4 w-4" color="gray" /></Button
 	>
 	<Button
 		pill={true}
@@ -41,6 +41,6 @@
 		onclick={() => {
 			handleClick(ActionType.DELETE);
 		}}
-		class="h-4 w-4 cursor-pointer p-3!"><CloseCircleOutline class="h-4 w-4" /></Button
+		class="h-4 w-4 cursor-pointer p-3!"><CloseCircleOutline class="h-4 w-4" color="gray" /></Button
 	>
 </div>

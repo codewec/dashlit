@@ -149,7 +149,7 @@
 	<title>{page_title}</title>
 </svelte:head>
 
-<div class="bg-gray-50 p-4">
+<div class="p-4">
 	<Header
 		{editMode}
 		canLogout={data.canLogout}
