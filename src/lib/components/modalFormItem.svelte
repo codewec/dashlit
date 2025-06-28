@@ -35,9 +35,9 @@
 		</Label>
 		<Label class="space-y-2">
 			<span>Icon</span>
-			<Input bind:value={form.icon} type="text" name="icon" placeholder="Icon name" />
+			<Input bind:value={form.icon} type="text" name="icon" placeholder="URL or Icon name" />
 			<Helper class="text-sm">
-				Icon name from <a
+				URL or Icon name from <a
 					target="_blank"
 					href="https://icon-sets.iconify.design/"
 					class="text-primary-600 dark:text-primary-500 font-medium hover:underline">iconify</a

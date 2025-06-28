@@ -5,7 +5,7 @@
 	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
 	import ActionButtons from './actionButtons.svelte';
-	import { getIds, hasField } from '$lib/helpers';
+	import { getIds, hasField, isUrlString } from '$lib/helpers';
 	import EmptyItem from './emptyItem.svelte';
 	import EmptyGroup from './emptyGroup.svelte';
 	import { newGroup, newItem } from '$lib/factory';
@@ -123,7 +123,7 @@
 	{#each groups as group (`g_${group.id}`)}
 		<div
 			class:edit-mode={editMode}
-			class="rounded-md bg-gray-50 p-4 shadow-sm ring-1 ring-gray-200"
+			class="rounded-md bg-gray-50 p-4 shadow-sm ring-1 ring-gray-200 dark:bg-slate-900 dark:ring-slate-800"
 			use:draggable={{
 				container: group.id,
 				dragData: group,
@@ -144,7 +144,7 @@
 		>
 			<div class="mb-4 flex items-center justify-between">
 				<div class="inline-flex gap-2">
-					<h2 class="font-semibold text-gray-900 capitalize">
+					<h2 class="font-semibold text-gray-900 capitalize dark:text-gray-200">
 						{group.title}
 					</h2>
 					{#if group.description}
@@ -200,11 +200,19 @@
 						<div class="flex items-center gap-2">
 							{#if item.icon}
 								<div class="h-14 w-14">
-									<Icon color="gray" icon={item.icon} height={56} />
+									{#if isUrlString(item.icon)}
+										<img
+											src={item.icon}
+											alt={item.title}
+											class="h-full w-full rounded-full object-cover"
+										/>
+									{:else}
+										<Icon color="gray" icon={item.icon} height={56} />
+									{/if}
 								</div>
 							{/if}
 							<div>
-								<h3 class="font-medium text-gray-900">
+								<h3 class="font-medium text-gray-900 dark:text-gray-100">
 									{item.title}
 								</h3>
 								<p class="text-sm text-gray-500">
@@ -227,6 +235,10 @@
 				{/each}
 				{#if editMode}
 					<EmptyItem
+						id={`${group.id}-0`}
+						handleHover={(id) => {
+							hoveredId = id;
+						}}
 						handleClick={() => handleClickItemAction(ActionType.CREATE, group.id, newItem())}
 					/>
 				{/if}
@@ -242,42 +254,22 @@
 	}
 
 	:global(.drag-over) {
-		@apply !bg-blue-50 !ring-2 !ring-blue-400;
+		@apply !bg-blue-50 !ring-2 !ring-blue-400 dark:!bg-slate-800 dark:ring-blue-600;
 	}
 
 	.item {
-		@apply relative rounded-lg bg-white p-3 shadow-sm ring-1 ring-gray-200 transition-all duration-200;
+		@apply relative rounded-lg bg-white p-3 shadow-sm ring-1 ring-gray-200 transition-all duration-200 dark:bg-black dark:ring-gray-800;
 	}
 
 	.item:not(.edit-mode) {
-		@apply cursor-pointer hover:shadow-md hover:ring-2 hover:ring-blue-300;
+		@apply cursor-pointer hover:shadow-md hover:ring-2 hover:ring-blue-300 dark:hover:ring-blue-900;
 	}
 
 	.edit-mode {
-		animation: tilt-shaking 0.3s infinite;
-		@apply cursor-move hover:shadow-md hover:ring-2 hover:ring-blue-200;
+		@apply cursor-move hover:shadow-md hover:ring-2 hover:ring-blue-200 dark:hover:ring-blue-900;
 
 		.item {
-			animation: tilt-shaking 0.2s infinite;
-			@apply cursor-move hover:shadow-md hover:ring-2 hover:ring-blue-200;
-		}
-	}
-
-	@keyframes tilt-shaking {
-		0% {
-			transform: rotate(0deg);
-		}
-		25% {
-			transform: rotate(0.3deg);
-		}
-		50% {
-			transform: rotate(0eg);
-		}
-		75% {
-			transform: rotate(-0.3deg);
-		}
-		100% {
-			transform: rotate(0deg);
+			@apply cursor-move hover:shadow-md hover:ring-2 hover:ring-blue-200 dark:hover:ring-blue-900;
 		}
 	}
 </style>

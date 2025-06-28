@@ -37,3 +37,11 @@
 		display: none;
 	}
 }
+
+.toaster {
+	.wrapper {
+		.base {
+			@apply bg-gray-100 dark:bg-slate-900 dark:text-gray-400;
+		}
+	}
+}

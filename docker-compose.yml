@@ -1,8 +1,10 @@
 services:
   app:
-    container_name: dashlit
-    image: dashlit:latest
+    container_name: dashlit-app
+    image: ghcr.io/codewec/dashlit:latest
     restart: unless-stopped
+    environment:
+      ORIGIN: '${ORIGIN:-http://localhost:3000}' # please provide URL if different
     ports:
       - '3000:3000'
     volumes:

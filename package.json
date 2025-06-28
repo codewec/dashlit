@@ -42,6 +42,7 @@
 	"dependencies": {
 		"@thisux/sveltednd": "^0.0.20",
 		"dotenv": "^16.6.0",
-		"jose": "^6.0.11"
+		"jose": "^6.0.11",
+		"svelte-5-french-toast": "^2.0.4"
 	}
 }

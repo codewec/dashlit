@@ -13,7 +13,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	const token = event.cookies.get(cookie_token_key);
 	if (!token) {
-		console.log('!!!!! not has token', token);
 		return resolve(event);
 	}
 
@@ -24,7 +23,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 			event.locals.userAuthenticated = true;
 		})
 		.catch(() => {
-			console.log('!!!!! cant check jwt', token);
 			event.cookies.delete(cookie_token_key, { path: '/' });
 		});
 
