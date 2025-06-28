@@ -254,7 +254,7 @@
 	}
 
 	:global(.drag-over) {
-		@apply !bg-blue-50 !ring-2 !ring-blue-400;
+		@apply !bg-blue-50 !ring-2 !ring-blue-400 dark:!bg-slate-800 dark:ring-blue-600;
 	}
 
 	.item {
