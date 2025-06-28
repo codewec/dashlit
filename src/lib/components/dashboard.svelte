@@ -227,6 +227,10 @@
 				{/each}
 				{#if editMode}
 					<EmptyItem
+						id={`${group.id}-0`}
+						handleHover={(id) => {
+							hoveredId = id;
+						}}
 						handleClick={() => handleClickItemAction(ActionType.CREATE, group.id, newItem())}
 					/>
 				{/if}
@@ -254,30 +258,10 @@
 	}
 
 	.edit-mode {
-		animation: tilt-shaking 0.3s infinite;
 		@apply cursor-move hover:shadow-md hover:ring-2 hover:ring-blue-200;
 
 		.item {
-			animation: tilt-shaking 0.2s infinite;
 			@apply cursor-move hover:shadow-md hover:ring-2 hover:ring-blue-200;
-		}
-	}
-
-	@keyframes tilt-shaking {
-		0% {
-			transform: rotate(0deg);
-		}
-		25% {
-			transform: rotate(0.3deg);
-		}
-		50% {
-			transform: rotate(0eg);
-		}
-		75% {
-			transform: rotate(-0.3deg);
-		}
-		100% {
-			transform: rotate(0deg);
 		}
 	}
 </style>
