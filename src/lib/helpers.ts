@@ -28,3 +28,11 @@ export const generateRandomString = (length: number) => {
 		.toString(36)
 		.substring(2, 2 + length);
 };
+
+export const isUrlString = (str: string): boolean => {
+	if (!str) {
+		return false;
+	}
+	const urlRegex = /^(ftp|http|https):\/\/[^ "]+$/;
+	return urlRegex.test(str);
+};

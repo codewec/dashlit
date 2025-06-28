@@ -5,7 +5,7 @@
 	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
 	import ActionButtons from './actionButtons.svelte';
-	import { getIds, hasField } from '$lib/helpers';
+	import { getIds, hasField, isUrlString } from '$lib/helpers';
 	import EmptyItem from './emptyItem.svelte';
 	import EmptyGroup from './emptyGroup.svelte';
 	import { newGroup, newItem } from '$lib/factory';
@@ -200,7 +200,15 @@
 						<div class="flex items-center gap-2">
 							{#if item.icon}
 								<div class="h-14 w-14">
-									<Icon color="gray" icon={item.icon} height={56} />
+									{#if isUrlString(item.icon)}
+										<img
+											src={item.icon}
+											alt={item.title}
+											class="h-full w-full rounded-full object-cover"
+										/>
+									{:else}
+										<Icon color="gray" icon={item.icon} height={56} />
+									{/if}
 								</div>
 							{/if}
 							<div>
