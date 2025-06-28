@@ -26,7 +26,7 @@
 				<Button class="cursor-pointer" onclick={() => handleEdit()}>Edit</Button>
 			{/if}
 			{#if canLogout}
-				<Button href="/logout">Logout</Button>
+				<Button data-sveltekit-preload-data="off" href="/logout">Logout</Button>
 			{/if}
 		</ButtonGroup>
 	</div>
