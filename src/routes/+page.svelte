@@ -102,6 +102,7 @@
 			i.url = item.url;
 			i.icon = item.icon;
 			i.iconColor = item.iconColor;
+			i.target = item.target;
 		} else {
 			group?.items.push(item);
 		}
@@ -154,7 +155,7 @@
 		if (editMode) {
 			return;
 		}
-		window.open(item.url, '_blank');
+		window.open(item.url, item.target ?? '_blank');
 	};
 </script>
 

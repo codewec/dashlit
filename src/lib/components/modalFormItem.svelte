@@ -1,6 +1,16 @@
 <script lang="ts">
 	import type { Item } from '$lib/types';
-	import { Button, ButtonGroup, Helper, Input, InputAddon, Label, Modal } from 'flowbite-svelte';
+	import {
+		Button,
+		ButtonGroup,
+		Checkbox,
+		Helper,
+		Input,
+		InputAddon,
+		Label,
+		Modal,
+		Select
+	} from 'flowbite-svelte';
 	import { slide } from 'svelte/transition';
 
 	const {
@@ -9,7 +19,18 @@
 		handleClose
 	}: { isOpen: boolean; item: Item; handleClose: (item: Item | undefined) => void } = $props();
 
+	let urlTarget = [
+		{ value: '_blank', name: 'New tab' },
+		{ value: '_self', name: 'Current tab' }
+	];
+
 	const form = $derived(item);
+
+	$effect(() => {
+		if (!form.target) {
+			form.target = '_blank';
+		}
+	});
 </script>
 
 <Modal open={isOpen} onclose={() => handleClose(undefined)} transition={slide} size="xs">
@@ -34,7 +55,19 @@
 			/>
 		</Label>
 		<div>
-			<Label for="input-addon" class="mb-2">Icon</Label>
+			<Label for="url">Url</Label>
+			<ButtonGroup class="inline-flex w-full items-stretch">
+				<Input bind:value={form.url} type="text" name="url" placeholder="Url" required />
+				<Select
+					selectClass="min-w-30 !rounded-tl-none !rounded-bl-none border-l-0"
+					bind:value={form.target}
+					items={urlTarget}
+					placeholder="Target"
+				/>
+			</ButtonGroup>
+		</div>
+		<div>
+			<Label for="icon">Icon</Label>
 			<ButtonGroup class="inline-flex w-full items-stretch">
 				<Input bind:value={form.icon} type="text" name="icon" placeholder="URL or Icon name" />
 				<span class="color-picker">
@@ -56,10 +89,6 @@
 				>. The color is applied only to the icon from the iconify.
 			</Helper>
 		</div>
-		<Label class="space-y-2">
-			<span>Url</span>
-			<Input bind:value={form.url} type="text" name="url" placeholder="Url" required />
-		</Label>
 		<Button type="submit" class="w-full">Save</Button>
 	</form>
 </Modal>

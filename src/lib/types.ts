@@ -7,10 +7,11 @@ export enum ActionType {
 export interface Item {
 	id: string;
 	title: string;
+	url: string;
+	target?: string;
 	description?: string;
 	icon?: string;
 	iconColor?: string;
-	url: string;
 }
 
 export interface Group {
