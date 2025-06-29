@@ -1,13 +1,22 @@
-name: Publish Docker image
+name: Push Dev
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 on:
-  workflow_dispatch:
-  release:
-    types: [published]
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - '.md'
+    branches:
+      - main
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+    branches:
+      - main
 
 jobs:
   build-and-push-image:
