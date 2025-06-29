@@ -12,7 +12,8 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"docs:dev": "vitepress dev docs",
 		"docs:build": "vitepress build docs",
-		"docs:preview": "vitepress preview docs"
+		"docs:preview": "vitepress preview docs",
+		"release": "vite build && changelogen --release --push"
 	},
 	"devDependencies": {
 		"@iconify/svelte": "^5.0.0",
@@ -23,6 +24,7 @@
 		"@tailwindcss/forms": "^0.5.9",
 		"@tailwindcss/vite": "^4.0.0",
 		"@types/node": "^24.0.1",
+		"changelogen": "^0.6.1",
 		"flowbite": "^3.1.2",
 		"flowbite-svelte": "^1.6.4",
 		"flowbite-svelte-icons": "^2.2.0",
