@@ -7,13 +7,16 @@
     <img src="https://img.shields.io/github/v/release/codewec/dashlit?logo=hackthebox&color=609966&logoColor=fff" alt="Current Version"/>
     <img src="https://img.shields.io/github/last-commit/codewec/dashlit?logo=github&color=609966&logoColor=fff" alt="Last commit"/>
     <a href="https://github.com/codewec/dashlit/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-609966?logo=opensourceinitiative&logoColor=fff" alt="License MIT"/></a>
-    <a href="https://dashlit.cwec.dev/" target="_blank"><img src="https://img.shields.io/badge/live-demo-609966"/></a>
+    <a href="https://dashlit.cwec.dev/" target="_blank"><img src="https://img.shields.io/badge/doc-609966"/></a>
+    <a href="https://demo.dashlit.cwec.dev/" target="_blank"><img src="https://img.shields.io/badge/live-demo-609966"/></a>
     <br/><br/>
-    <img src="https://raw.githubusercontent.com/codewec/dashlit/main/.github/main_page.png" alt="DashLit" width="100%"/>
+    <img src="https://raw.githubusercontent.com/codewec/dashlit/main/docs/public/main_page.png" alt="DashLit" width="100%"/>
 </p>
+
 
 ## 🚀 Getting started
 
+<!-- #region docker-configuration -->
 ### Docker
 
 This Docker image is published on the GitHub container registry - `ghcr.io/codewec/dashlit`.
@@ -55,3 +58,4 @@ services:
     volumes:
       - ./data:/app/data
 ```
+<!-- #endregion docker-configuration -->

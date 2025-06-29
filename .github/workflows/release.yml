@@ -1,4 +1,4 @@
-name: Push Dev
+name: Release Docker Image
 
 env:
   REGISTRY: ghcr.io
@@ -6,8 +6,9 @@ env:
 
 on:
   push:
-    branches:
-      - dev
+    tags:
+      - 'v*.*.*'
+
 jobs:
   build-and-push-image:
     name: Push Docker image to GitHub Packages

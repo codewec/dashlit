@@ -3,7 +3,8 @@ import { fail, redirect } from '@sveltejs/kit';
 import fs from 'node:fs/promises';
 import { env } from '$env/dynamic/private';
 import type { Dashboard } from '$lib/types';
-import { default_dashboard, data_path, version } from '$lib';
+import { default_dashboard, data_path } from '$lib';
+import { getVersion } from '$lib/server/helper';
 
 const dataPath = () => {
 	return env.DATA_PATH ?? data_path;
@@ -38,7 +39,7 @@ export const actions = {
 
 		await fs.mkdir(dataPath(), { recursive: true }).catch(console.error);
 		await fs
-			.writeFile(filePath(), JSON.stringify({ version: version, groups: json }))
+			.writeFile(filePath(), JSON.stringify({ version: getVersion(), groups: json }))
 			.catch((error) => {
 				console.log(`Cant write ${filePath()}`);
 				return fail(500);
