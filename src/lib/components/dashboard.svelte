@@ -207,7 +207,7 @@
 											class="h-full w-full rounded-full object-cover"
 										/>
 									{:else}
-										<Icon color="gray" icon={item.icon} height={56} />
+										<Icon color={item.iconColor ?? 'gray'} icon={item.icon} height={56} />
 									{/if}
 								</div>
 							{/if}

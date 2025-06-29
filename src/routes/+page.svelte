@@ -101,6 +101,7 @@
 			i.description = item.description;
 			i.url = item.url;
 			i.icon = item.icon;
+			i.iconColor = item.iconColor;
 		} else {
 			group?.items.push(item);
 		}
