@@ -47,6 +47,6 @@ features:
     details: Installable application.
 ---
 
-## Screenshots
+## Screenshot
 
 ![DashLit](/main_page.png "DashLit")
