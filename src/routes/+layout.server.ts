@@ -1,13 +1,9 @@
 import type { LayoutServerLoad } from './$types';
 import { env } from '$env/dynamic/private';
 
-export const load: LayoutServerLoad = async ({ locals, url }) => {
-	const origin = env.ORIGIN ?? '';
+export const load: LayoutServerLoad = async ({ locals }) => {
 	return {
-		originWarning: {
-			currentOrigin: url.origin,
-			isWarning: origin !== url.origin
-		},
+		envOrigin: env.ORIGIN ?? '',
 		userAuthenticated: locals.userAuthenticated
 	};
 };

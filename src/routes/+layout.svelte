@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { Toaster } from 'svelte-5-french-toast';
+	import { page } from '$app/state';
 	import '../app.css';
 	let { children, data } = $props();
 </script>
 
 <Toaster />
-{#if data.originWarning.isWarning}
+{#if data.envOrigin !== page.url.origin}
 	<div class="w-full bg-red-600 p-2 text-center text-white">
 		<p>
-			Invalid origin found. Please specify ORIGIN={data.originWarning.currentOrigin}. Check
+			Invalid ORIGIN found. Please specify ORIGIN={page.url.origin}. Check the
 			<a
 				target="_blank"
 				class="underline"
