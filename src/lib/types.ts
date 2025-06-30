@@ -4,10 +4,18 @@ export enum ActionType {
 	EDIT = 'edit'
 }
 
+export enum ShowUrlType {
+	NEVER = 'never',
+	ALWAYS = 'always',
+	DESC_EMPTY = 'empty_desc',
+	HOVER = 'hover'
+}
+
 export interface Item {
 	id: string;
 	title: string;
 	url: string;
+	showUrl?: ShowUrlType;
 	target?: string;
 	description?: string;
 	icon?: string;

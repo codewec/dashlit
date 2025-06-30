@@ -103,6 +103,7 @@
 			i.icon = item.icon;
 			i.iconColor = item.iconColor;
 			i.target = item.target;
+			i.showUrl = item.showUrl;
 		} else {
 			group?.items.push(item);
 		}

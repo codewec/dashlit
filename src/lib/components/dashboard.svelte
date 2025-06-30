@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ActionType, type Group, type Item } from '$lib/types';
+	import { ActionType, ShowUrlType, type Group, type Item } from '$lib/types';
 	import Icon from '@iconify/svelte';
 	import { droppable, draggable, type DragDropState } from '@thisux/sveltednd';
 	import { flip } from 'svelte/animate';
@@ -9,6 +9,7 @@
 	import EmptyItem from './emptyItem.svelte';
 	import EmptyGroup from './emptyGroup.svelte';
 	import { newGroup, newItem } from '$lib/factory';
+	import { on } from 'svelte/events';
 
 	const {
 		editMode,
@@ -24,7 +25,8 @@
 		handleClickGroupAction: (type: ActionType, group: Group) => void;
 	} = $props();
 
-	let hoveredId = $state<string | undefined>(undefined);
+	let hoveredOnActionsEnitytId = $state<string | undefined>(undefined); // if hover on actions buttons on edit mode
+	let hoveredItemId = $state<string | undefined>(undefined); // if hover on item (not group) on not edit mode
 	let disableGroupsDrag = $state(true);
 	let disableItemDrag = $state(true);
 
@@ -33,9 +35,56 @@
 		disableItemDrag = !editMode;
 	});
 
+	const getHoverDescription = (groupId: string, item: Item) => {
+		if (!hoveredItemId) {
+			return item.description;
+		}
+		const ids = getIds(hoveredItemId);
+		if (!ids) {
+			return item.description;
+		}
+
+		if (ids.groupId === groupId && ids.itemId === item.id) {
+			if (item.showUrl === ShowUrlType.HOVER) {
+				return item.url;
+			}
+		}
+		return item.description;
+	};
+
+	const getDescription = (groupId: string, item: Item) => {
+		switch (item.showUrl) {
+			case ShowUrlType.NEVER:
+				return item.description;
+			case ShowUrlType.ALWAYS:
+				return item.description ? item.description : item.url;
+			case ShowUrlType.HOVER:
+				return getHoverDescription(groupId, item);
+			case ShowUrlType.DESC_EMPTY:
+				return item.description ? item.description : item.url;
+			default:
+				return item.description ? item.description : item.url;
+		}
+	};
+
+	const getUrl = (item: Item) => {
+		switch (item.showUrl) {
+			case ShowUrlType.NEVER:
+				return undefined;
+			case ShowUrlType.ALWAYS:
+				return item.description ? item.url : undefined;
+			case ShowUrlType.HOVER:
+				return undefined;
+			case ShowUrlType.DESC_EMPTY:
+				return undefined;
+			default:
+				return undefined;
+		}
+	};
+
 	const isDisabledGroupDrag = (id: string) => {
-		if (hoveredId) {
-			const ids = getIds(hoveredId);
+		if (hoveredOnActionsEnitytId) {
+			const ids = getIds(hoveredOnActionsEnitytId);
 			if (ids && ids.groupId == id) {
 				return true;
 			}
@@ -44,7 +93,7 @@
 	};
 
 	const isDisabledItemDrag = (id: string) => {
-		if (id == hoveredId) {
+		if (id == hoveredOnActionsEnitytId) {
 			return true;
 		}
 		return disableItemDrag;
@@ -155,7 +204,7 @@
 					<ActionButtons
 						id={`${group.id}-0`}
 						handleHover={(id) => {
-							hoveredId = id;
+							hoveredOnActionsEnitytId = id;
 						}}
 						handleClick={(action) => handleClickGroupAction(action, group)}
 					/>
@@ -171,6 +220,16 @@
 							if (e.key === 'Enter') {
 								handleClickItem(item);
 							}
+						}}
+						onmouseenter={() => {
+							if (editMode) {
+								hoveredItemId = undefined;
+								return;
+							}
+							hoveredItemId = `${group.id}-${item.id}`;
+						}}
+						onmouseleave={() => {
+							hoveredItemId = undefined;
 						}}
 						onclick={() => {
 							handleClickItem(item);
@@ -199,7 +258,7 @@
 					>
 						<div class="flex items-center gap-2">
 							{#if item.icon}
-								<div class="h-14 w-14">
+								<div class="h-14 w-19">
 									{#if isUrlString(item.icon)}
 										<img
 											src={item.icon}
@@ -207,17 +266,29 @@
 											class="h-full w-full rounded-full object-cover"
 										/>
 									{:else}
-										<Icon color={item.iconColor ?? 'gray'} icon={item.icon} height={56} />
+										<Icon
+											color={item.iconColor ?? 'gray'}
+											icon={item.icon}
+											width={56}
+											height={56}
+										/>
 									{/if}
 								</div>
 							{/if}
-							<div>
+							<div class="w-full truncate">
 								<h3 class="font-medium text-gray-900 dark:text-gray-100">
 									{item.title}
 								</h3>
-								<p class="text-sm text-gray-500">
-									{item.description}
-								</p>
+								{#if getDescription(group.id, item)}
+									<p class="text-sm text-gray-500">
+										{getDescription(group.id, item)}
+									</p>
+								{/if}
+								{#if getUrl(item)}
+									<p class="text-[10px] text-gray-400 dark:text-gray-500">
+										{getUrl(item)}
+									</p>
+								{/if}
 							</div>
 						</div>
 						<div class="absolute top-1 right-1">
@@ -225,7 +296,7 @@
 								<ActionButtons
 									id={`${group.id}-${item.id}`}
 									handleHover={(id) => {
-										hoveredId = id;
+										hoveredOnActionsEnitytId = id;
 									}}
 									handleClick={(action) => handleClickItemAction(action, group.id, item)}
 								/>
@@ -237,7 +308,7 @@
 					<EmptyItem
 						id={`${group.id}-0`}
 						handleHover={(id) => {
-							hoveredId = id;
+							hoveredOnActionsEnitytId = id;
 						}}
 						handleClick={() => handleClickItemAction(ActionType.CREATE, group.id, newItem())}
 					/>

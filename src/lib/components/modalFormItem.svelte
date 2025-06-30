@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Item } from '$lib/types';
+	import { ShowUrlType, type Item } from '$lib/types';
 	import {
 		Button,
 		ButtonGroup,
@@ -19,9 +19,16 @@
 		handleClose
 	}: { isOpen: boolean; item: Item; handleClose: (item: Item | undefined) => void } = $props();
 
-	let urlTarget = [
+	const urlTargetOptions = [
 		{ value: '_blank', name: 'New tab' },
 		{ value: '_self', name: 'Current tab' }
+	];
+
+	const showUrlOptions = [
+		{ value: ShowUrlType.NEVER, name: 'Never' },
+		{ value: ShowUrlType.ALWAYS, name: 'Always' },
+		{ value: ShowUrlType.DESC_EMPTY, name: 'If description is empty' },
+		{ value: ShowUrlType.HOVER, name: 'On hover' }
 	];
 
 	const form = $derived(item);
@@ -29,6 +36,9 @@
 	$effect(() => {
 		if (!form.target) {
 			form.target = '_blank';
+		}
+		if (!form.showUrl) {
+			form.showUrl = ShowUrlType.DESC_EMPTY;
 		}
 	});
 </script>
@@ -61,11 +71,15 @@
 				<Select
 					selectClass="min-w-30 !rounded-tl-none !rounded-bl-none border-l-0"
 					bind:value={form.target}
-					items={urlTarget}
+					items={urlTargetOptions}
 					placeholder="Target"
 				/>
 			</ButtonGroup>
 		</div>
+		<Label class="space-y-2">
+			<span>Show Url</span>
+			<Select bind:value={form.showUrl} items={showUrlOptions} placeholder="When show url" />
+		</Label>
 		<div>
 			<Label for="icon">Icon</Label>
 			<ButtonGroup class="inline-flex w-full items-stretch">
@@ -85,8 +99,8 @@
 				URL or Icon name from <a
 					target="_blank"
 					href="https://icon-sets.iconify.design/"
-					class="text-primary-600 dark:text-primary-500 font-medium hover:underline">iconify</a
-				>. The color is applied only to the icon from the iconify.
+					class="text-primary-600 dark:text-primary-500 font-medium hover:underline">Iconify</a
+				>. The color is applied only to the <b>Iconify</b> icon.
 			</Helper>
 		</div>
 		<Button type="submit" class="w-full">Save</Button>
