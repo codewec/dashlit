@@ -1,4 +1,4 @@
-name: Push Dev
+name: Push Main
 
 env:
   REGISTRY: ghcr.io

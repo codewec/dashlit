@@ -14,7 +14,7 @@
 	} = $props();
 </script>
 
-<div class="inline-flex gap-1">
+<div class="action-buttons inline-flex gap-1">
 	<Button
 		pill={true}
 		color="light"
@@ -27,7 +27,8 @@
 		onclick={() => {
 			handleClick(ActionType.EDIT);
 		}}
-		class="h-4 w-4 cursor-pointer p-3!"><EditOutline class="h-4 w-4" color="gray" /></Button
+		class="edit-button h-4 w-4 cursor-pointer p-3!"
+		><EditOutline class="h-4 w-4" color="gray" /></Button
 	>
 	<Button
 		pill={true}
@@ -41,6 +42,7 @@
 		onclick={() => {
 			handleClick(ActionType.DELETE);
 		}}
-		class="h-4 w-4 cursor-pointer p-3!"><CloseCircleOutline class="h-4 w-4" color="gray" /></Button
+		class="delete-button h-4 w-4 cursor-pointer p-3!"
+		><CloseCircleOutline class="h-4 w-4" color="gray" /></Button
 	>
 </div>

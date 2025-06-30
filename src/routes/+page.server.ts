@@ -3,16 +3,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import fs from 'node:fs/promises';
 import { env } from '$env/dynamic/private';
 import type { Dashboard } from '$lib/types';
-import { default_dashboard, data_path } from '$lib';
-import { getVersion } from '$lib/server/helper';
-
-const dataPath = () => {
-	return env.DATA_PATH ?? data_path;
-};
-
-const filePath = () => {
-	return `${dataPath()}/${default_dashboard}`;
-};
+import { dataPath, filePath, getVersion } from '$lib/server/helper';
 
 export const load: PageServerLoad = async (event) => {
 	if (!event.locals.userAuthenticated) {

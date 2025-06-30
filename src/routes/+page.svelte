@@ -164,7 +164,7 @@
 	<title>{page_title}</title>
 </svelte:head>
 
-<div class="p-4">
+<div class="dashboard p-4">
 	<Header
 		{editMode}
 		canLogout={data.canLogout}

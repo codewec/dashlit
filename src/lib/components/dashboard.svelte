@@ -165,14 +165,14 @@
 	}
 </script>
 
-<div class="grid grid-cols-1 gap-4">
+<div class="group-container grid grid-cols-1 gap-4">
 	{#if editMode}
 		<EmptyGroup handleClick={() => handleClickGroupAction(ActionType.CREATE, newGroup())} />
 	{/if}
 	{#each groups as group (`g_${group.id}`)}
 		<div
 			class:edit-mode={editMode}
-			class="rounded-md bg-gray-50 p-4 shadow-sm ring-1 ring-gray-200 dark:bg-slate-900 dark:ring-slate-800"
+			class="group rounded-md bg-gray-50 p-4 shadow-sm ring-1 ring-gray-200 dark:bg-slate-900 dark:ring-slate-800"
 			use:draggable={{
 				container: group.id,
 				dragData: group,
@@ -193,11 +193,11 @@
 		>
 			<div class="mb-4 flex items-center justify-between">
 				<div class="inline-flex gap-2">
-					<h2 class="font-semibold text-gray-900 capitalize dark:text-gray-200">
+					<h2 class="title font-semibold text-gray-900 capitalize dark:text-gray-200">
 						{group.title}
 					</h2>
 					{#if group.description}
-						<p class="text-xs text-gray-500">{group.description}</p>
+						<p class="description text-xs text-gray-500">{group.description}</p>
 					{/if}
 				</div>
 				{#if editMode}
@@ -211,7 +211,9 @@
 				{/if}
 			</div>
 
-			<div class="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+			<div
+				class="item-container grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+			>
 				{#each group.items as item (`i_${item.id}`)}
 					<div
 						tabindex="0"
@@ -276,16 +278,16 @@
 								</div>
 							{/if}
 							<div class="w-full truncate">
-								<h3 class="font-medium text-gray-900 dark:text-gray-100">
+								<h3 class="title font-medium text-gray-900 dark:text-gray-100">
 									{item.title}
 								</h3>
 								{#if getDescription(group.id, item)}
-									<p class="text-sm text-gray-500">
+									<p class="description text-sm text-gray-500">
 										{getDescription(group.id, item)}
 									</p>
 								{/if}
 								{#if getUrl(item)}
-									<p class="text-[10px] text-gray-400 dark:text-gray-500">
+									<p class="url text-[10px] text-gray-400 dark:text-gray-500">
 										{getUrl(item)}
 									</p>
 								{/if}
