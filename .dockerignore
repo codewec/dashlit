@@ -1,0 +1,8 @@
+   .git
+   .env
+   .env.*
+   *.md
+   node_modules
+   data/
+   Dockerfile
+   .github/
