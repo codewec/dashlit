@@ -2,10 +2,7 @@
   import { api, iconSrc } from '../lib/api';
   import Icon from './Icon.svelte';
 
-  let {
-    value = $bindable(''),
-    seed = '',
-  }: { value?: string; seed?: string } = $props();
+  let { value = $bindable('') }: { value?: string } = $props();
 
   type Tab = 'search' | 'url' | 'upload';
   let tab = $state<Tab>('search');
@@ -16,17 +13,12 @@
   let debounce: ReturnType<typeof setTimeout> | undefined;
 
   $effect(() => {
-    if (seed && !value && tab === 'search' && !query) {
-      query = seed;
-    }
-  });
-
-  $effect(() => {
     const q = query;
     clearTimeout(debounce);
     if (tab !== 'search') return;
     if (!q.trim()) {
       results = [];
+      searching = false;
       return;
     }
     searching = true;
@@ -54,13 +46,11 @@
 
 <div class="space-y-3">
   <div class="flex gap-1 rounded-lg bg-[var(--color-surface-2)] p-1">
-    {#each (['search', 'url', 'upload'] as Tab[]) as t}
+    {#each ['search', 'url', 'upload'] as Tab[] as t}
       <button
         type="button"
         class="flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition
-          {tab === t
-            ? 'bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm'
-            : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}"
+          {tab === t ? 'bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}"
         onclick={() => (tab = t)}
       >
         {t === 'search' ? 'Search' : t === 'url' ? 'URL' : 'Upload'}
@@ -72,9 +62,7 @@
     <div class="flex items-center gap-3 rounded-lg border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] px-3 py-2">
       <Icon icon={value} size={28} />
       <span class="min-w-0 flex-1 truncate text-xs text-[var(--color-text-muted)]">{value}</span>
-      <button type="button" class="text-xs text-[var(--color-text-subtle)] hover:text-[var(--color-danger)]" onclick={() => (value = '')}>
-        Clear
-      </button>
+      <button type="button" class="text-xs text-[var(--color-text-subtle)] hover:text-[var(--color-danger)]" onclick={() => (value = '')}> Clear </button>
     </div>
   {/if}
 
@@ -111,11 +99,7 @@
         bind:value={urlInput}
         onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), applyUrl())}
       />
-      <button
-        type="button"
-        class="rounded-[var(--radius-btn)] bg-[var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)]"
-        onclick={applyUrl}
-      >
+      <button type="button" class="rounded-[var(--radius-btn)] bg-[var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)]" onclick={applyUrl}>
         Apply
       </button>
     </div>

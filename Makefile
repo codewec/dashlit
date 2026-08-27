@@ -23,5 +23,8 @@ dev-backend:
 dev-frontend:
 	cd frontend && npm run dev
 
+seed:
+	cd backend && go run ./cmd/seed
+
 clean:
 	rm -rf frontend/dist backend/cmd/server/static app data/*.db

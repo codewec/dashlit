@@ -2,8 +2,8 @@
   import { onMount } from 'svelte';
   import { DragDropProvider, DragOverlay } from '@dnd-kit-svelte/svelte';
   import { move } from '@dnd-kit/helpers';
-  import { push } from 'svelte-spa-router';
-  import { api, type Dashboard, type Group, type Item } from '../lib/api';
+  import { push, replace } from 'svelte-spa-router';
+  import { api, type Dashboard, type Group, type Item, type ItemSize, type Layout, type Width } from '../lib/api';
   import { user, editMode, searchQuery, currentDashboard } from '../lib/stores';
   import AppLayout from '../layouts/AppLayout.svelte';
   import GroupCard from '../components/GroupCard.svelte';
@@ -18,10 +18,8 @@
   let groups = $state<Group[]>([]);
   let loading = $state(true);
   let error = $state('');
-  let needLogin = $state(false);
   let dashList = $state<{ id: string; name: string; slug: string }[]>([]);
 
-  // modals
   let groupOpen = $state(false);
   let itemOpen = $state(false);
   let dashOpen = $state(false);
@@ -34,19 +32,24 @@
   let targetGroupId = $state('');
 
   let gTitle = $state('');
+  let gDesc = $state('');
+  let gIcon = $state('');
+  let gItemSize = $state<ItemSize>('1x1');
   let gTitleErr = $state(false);
+
   let iTitle = $state('');
   let iDesc = $state('');
   let iUrl = $state('');
   let iIcon = $state('mdi:link');
-  let iSize = $state<'1x1' | '1x2'>('1x1');
   let iTitleErr = $state(false);
   let iUrlErr = $state(false);
 
   let dName = $state('');
   let dSlug = $state('');
   let dPrivacy = $state<'public' | 'private' | 'users'>('private');
-  let dLayout = $state<'rows' | 'columns'>('rows');
+  let dLayout = $state<Layout>('rows');
+  let dWidth = $state<Width>('default');
+  let creatingNew = $state(false);
 
   const filteredGroups = $derived.by(() => {
     const q = $searchQuery.trim().toLowerCase();
@@ -54,14 +57,11 @@
     return groups
       .map((g) => ({
         ...g,
-        items: (g.items || []).filter(
-          (it) => it.title.toLowerCase().includes(q) || (it.description || '').toLowerCase().includes(q)
-        ),
+        items: (g.items || []).filter((it) => it.title.toLowerCase().includes(q) || (it.description || '').toLowerCase().includes(q)),
       }))
       .filter((g) => (g.items?.length || 0) > 0 || g.title.toLowerCase().includes(q));
   });
 
-  // DnD structure: Record<groupId, items[]>
   const itemsByGroup = $derived.by(() => {
     const map: Record<string, Item[]> = {};
     for (const g of filteredGroups) {
@@ -73,12 +73,42 @@
   async function load() {
     loading = true;
     error = '';
-    needLogin = false;
     try {
+      if ($user) {
+        const list = await api.listDashboards();
+        dashList = list.map((x) => ({ id: x.id, name: x.name, slug: x.slug }));
+      } else {
+        dashList = [];
+      }
+
       const slug = params?.slug;
-      const d = slug ? await api.getDashboard(slug) : await api.getMain();
+      let d: Dashboard | null = null;
+
+      if (slug) {
+        d = await api.getDashboard(slug);
+      } else {
+        // root: prefer main, else first available
+        try {
+          d = await api.getMain();
+        } catch {
+          d = null;
+        }
+        if (!d && $user && dashList.length > 0) {
+          replace('/' + dashList[0].slug);
+          return;
+        }
+        if (!d && !$user) {
+          replace('/login');
+          return;
+        }
+      }
+
       if (!d) {
-        error = 'No dashboard yet.';
+        if (!$user) {
+          replace('/login');
+          return;
+        }
+        error = 'No dashboards yet.';
         dashboard = null;
         groups = [];
       } else {
@@ -86,13 +116,12 @@
         groups = (d.groups || []).slice().sort((a, b) => a.position - b.position);
         currentDashboard.set(d);
       }
-      if ($user) {
-        const list = await api.listDashboards();
-        dashList = list.map((x) => ({ id: x.id, name: x.name, slug: x.slug }));
-      }
     } catch (e: any) {
-      if (/login|unauthorized/i.test(e.message || '')) needLogin = true;
-      else error = e.message || 'Failed to load';
+      if (/login|unauthorized|access denied/i.test(e.message || '')) {
+        replace('/login');
+        return;
+      }
+      error = e.message || 'Failed to load';
       dashboard = null;
       groups = [];
     } finally {
@@ -103,6 +132,7 @@
   onMount(load);
   $effect(() => {
     void params?.slug;
+    void $user;
     load();
   });
 
@@ -115,20 +145,32 @@
   function openNewGroup() {
     editingGroup = null;
     gTitle = '';
+    gDesc = '';
+    gIcon = '';
+    gItemSize = '1x1';
     gTitleErr = false;
     groupOpen = true;
   }
   function openEditGroup(g: Group) {
     editingGroup = g;
     gTitle = g.title;
+    gDesc = g.description || '';
+    gIcon = g.icon || '';
+    gItemSize = g.itemSize || '1x1';
     gTitleErr = false;
     groupOpen = true;
   }
   async function saveGroup() {
     gTitleErr = !gTitle.trim();
     if (gTitleErr || !dashboard) return;
-    if (editingGroup) await api.updateGroup(editingGroup.id, { title: gTitle.trim() });
-    else await api.createGroup(dashboard.id, { title: gTitle.trim(), position: groups.length });
+    const payload = {
+      title: gTitle.trim(),
+      description: gDesc,
+      icon: gIcon,
+      itemSize: gItemSize,
+    };
+    if (editingGroup) await api.updateGroup(editingGroup.id, payload);
+    else await api.createGroup(dashboard.id, { ...payload, position: groups.length });
     groupOpen = false;
     await load();
   }
@@ -136,55 +178,91 @@
   function openNewItem(g: Group) {
     editingItem = null;
     targetGroupId = g.id;
-    iTitle = ''; iDesc = ''; iUrl = ''; iIcon = 'mdi:link'; iSize = '1x1';
-    iTitleErr = false; iUrlErr = false;
+    iTitle = '';
+    iDesc = '';
+    iUrl = '';
+    iIcon = 'mdi:link';
+    iTitleErr = false;
+    iUrlErr = false;
     itemOpen = true;
   }
   function openEditItem(item: Item) {
     editingItem = item;
     targetGroupId = item.groupId;
-    iTitle = item.title; iDesc = item.description || ''; iUrl = item.url;
-    iIcon = item.icon; iSize = item.size;
-    iTitleErr = false; iUrlErr = false;
+    iTitle = item.title;
+    iDesc = item.description || '';
+    iUrl = item.url;
+    iIcon = item.icon;
+    iTitleErr = false;
+    iUrlErr = false;
     itemOpen = true;
   }
   async function saveItem() {
     iTitleErr = !iTitle.trim();
     iUrlErr = !iUrl.trim();
     if (iTitleErr || iUrlErr) return;
-    if (editingItem) {
-      await api.updateItem(editingItem.id, {
-        title: iTitle.trim(), description: iDesc, url: iUrl.trim(), icon: iIcon || 'mdi:link', size: iSize,
-      });
-    } else {
-      await api.createItem(targetGroupId, {
-        title: iTitle.trim(), description: iDesc, url: iUrl.trim(), icon: iIcon || 'mdi:link', size: iSize,
-        position: (itemsByGroup[targetGroupId] || []).length,
-      });
-    }
+    const payload = {
+      title: iTitle.trim(),
+      description: iDesc,
+      url: iUrl.trim(),
+      icon: iIcon || 'mdi:link',
+    };
+    if (editingItem) await api.updateItem(editingItem.id, payload);
+    else await api.createItem(targetGroupId, { ...payload, position: (itemsByGroup[targetGroupId] || []).length });
     itemOpen = false;
     await load();
   }
 
   function openDashSettings() {
+    creatingNew = false;
     if (dashboard) {
-      dName = dashboard.name; dSlug = dashboard.slug;
-      dPrivacy = dashboard.privacy; dLayout = dashboard.layout;
+      dName = dashboard.name;
+      dSlug = dashboard.slug;
+      dPrivacy = dashboard.privacy;
+      dLayout = dashboard.layout;
+      dWidth = dashboard.width || 'default';
     } else {
-      dName = 'Home'; dSlug = 'home'; dPrivacy = 'private'; dLayout = 'rows';
+      dName = 'Home';
+      dSlug = 'home';
+      dPrivacy = 'private';
+      dLayout = 'rows';
+      dWidth = 'default';
     }
+    dashOpen = true;
+  }
+  function openCreateDashboard() {
+    dName = '';
+    dSlug = '';
+    dPrivacy = 'private';
+    dLayout = 'rows';
+    dWidth = 'default';
+    // force create path in saveDash
+    creatingNew = true;
     dashOpen = true;
   }
   async function saveDash() {
     if (!dName.trim() || !dSlug.trim()) return;
-    if (!dashboard && $user) {
-      const d = await api.createDashboard({ name: dName, slug: dSlug, privacy: dPrivacy, layout: dLayout });
+    if (creatingNew || !dashboard) {
+      if (!$user) return;
+      const d = await api.createDashboard({
+        name: dName,
+        slug: dSlug,
+        privacy: dPrivacy,
+        layout: dLayout,
+        width: dWidth,
+      } as any);
+      creatingNew = false;
       dashOpen = false;
       push('/' + d.slug);
       return;
     }
-    if (!dashboard) return;
-    await api.updateDashboard(dashboard.id, { name: dName, slug: dSlug, privacy: dPrivacy, layout: dLayout } as any);
+    await api.updateDashboard(dashboard.id, {
+      name: dName,
+      slug: dSlug,
+      privacy: dPrivacy,
+      layout: dLayout,
+      width: dWidth,
+    } as any);
     dashOpen = false;
     if (dSlug !== dashboard.slug) push('/' + dSlug);
     else await load();
@@ -204,7 +282,6 @@
     if (!$editMode) return;
     const { source } = event.operation;
     if (source?.type === 'column') {
-      // reorder groups
       const from = groups.findIndex((g) => g.id === source.id);
       const targetId = event.operation.target?.id;
       if (from < 0 || !targetId) return;
@@ -216,7 +293,6 @@
       groups = next;
       return;
     }
-    // items via move helper — adapt structure
     const bag: Record<string, Item[]> = {};
     for (const g of groups) bag[g.id] = [...(g.items || [])];
     const nextBag = move(bag, event) as Record<string, Item[]>;
@@ -228,119 +304,194 @@
 
   async function onDragEnd() {
     if (!$editMode || !dashboard) return;
-    try { await persistLayout(); } catch {}
+    try {
+      await persistLayout();
+    } catch {}
   }
 </script>
 
-{#if needLogin}
-  <!-- bare message — login uses its own route/layout -->
-  <div class="flex min-h-dvh flex-col items-center justify-center gap-4 p-6">
-    <p class="text-[var(--color-text-muted)]">This dashboard requires authentication.</p>
-    <a href="#/login" class="rounded-[var(--radius-btn)] bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white">Sign in</a>
-  </div>
-{:else}
-  <AppLayout dashboards={dashList}>
-    {#if loading}
-      <p class="py-20 text-center text-sm text-[var(--color-text-subtle)]">Loading…</p>
-    {:else if error}
-      <div class="flex flex-col items-center gap-3 py-20">
-        <p class="text-sm text-[var(--color-text-muted)]">{error}</p>
-        {#if $user}
-          <button type="button" class="rounded-[var(--radius-btn)] bg-[var(--color-primary)] px-4 py-2 text-sm text-white" onclick={openDashSettings}>
-            Create dashboard
-          </button>
-        {/if}
+{#if loading}
+  <div class="flex min-h-dvh items-center justify-center text-sm text-[var(--color-text-subtle)]">Loading…</div>
+{:else if dashboard}
+  <AppLayout
+    dashboards={dashList}
+    currentSlug={dashboard.slug}
+    wide={dashboard.width === 'wide'}
+    onCreateDashboard={openCreateDashboard}
+    onDeleteDashboard={() =>
+      askConfirm(`Delete dashboard “${dashboard?.name}”?`, async () => {
+        if (!dashboard) return;
+        const id = dashboard.id;
+        await api.deleteDashboard(id);
+        editMode.set(false);
+        const rest = dashList.filter((d) => d.id !== id);
+        dashList = rest;
+        if (rest.length > 0) push('/' + rest[0].slug);
+        else {
+          dashboard = null;
+          groups = [];
+          replace('/');
+        }
+      })}
+  >
+    <DragDropProvider {onDragOver} {onDragEnd}>
+      <div
+        class={dashboard.layout === 'columns'
+          ? dashboard.width === 'wide'
+            ? 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+            : 'grid grid-cols-1 gap-4 md:grid-cols-2'
+          : dashboard.layout === 'masonry'
+            ? dashboard.width === 'wide'
+              ? 'columns-1 gap-4 space-y-4 sm:columns-2 lg:columns-3 xl:columns-4 [&>*]:mb-4 [&>*]:break-inside-avoid'
+              : 'columns-1 gap-4 space-y-4 md:columns-2 [&>*]:mb-4 [&>*]:break-inside-avoid'
+            : 'flex flex-col gap-4'}
+      >
+        {#each filteredGroups as group, gIndex (group.id)}
+          <div class={dashboard.layout === 'columns' ? 'min-w-0' : dashboard.layout === 'masonry' ? 'break-inside-avoid' : ''}>
+            <GroupCard
+              {group}
+              index={gIndex}
+              layout={dashboard.layout}
+              wide={dashboard.width === 'wide'}
+              onEdit={openEditGroup}
+              onDelete={(g) =>
+                askConfirm(`Delete group “${g.title}” and all its items?`, async () => {
+                  await api.deleteGroup(g.id);
+                  await load();
+                })}
+              onAddItem={openNewItem}
+            >
+              {#each itemsByGroup[group.id] || [] as item, iIndex (item.id)}
+                <ItemCard
+                  {item}
+                  index={iIndex}
+                  groupId={group.id}
+                  itemSize={group.itemSize}
+                  onEdit={openEditItem}
+                  onDelete={(it) =>
+                    askConfirm(`Delete “${it.title}”?`, async () => {
+                      await api.deleteItem(it.id);
+                      await load();
+                    })}
+                />
+              {/each}
+            </GroupCard>
+          </div>
+        {/each}
       </div>
-    {:else if dashboard}
-      <DragDropProvider {onDragOver} onDragEnd={onDragEnd}>
-        <div class="flex flex-col gap-4 {dashboard.layout === 'columns' ? 'md:flex-row md:flex-wrap md:items-start' : ''}">
-          {#each filteredGroups as group, gIndex (group.id)}
-            <div class={dashboard.layout === 'columns' ? 'min-w-[16rem] flex-1' : ''}>
-              <GroupCard
-                {group}
-                index={gIndex}
-                onEdit={openEditGroup}
-                onDelete={(g) => askConfirm(`Delete group “${g.title}” and all its items?`, async () => { await api.deleteGroup(g.id); await load(); })}
-                onAddItem={openNewItem}
-              >
-                {#each (itemsByGroup[group.id] || []) as item, iIndex (item.id)}
-                  <ItemCard
-                    {item}
-                    index={iIndex}
-                    groupId={group.id}
-                    onEdit={openEditItem}
-                    onDelete={(it) => askConfirm(`Delete “${it.title}”?`, async () => { await api.deleteItem(it.id); await load(); })}
-                  />
-                {/each}
-              </GroupCard>
-            </div>
-          {/each}
-        </div>
 
-        <DragOverlay>
-          {#snippet children(source)}
-            {#if source?.data?.item}
-              <ItemCard item={source.data.item} index={0} groupId={source.data.group} isOverlay />
-            {:else if source?.data?.group}
-              <GroupCard group={source.data.group} index={0} isOverlay />
-            {/if}
-          {/snippet}
-        </DragOverlay>
-      </DragDropProvider>
+      <DragOverlay>
+        {#snippet children(source)}
+          {#if source?.data?.item}
+            {@const g = groups.find((x) => x.id === source.data.group)}
+            <ItemCard item={source.data.item} index={0} groupId={source.data.group} itemSize={g?.itemSize ?? '1x1'} isOverlay />
+          {:else if source?.data?.group}
+            <GroupCard group={source.data.group} index={0} layout={dashboard?.layout} wide={dashboard?.width === 'wide'} isOverlay />
+          {/if}
+        {/snippet}
+      </DragOverlay>
+    </DragDropProvider>
 
-      {#if $editMode}
-        <div class="fixed bottom-5 left-1/2 z-30 flex -translate-x-1/2 gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 shadow-xl">
-          <button type="button" class="rounded-full bg-[var(--color-primary)] px-4 py-1.5 text-xs font-medium text-white" onclick={openNewGroup}>+ Group</button>
-          <button type="button" class="rounded-full px-4 py-1.5 text-xs text-[var(--color-text)] hover:bg-[var(--color-surface-2)]" onclick={openDashSettings}>Settings</button>
-        </div>
-      {/if}
+    {#if $editMode}
+      <div class="fixed bottom-5 left-1/2 z-30 flex -translate-x-1/2 gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 shadow-xl">
+        <button type="button" class="rounded-full bg-[var(--color-primary)] px-4 py-1.5 text-xs font-medium text-white" onclick={openNewGroup}>+ Group</button>
+        <button type="button" class="rounded-full px-4 py-1.5 text-xs text-[var(--color-text)] hover:bg-[var(--color-surface-2)]" onclick={openDashSettings}>Settings</button>
+      </div>
     {/if}
+  </AppLayout>
+{:else}
+  <AppLayout dashboards={dashList} currentSlug="" onCreateDashboard={openCreateDashboard}>
+    <div class="flex flex-col items-center gap-3 py-20">
+      <p class="text-sm text-[var(--color-text-muted)]">{error || 'No dashboards yet.'}</p>
+      {#if $user}
+        <button type="button" class="rounded-[var(--radius-btn)] bg-[var(--color-primary)] px-4 py-2 text-sm text-white" onclick={openCreateDashboard}> Create dashboard </button>
+      {/if}
+    </div>
   </AppLayout>
 {/if}
 
-<!-- Group modal -->
 <Modal bind:open={groupOpen} title={editingGroup ? 'Edit group' : 'New group'}>
-  <form onsubmit={(e) => { e.preventDefault(); saveGroup(); }}>
+  <form
+    class="space-y-3"
+    onsubmit={(e) => {
+      e.preventDefault();
+      saveGroup();
+    }}
+  >
     <label class="block">
       <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Title</span>
-      <input class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)] {gTitleErr ? 'field-error' : ''}" bind:value={gTitle} />
+      <input
+        class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)] {gTitleErr
+          ? 'field-error'
+          : ''}"
+        bind:value={gTitle}
+      />
       {#if gTitleErr}<span class="mt-1 text-xs text-[var(--color-danger)]">Required</span>{/if}
     </label>
-    <div class="mt-5 flex justify-end gap-2">
+    <label class="block">
+      <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Description</span>
+      <input
+        class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)]"
+        bind:value={gDesc}
+      />
+    </label>
+    <div>
+      <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Icon</span>
+      <IconPicker bind:value={gIcon} />
+    </div>
+    <label class="block">
+      <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Item size in this group</span>
+      <select class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm" bind:value={gItemSize}>
+        <option value="1x1">1×1 — icon only</option>
+        <option value="1x2">1×2 — icon, title, description</option>
+      </select>
+    </label>
+    <div class="flex justify-end gap-2 pt-2">
       <button type="button" class="rounded-[var(--radius-btn)] px-3 py-2 text-sm text-[var(--color-text-muted)]" onclick={() => (groupOpen = false)}>Cancel</button>
       <button type="submit" class="rounded-[var(--radius-btn)] bg-[var(--color-primary)] px-3 py-2 text-sm font-medium text-white">Save</button>
     </div>
   </form>
 </Modal>
 
-<!-- Item modal -->
-<Modal bind:open={itemOpen} title={editingItem ? 'Edit item' : 'New item'} class="max-w-md">
-  <form class="space-y-3" onsubmit={(e) => { e.preventDefault(); saveItem(); }}>
+<Modal bind:open={itemOpen} title={editingItem ? 'Edit item' : 'New item'}>
+  <form
+    class="space-y-3"
+    onsubmit={(e) => {
+      e.preventDefault();
+      saveItem();
+    }}
+  >
     <label class="block">
       <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Title</span>
-      <input class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)] {iTitleErr ? 'field-error' : ''}" bind:value={iTitle} />
+      <input
+        class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)] {iTitleErr
+          ? 'field-error'
+          : ''}"
+        bind:value={iTitle}
+      />
       {#if iTitleErr}<span class="mt-1 text-xs text-[var(--color-danger)]">Required</span>{/if}
     </label>
     <label class="block">
       <span class="mb-1 block text-xs text-[var(--color-text-muted)]">URL</span>
-      <input class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)] {iUrlErr ? 'field-error' : ''}" bind:value={iUrl} />
+      <input
+        class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)] {iUrlErr
+          ? 'field-error'
+          : ''}"
+        bind:value={iUrl}
+      />
       {#if iUrlErr}<span class="mt-1 text-xs text-[var(--color-danger)]">Required</span>{/if}
     </label>
     <label class="block">
       <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Description</span>
-      <input class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)]" bind:value={iDesc} />
+      <input
+        class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)]"
+        bind:value={iDesc}
+      />
     </label>
     <div>
       <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Icon</span>
-      <IconPicker bind:value={iIcon} seed={iTitle} />
+      <IconPicker bind:value={iIcon} />
     </div>
-    <label class="block">
-      <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Size</span>
-      <select class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm" bind:value={iSize}>
-        <option value="1x1">1×1 — compact</option>
-        <option value="1x2">1×2 — with description</option>
-      </select>
-    </label>
     <div class="flex justify-end gap-2 pt-2">
       <button type="button" class="rounded-[var(--radius-btn)] px-3 py-2 text-sm text-[var(--color-text-muted)]" onclick={() => (itemOpen = false)}>Cancel</button>
       <button type="submit" class="rounded-[var(--radius-btn)] bg-[var(--color-primary)] px-3 py-2 text-sm font-medium text-white">Save</button>
@@ -348,9 +499,14 @@
   </form>
 </Modal>
 
-<!-- Dashboard settings -->
-<Modal bind:open={dashOpen} title="Dashboard settings">
-  <form class="space-y-3" onsubmit={(e) => { e.preventDefault(); saveDash(); }}>
+<Modal bind:open={dashOpen} title={creatingNew || !dashboard ? 'New dashboard' : 'Dashboard settings'}>
+  <form
+    class="space-y-3"
+    onsubmit={(e) => {
+      e.preventDefault();
+      saveDash();
+    }}
+  >
     <label class="block">
       <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Name</span>
       <input class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm" bind:value={dName} required />
@@ -372,6 +528,14 @@
       <select class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm" bind:value={dLayout}>
         <option value="rows">Rows</option>
         <option value="columns">Columns</option>
+        <option value="masonry">Masonry</option>
+      </select>
+    </label>
+    <label class="block">
+      <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Width</span>
+      <select class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm" bind:value={dWidth}>
+        <option value="default">Default</option>
+        <option value="wide">Wide</option>
       </select>
     </label>
     <div class="flex justify-end gap-2 pt-2">
@@ -385,5 +549,7 @@
   bind:open={confirmOpen}
   title="Confirm"
   message={confirmMsg}
-  onConfirm={async () => { await confirmAction?.(); }}
+  onConfirm={async () => {
+    await confirmAction?.();
+  }}
 />

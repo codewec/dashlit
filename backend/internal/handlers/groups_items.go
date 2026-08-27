@@ -36,8 +36,11 @@ func (h *GroupItemHandler) canEditDashboard(r *http.Request, dashboardID string)
 }
 
 type createGroupReq struct {
-	Title    string `json:"title"`
-	Position int    `json:"position"`
+	Title       string          `json:"title"`
+	Description string          `json:"description"`
+	Icon        string          `json:"icon"`
+	ItemSize    models.ItemSize `json:"itemSize"`
+	Position    int             `json:"position"`
 }
 
 func (h *GroupItemHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
@@ -51,10 +54,16 @@ func (h *GroupItemHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "title required")
 		return
 	}
+	if req.ItemSize == "" {
+		req.ItemSize = models.Size1x1
+	}
 	g := &models.Group{
 		ID:          uuid.NewString(),
 		DashboardID: dashboardID,
 		Title:       req.Title,
+		Description: req.Description,
+		Icon:        req.Icon,
+		ItemSize:    req.ItemSize,
 		Position:    req.Position,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
@@ -78,9 +87,12 @@ func (h *GroupItemHandler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req struct {
-		Title     *string `json:"title"`
-		Position  *int    `json:"position"`
-		Collapsed *bool   `json:"collapsed"`
+		Title       *string          `json:"title"`
+		Description *string          `json:"description"`
+		Icon        *string          `json:"icon"`
+		ItemSize    *models.ItemSize `json:"itemSize"`
+		Position    *int             `json:"position"`
+		Collapsed   *bool            `json:"collapsed"`
 	}
 	if err := decodeJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid body")
@@ -88,6 +100,15 @@ func (h *GroupItemHandler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 	if req.Title != nil {
 		g.Title = *req.Title
+	}
+	if req.Description != nil {
+		g.Description = *req.Description
+	}
+	if req.Icon != nil {
+		g.Icon = *req.Icon
+	}
+	if req.ItemSize != nil {
+		g.ItemSize = *req.ItemSize
 	}
 	if req.Position != nil {
 		g.Position = *req.Position
@@ -122,12 +143,11 @@ func (h *GroupItemHandler) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 type createItemReq struct {
-	Title       string         `json:"title"`
-	Description string         `json:"description"`
-	URL         string         `json:"url"`
-	Icon        string         `json:"icon"`
-	Size        models.ItemSize `json:"size"`
-	Position    int            `json:"position"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	URL         string `json:"url"`
+	Icon        string `json:"icon"`
+	Position    int    `json:"position"`
 }
 
 func (h *GroupItemHandler) CreateItem(w http.ResponseWriter, r *http.Request) {
@@ -149,9 +169,6 @@ func (h *GroupItemHandler) CreateItem(w http.ResponseWriter, r *http.Request) {
 	if req.Icon == "" {
 		req.Icon = "mdi:link"
 	}
-	if req.Size == "" {
-		req.Size = models.Size1x1
-	}
 	item := &models.Item{
 		ID:          uuid.NewString(),
 		GroupID:     groupID,
@@ -159,7 +176,6 @@ func (h *GroupItemHandler) CreateItem(w http.ResponseWriter, r *http.Request) {
 		Description: req.Description,
 		URL:         req.URL,
 		Icon:        req.Icon,
-		Size:        req.Size,
 		Position:    req.Position,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
@@ -188,13 +204,12 @@ func (h *GroupItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req struct {
-		Title       *string          `json:"title"`
-		Description *string          `json:"description"`
-		URL         *string          `json:"url"`
-		Icon        *string          `json:"icon"`
-		Size        *models.ItemSize `json:"size"`
-		Position    *int             `json:"position"`
-		GroupID     *string          `json:"groupId"`
+		Title       *string `json:"title"`
+		Description *string `json:"description"`
+		URL         *string `json:"url"`
+		Icon        *string `json:"icon"`
+		Position    *int    `json:"position"`
+		GroupID     *string `json:"groupId"`
 	}
 	if err := decodeJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid body")
@@ -211,9 +226,6 @@ func (h *GroupItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 	if req.Icon != nil {
 		item.Icon = *req.Icon
-	}
-	if req.Size != nil {
-		item.Size = *req.Size
 	}
 	if req.Position != nil {
 		item.Position = *req.Position

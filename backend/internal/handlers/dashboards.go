@@ -101,6 +101,7 @@ type createDashboardReq struct {
 	Name    string                 `json:"name"`
 	Slug    string                 `json:"slug"`
 	Layout  models.Layout          `json:"layout"`
+	Width   models.Width           `json:"width"`
 	Privacy models.Privacy         `json:"privacy"`
 	Theme   *models.DashboardTheme `json:"theme"`
 }
@@ -128,6 +129,9 @@ func (h *DashboardHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if req.Layout == "" {
 		req.Layout = models.LayoutRows
 	}
+	if req.Width == "" {
+		req.Width = models.WidthDefault
+	}
 	if req.Privacy == "" {
 		req.Privacy = models.PrivacyPrivate
 	}
@@ -137,6 +141,7 @@ func (h *DashboardHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Name:      req.Name,
 		Slug:      req.Slug,
 		Layout:    req.Layout,
+		Width:     req.Width,
 		Privacy:   req.Privacy,
 		Theme:     req.Theme,
 		CreatedAt: time.Now(),
@@ -183,6 +188,9 @@ func (h *DashboardHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	if req.Layout != "" {
 		d.Layout = req.Layout
+	}
+	if req.Width != "" {
+		d.Width = req.Width
 	}
 	if req.Privacy != "" {
 		d.Privacy = req.Privacy

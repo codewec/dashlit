@@ -26,6 +26,14 @@ type Layout string
 const (
 	LayoutRows    Layout = "rows"
 	LayoutColumns Layout = "columns"
+	LayoutMasonry Layout = "masonry"
+)
+
+type Width string
+
+const (
+	WidthDefault Width = "default"
+	WidthWide    Width = "wide"
 )
 
 type ItemSize string
@@ -61,7 +69,7 @@ type ThemeColors struct {
 }
 
 type DashboardTheme struct {
-	Mode   string       `json:"mode"` // inherit | light | dark
+	Mode   string `json:"mode"`
 	Colors *struct {
 		Light *ThemeColors `json:"light,omitempty"`
 		Dark  *ThemeColors `json:"dark,omitempty"`
@@ -76,6 +84,7 @@ type Dashboard struct {
 	Name      string          `bun:"name,notnull" json:"name"`
 	Slug      string          `bun:"slug,unique,notnull" json:"slug"`
 	Layout    Layout          `bun:"layout,notnull,default:'rows'" json:"layout"`
+	Width     Width           `bun:"width,notnull,default:'default'" json:"width"`
 	Privacy   Privacy         `bun:"privacy,notnull,default:'private'" json:"privacy"`
 	IsMain    bool            `bun:"is_main,notnull,default:false" json:"isMain"`
 	Theme     *DashboardTheme `bun:"theme,type:json" json:"theme,omitempty"`
@@ -92,6 +101,9 @@ type Group struct {
 	ID          string    `bun:"id,pk,type:text" json:"id"`
 	DashboardID string    `bun:"dashboard_id,notnull" json:"dashboardId"`
 	Title       string    `bun:"title,notnull" json:"title"`
+	Description string    `bun:"description,notnull,default:''" json:"description"`
+	Icon        string    `bun:"icon,notnull,default:''" json:"icon"`
+	ItemSize    ItemSize  `bun:"item_size,notnull,default:'1x1'" json:"itemSize"`
 	Position    int       `bun:"position,notnull,default:0" json:"position"`
 	Collapsed   bool      `bun:"collapsed,notnull,default:false" json:"collapsed"`
 	CreatedAt   time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp" json:"createdAt"`
@@ -109,7 +121,6 @@ type Item struct {
 	Description string    `bun:"description" json:"description"`
 	URL         string    `bun:"url,notnull" json:"url"`
 	Icon        string    `bun:"icon,notnull" json:"icon"`
-	Size        ItemSize  `bun:"size,notnull,default:'1x1'" json:"size"`
 	Position    int       `bun:"position,notnull,default:0" json:"position"`
 	CreatedAt   time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp" json:"createdAt"`
 	UpdatedAt   time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp" json:"updatedAt"`
