@@ -63,13 +63,18 @@ func main() {
 		r.With(auth.RequireAuth).Put("/dashboards/{id}", dashH.Update)
 		r.With(auth.RequireAuth).Delete("/dashboards/{id}", dashH.Delete)
 		r.With(auth.RequireAuth).Post("/dashboards/{id}/set-main", dashH.SetMain)
+		r.With(auth.RequireAuth).Post("/dashboards/{id}/clone", dashH.Clone)
+		r.With(auth.RequireAuth).Get("/dashboards/{id}/export", dashH.Export)
+		r.With(auth.RequireAuth).Post("/dashboards/import", dashH.Import)
 
 		r.With(auth.RequireAuth).Post("/dashboards/{dashboardID}/groups", giH.CreateGroup)
 		r.With(auth.RequireAuth).Put("/groups/{id}", giH.UpdateGroup)
 		r.With(auth.RequireAuth).Delete("/groups/{id}", giH.DeleteGroup)
+		r.With(auth.RequireAuth).Post("/groups/{id}/clone", giH.CloneGroup)
 		r.With(auth.RequireAuth).Post("/groups/{groupID}/items", giH.CreateItem)
 		r.With(auth.RequireAuth).Put("/items/{id}", giH.UpdateItem)
 		r.With(auth.RequireAuth).Delete("/items/{id}", giH.DeleteItem)
+		r.With(auth.RequireAuth).Post("/items/{id}/clone", giH.CloneItem)
 		r.With(auth.RequireAuth).Put("/dashboards/{dashboardID}/layout", giH.UpdateLayout)
 
 		r.With(auth.RequireAuth).Post("/icons/upload", iconH.Upload)
