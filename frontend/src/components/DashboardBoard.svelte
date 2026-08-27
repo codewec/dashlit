@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { DragDropProvider, DragOverlay } from '@dnd-kit-svelte/svelte';
+  import { DragDropProvider, DragOverlay, KeyboardSensor, PointerSensor } from '@dnd-kit-svelte/svelte';
   import { move } from '@dnd-kit/helpers';
   import type { Dashboard, Group, Item } from '../lib/api';
   import { editMode } from '../lib/stores';
@@ -36,6 +36,14 @@
   const byGroup = $derived(itemsByGroupMap(filtered));
   const outerClass = $derived(groupsOuterClass(dashboard.layout, dashboard.width === 'wide'));
   const cellClass = $derived(groupCellClass(dashboard.layout));
+  // Sortables can only be activated through their dedicated handles, which
+  // already use touch-action: none. Avoid the default 250 ms / 5 px touch
+  // constraint: in mobile emulation (and during normal finger movement) it
+  // commonly cancels the drag before it can start.
+  const sensors = [
+    PointerSensor.configure({ activationConstraints: () => undefined }),
+    KeyboardSensor,
+  ];
 
   function onDragOver(event: any) {
     if (!$editMode) return;
@@ -58,7 +66,7 @@
   }
 </script>
 
-<DragDropProvider {onDragOver} {onDragEnd}>
+<DragDropProvider {sensors} {onDragOver} {onDragEnd}>
   <div class={outerClass}>
     {#each filtered as group, gIndex (group.id)}
       <div class={cellClass} data-dashboard-group={group.id}>
