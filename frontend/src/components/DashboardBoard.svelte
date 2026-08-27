@@ -61,7 +61,7 @@
 <DragDropProvider {onDragOver} {onDragEnd}>
   <div class={outerClass}>
     {#each filtered as group, gIndex (group.id)}
-      <div class={cellClass}>
+      <div class={cellClass} data-dashboard-group={group.id}>
         <GroupCard {group} index={gIndex} layout={dashboard.layout} wide={dashboard.width === 'wide'} onEdit={onEditGroup} onDelete={onDeleteGroup} onClone={onCloneGroup} {onAddItem}>
           {#each byGroup[group.id] || [] as item, iIndex (item.id)}
             <ItemCard {item} index={iIndex} groupId={group.id} itemSize={group.itemSize} onEdit={onEditItem} onDelete={onDeleteItem} onClone={onCloneItem} />

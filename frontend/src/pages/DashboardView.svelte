@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { push, replace } from 'svelte-spa-router';
   import { api, type Dashboard, type Group, type Item } from '../lib/api';
   import { user, editMode, currentDashboard } from '../lib/stores';
@@ -281,6 +281,17 @@
   async function cloneGroup(g: Group) {
     const created = await api.cloneGroup(g.id);
     groups = [...groups, created];
+    await tick();
+
+    const element = document.querySelector<HTMLElement>(
+      `[data-dashboard-group="${CSS.escape(created.id)}"]`,
+    );
+    if (!element) return;
+
+    const bounds = element.getBoundingClientRect();
+    if (bounds.top < 0 || bounds.bottom > window.innerHeight) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   }
 
   async function cloneItem(item: Item) {
