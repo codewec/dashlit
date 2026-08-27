@@ -79,17 +79,21 @@ type DashboardTheme struct {
 type Dashboard struct {
 	bun.BaseModel `bun:"table:dashboards,alias:d"`
 
-	ID        string          `bun:"id,pk,type:text" json:"id"`
-	OwnerID   string          `bun:"owner_id,notnull" json:"ownerId"`
-	Name      string          `bun:"name,notnull" json:"name"`
-	Slug      string          `bun:"slug,unique,notnull" json:"slug"`
-	Layout    Layout          `bun:"layout,notnull,default:'rows'" json:"layout"`
-	Width     Width           `bun:"width,notnull,default:'default'" json:"width"`
-	Privacy   Privacy         `bun:"privacy,notnull,default:'private'" json:"privacy"`
-	IsMain    bool            `bun:"is_main,notnull,default:false" json:"isMain"`
-	Theme     *DashboardTheme `bun:"theme,type:json" json:"theme,omitempty"`
-	CreatedAt time.Time       `bun:"created_at,nullzero,notnull,default:current_timestamp" json:"createdAt"`
-	UpdatedAt time.Time       `bun:"updated_at,nullzero,notnull,default:current_timestamp" json:"updatedAt"`
+	ID          string          `bun:"id,pk,type:text" json:"id"`
+	OwnerID     string          `bun:"owner_id,notnull" json:"ownerId"`
+	Name        string          `bun:"name,notnull" json:"name"`
+	Slug        string          `bun:"slug,unique,notnull" json:"slug"`
+	Description string          `bun:"description,notnull,default:''" json:"description"`
+	Icon        string          `bun:"icon,notnull,default:''" json:"icon"`
+	IconDark    string          `bun:"icon_dark,notnull,default:''" json:"iconDark"`
+	Layout      Layout          `bun:"layout,notnull,default:'rows'" json:"layout"`
+	Width       Width           `bun:"width,notnull,default:'default'" json:"width"`
+	Privacy     Privacy         `bun:"privacy,notnull,default:'private'" json:"privacy"`
+	CleanMode   bool            `bun:"clean_mode,notnull,default:false" json:"cleanMode"`
+	IsMain      bool            `bun:"is_main,notnull,default:false" json:"isMain"`
+	Theme       *DashboardTheme `bun:"theme,type:json" json:"theme,omitempty"`
+	CreatedAt   time.Time       `bun:"created_at,nullzero,notnull,default:current_timestamp" json:"createdAt"`
+	UpdatedAt   time.Time       `bun:"updated_at,nullzero,notnull,default:current_timestamp" json:"updatedAt"`
 
 	Owner  *User    `bun:"rel:belongs-to,join:owner_id=id" json:"owner,omitempty"`
 	Groups []*Group `bun:"rel:has-many,join:id=dashboard_id" json:"groups,omitempty"`
@@ -103,6 +107,7 @@ type Group struct {
 	Title       string    `bun:"title,notnull" json:"title"`
 	Description string    `bun:"description,notnull,default:''" json:"description"`
 	Icon        string    `bun:"icon,notnull,default:''" json:"icon"`
+	IconDark    string    `bun:"icon_dark,notnull,default:''" json:"iconDark"`
 	ItemSize    ItemSize  `bun:"item_size,notnull,default:'1x1'" json:"itemSize"`
 	Position    int       `bun:"position,notnull,default:0" json:"position"`
 	Collapsed   bool      `bun:"collapsed,notnull,default:false" json:"collapsed"`
@@ -121,6 +126,7 @@ type Item struct {
 	Description string    `bun:"description" json:"description"`
 	URL         string    `bun:"url,notnull" json:"url"`
 	Icon        string    `bun:"icon,notnull" json:"icon"`
+	IconDark    string    `bun:"icon_dark,notnull,default:''" json:"iconDark"`
 	Position    int       `bun:"position,notnull,default:0" json:"position"`
 	CreatedAt   time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp" json:"createdAt"`
 	UpdatedAt   time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp" json:"updatedAt"`

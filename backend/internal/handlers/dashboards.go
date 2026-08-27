@@ -98,12 +98,16 @@ func (h *DashboardHandler) GetMain(w http.ResponseWriter, r *http.Request) {
 }
 
 type createDashboardReq struct {
-	Name    string                 `json:"name"`
-	Slug    string                 `json:"slug"`
-	Layout  models.Layout          `json:"layout"`
-	Width   models.Width           `json:"width"`
-	Privacy models.Privacy         `json:"privacy"`
-	Theme   *models.DashboardTheme `json:"theme"`
+	Name        string                 `json:"name"`
+	Slug        string                 `json:"slug"`
+	Description string                 `json:"description"`
+	Icon        string                 `json:"icon"`
+	IconDark    string                 `json:"iconDark"`
+	Layout      models.Layout          `json:"layout"`
+	Width       models.Width           `json:"width"`
+	Privacy     models.Privacy         `json:"privacy"`
+	CleanMode   bool                   `json:"cleanMode"`
+	Theme       *models.DashboardTheme `json:"theme"`
 }
 
 func (h *DashboardHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -136,17 +140,21 @@ func (h *DashboardHandler) Create(w http.ResponseWriter, r *http.Request) {
 		req.Privacy = models.PrivacyPrivate
 	}
 	d := &models.Dashboard{
-		ID:        uuid.NewString(),
-		OwnerID:   user.ID,
-		Name:      req.Name,
-		Slug:      req.Slug,
-		Layout:    req.Layout,
-		Width:     req.Width,
-		Privacy:   req.Privacy,
-		Theme:     req.Theme,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		ID:          uuid.NewString(),
+		OwnerID:     user.ID,
+		Name:        req.Name,
+		Slug:        req.Slug,
+		Description: req.Description,
+		Icon:        req.Icon,
+		IconDark:    req.IconDark,
+		Layout:      req.Layout,
+		Width:       req.Width,
+		Privacy:     req.Privacy,
+		Theme:       req.Theme,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
+	d.CleanMode = req.CleanMode
 	if _, err := h.db.NewInsert().Model(d).Exec(r.Context()); err != nil {
 		writeError(w, http.StatusConflict, "slug already exists")
 		return
@@ -186,6 +194,9 @@ func (h *DashboardHandler) Update(w http.ResponseWriter, r *http.Request) {
 		}
 		d.Slug = req.Slug
 	}
+	d.Description = req.Description
+	d.Icon = req.Icon
+	d.IconDark = req.IconDark
 	if req.Layout != "" {
 		d.Layout = req.Layout
 	}
@@ -195,6 +206,7 @@ func (h *DashboardHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if req.Privacy != "" {
 		d.Privacy = req.Privacy
 	}
+	d.CleanMode = req.CleanMode
 	if req.Theme != nil {
 		d.Theme = req.Theme
 	}

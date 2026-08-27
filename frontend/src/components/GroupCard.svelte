@@ -81,7 +81,7 @@
 
     <header class="mb-3 flex items-start gap-2">
       {#if group.icon}
-        <Icon icon={group.icon} size={22} class="mt-0.5 shrink-0 rounded-md" />
+        <Icon icon={group.icon} iconDark={group.iconDark} size={22} class="mt-0.5 shrink-0 rounded-md" />
       {/if}
       <div class="min-w-0 flex-1">
         <h3 class="truncate text-sm font-semibold tracking-tight text-[var(--color-text)]">{group.title}</h3>

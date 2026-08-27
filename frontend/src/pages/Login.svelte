@@ -3,6 +3,7 @@
   import { user } from '../lib/stores';
   import { push } from 'svelte-spa-router';
   import AuthLayout from '../layouts/AuthLayout.svelte';
+  import ThemeFab from '../components/ThemeFab.svelte';
 
   let username = $state('');
   let password = $state('');
@@ -97,3 +98,4 @@
     </button>
   </form>
 </AuthLayout>
+<ThemeFab />

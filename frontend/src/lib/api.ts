@@ -52,6 +52,7 @@ export type Item = {
   description: string;
   url: string;
   icon: string;
+  iconDark: string;
   position: number;
 };
 export type Group = {
@@ -60,6 +61,7 @@ export type Group = {
   title: string;
   description: string;
   icon: string;
+  iconDark: string;
   itemSize: ItemSize;
   position: number;
   collapsed: boolean;
@@ -70,9 +72,13 @@ export type Dashboard = {
   ownerId: string;
   name: string;
   slug: string;
+  description: string;
+  icon: string;
+  iconDark: string;
   layout: Layout;
   width: Width;
   privacy: 'public' | 'private' | 'users';
+  cleanMode: boolean;
   isMain: boolean;
   theme?: DashboardTheme;
   groups?: Group[];
@@ -126,4 +132,10 @@ export function iconSrc(icon: string): string {
     return `/api/icons/iconify/${prefix}/${name}`;
   }
   return icon;
+}
+
+/** Resolve themed icon: prefer dark when theme is dark and iconDark set. */
+export function resolveIcon(icon: string, iconDark: string | undefined, isDark: boolean): string {
+  if (isDark && iconDark) return iconDark;
+  return icon || '';
 }

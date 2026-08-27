@@ -4,24 +4,47 @@
 
   let { value = $bindable('') }: { value?: string } = $props();
 
-  type Tab = 'search' | 'url' | 'upload';
-  let tab = $state<Tab>('search');
+  type SourceTab = 'search' | 'url' | 'upload';
+
+  function detectSource(v: string): SourceTab {
+    if (!v) return 'search';
+    if (v.startsWith('local:')) return 'upload';
+    if (v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/')) return 'url';
+    return 'search';
+  }
+
+  let sourceTab = $state<SourceTab>('search');
   let query = $state('');
   let results = $state<string[]>([]);
   let searching = $state(false);
   let urlInput = $state('');
+  let openDropdown = $state(false);
+  let initialized = $state(false);
   let debounce: ReturnType<typeof setTimeout> | undefined;
+
+  $effect(() => {
+    if (!initialized) {
+      sourceTab = detectSource(value);
+      if (sourceTab === 'url') urlInput = value;
+      initialized = true;
+    }
+  });
 
   $effect(() => {
     const q = query;
     clearTimeout(debounce);
-    if (tab !== 'search') return;
+    if (sourceTab !== 'search') {
+      openDropdown = false;
+      return;
+    }
     if (!q.trim()) {
       results = [];
       searching = false;
+      openDropdown = false;
       return;
     }
     searching = true;
+    openDropdown = true;
     debounce = setTimeout(async () => {
       results = await api.searchIcons(q);
       searching = false;
@@ -30,6 +53,8 @@
 
   function selectIcon(name: string) {
     value = name;
+    openDropdown = false;
+    query = '';
   }
 
   function applyUrl() {
@@ -44,71 +69,100 @@
   }
 </script>
 
-<div class="space-y-3">
+<div class="space-y-2">
   <div class="flex gap-1 rounded-lg bg-[var(--color-surface-2)] p-1">
-    {#each ['search', 'url', 'upload'] as Tab[] as t}
+    {#each ['search', 'url', 'upload'] as SourceTab[] as t}
       <button
         type="button"
         class="flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition
-          {tab === t ? 'bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}"
-        onclick={() => (tab = t)}
+          {sourceTab === t ? 'bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}"
+        onclick={() => {
+          sourceTab = t;
+          openDropdown = false;
+        }}
       >
         {t === 'search' ? 'Search' : t === 'url' ? 'URL' : 'Upload'}
       </button>
     {/each}
   </div>
 
-  {#if value}
-    <div class="flex items-center gap-3 rounded-lg border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] px-3 py-2">
-      <Icon icon={value} size={28} />
-      <span class="min-w-0 flex-1 truncate text-xs text-[var(--color-text-muted)]">{value}</span>
-      <button type="button" class="text-xs text-[var(--color-text-subtle)] hover:text-[var(--color-danger)]" onclick={() => (value = '')}> Clear </button>
-    </div>
-  {/if}
-
-  {#if tab === 'search'}
-    <input
-      class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)]"
-      placeholder="Search icons…"
-      bind:value={query}
-    />
-    <div class="grid max-h-48 grid-cols-6 gap-1.5 overflow-y-auto sm:grid-cols-8">
-      {#if searching}
-        <p class="col-span-full py-4 text-center text-xs text-[var(--color-text-subtle)]">Searching…</p>
-      {:else if results.length === 0 && query}
-        <p class="col-span-full py-4 text-center text-xs text-[var(--color-text-subtle)]">No results</p>
-      {:else}
-        {#each results as name}
-          <button
-            type="button"
-            title={name}
-            class="flex aspect-square items-center justify-center rounded-lg border border-transparent p-1.5 hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-2)]
-              {value === name ? 'border-[var(--color-primary)] bg-[var(--color-surface-2)]' : ''}"
-            onclick={() => selectIcon(name)}
-          >
-            <img src={iconSrc(name)} alt={name} class="h-6 w-6 object-contain" loading="lazy" />
-          </button>
-        {/each}
+  <div class="relative min-h-[2.5rem]">
+    {#if sourceTab === 'search'}
+      <div class="flex items-center gap-2">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)]">
+          {#if value}
+            <Icon icon={value} size={22} />
+          {:else}
+            <span class="text-[10px] text-[var(--color-text-subtle)]">—</span>
+          {/if}
+        </div>
+        <input
+          class="min-w-0 flex-1 rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)]"
+          placeholder="Search icons…"
+          bind:value={query}
+          onfocus={() => {
+            if (query.trim()) openDropdown = true;
+          }}
+        />
+      </div>
+      {#if openDropdown && (searching || results.length || query)}
+        <div class="absolute left-0 right-0 top-full z-[60] mt-1 max-h-48 overflow-y-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-2 shadow-xl">
+          {#if searching}
+            <p class="py-3 text-center text-xs text-[var(--color-text-subtle)]">Searching…</p>
+          {:else if results.length === 0}
+            <p class="py-3 text-center text-xs text-[var(--color-text-subtle)]">No results</p>
+          {:else}
+            <div class="grid grid-cols-6 gap-1 sm:grid-cols-8">
+              {#each results as name}
+                <button
+                  type="button"
+                  title={name}
+                  class="flex aspect-square items-center justify-center rounded-lg border border-transparent p-1 hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-2)]
+                    {value === name ? 'border-[var(--color-primary)] bg-[var(--color-surface-2)]' : ''}"
+                  onclick={() => selectIcon(name)}
+                >
+                  <img src={iconSrc(name)} alt="" class="h-5 w-5 object-contain" loading="lazy" />
+                </button>
+              {/each}
+            </div>
+          {/if}
+        </div>
       {/if}
-    </div>
-  {:else if tab === 'url'}
-    <div class="flex gap-2">
-      <input
-        class="min-w-0 flex-1 rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)]"
-        placeholder="https://…"
-        bind:value={urlInput}
-        onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), applyUrl())}
-      />
-      <button type="button" class="rounded-[var(--radius-btn)] bg-[var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)]" onclick={applyUrl}>
-        Apply
-      </button>
-    </div>
-  {:else}
-    <label
-      class="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[var(--radius-card)] border border-dashed border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-4 py-8 text-sm text-[var(--color-text-muted)] hover:border-[var(--color-primary)]"
-    >
-      <span>Click to upload PNG / SVG / WebP</span>
-      <input type="file" accept="image/png,image/svg+xml,image/jpeg,image/webp,image/x-icon" class="hidden" onchange={onFile} />
-    </label>
-  {/if}
+    {:else if sourceTab === 'url'}
+      <div class="flex h-9 items-center gap-2">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)]">
+          {#if value}
+            <Icon icon={value} size={22} />
+          {:else}
+            <span class="text-[10px] text-[var(--color-text-subtle)]">—</span>
+          {/if}
+        </div>
+        <input
+          class="min-w-0 flex-1 rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 text-sm outline-none focus:border-[var(--color-primary)]"
+          placeholder="https://…"
+          bind:value={urlInput}
+          onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), applyUrl())}
+        />
+        <button type="button" class="h-9 shrink-0 rounded-[var(--radius-btn)] bg-[var(--color-primary)] px-3 text-xs font-medium text-white hover:bg-[var(--color-primary-hover)]" onclick={applyUrl}>
+          Apply
+        </button>
+      </div>
+    {:else}
+      <div class="flex items-center gap-2">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)]">
+          {#if value}
+            <Icon icon={value} size={22} />
+          {:else}
+            <span class="text-[10px] text-[var(--color-text-subtle)]">—</span>
+          {/if}
+        </div>
+        <label
+          class="flex h-9 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-btn)] border border-dashed border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 text-xs text-[var(--color-text-muted)] hover:border-[var(--color-primary)]"
+        >
+          <span>Upload PNG / SVG / WebP</span>
+          <input type="file" accept="image/png,image/svg+xml,image/jpeg,image/webp,image/x-icon" class="hidden" onchange={onFile} />
+        </label>
+      </div>
+    {/if}
+  </div>
 </div>

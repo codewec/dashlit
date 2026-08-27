@@ -3,14 +3,17 @@
   import { DragDropProvider, DragOverlay } from '@dnd-kit-svelte/svelte';
   import { move } from '@dnd-kit/helpers';
   import { push, replace } from 'svelte-spa-router';
-  import { api, type Dashboard, type Group, type Item, type ItemSize, type Layout, type Width } from '../lib/api';
-  import { user, editMode, searchQuery, currentDashboard } from '../lib/stores';
+  import { api, setToken, type Dashboard, type Group, type Item, type ItemSize, type Layout, type Width } from '../lib/api';
+  import { user, editMode, searchQuery, currentDashboard, theme, applyTheme } from '../lib/stores';
   import AppLayout from '../layouts/AppLayout.svelte';
   import GroupCard from '../components/GroupCard.svelte';
   import ItemCard from '../components/ItemCard.svelte';
   import Modal from '../components/Modal.svelte';
   import ConfirmModal from '../components/ConfirmModal.svelte';
-  import IconPicker from '../components/IconPicker.svelte';
+  import IconField from '../components/IconField.svelte';
+  import Icon from '../components/Icon.svelte';
+  import NavMenu from '../components/NavMenu.svelte';
+  import { Switch } from 'bits-ui';
 
   let { params = { slug: '' } } = $props<{ params?: { slug?: string } }>();
 
@@ -18,7 +21,7 @@
   let groups = $state<Group[]>([]);
   let loading = $state(true);
   let error = $state('');
-  let dashList = $state<{ id: string; name: string; slug: string }[]>([]);
+  let dashList = $state<{ id: string; name: string; slug: string; icon?: string; iconDark?: string }[]>([]);
 
   let groupOpen = $state(false);
   let itemOpen = $state(false);
@@ -34,6 +37,7 @@
   let gTitle = $state('');
   let gDesc = $state('');
   let gIcon = $state('');
+  let gIconDark = $state('');
   let gItemSize = $state<ItemSize>('1x1');
   let gTitleErr = $state(false);
 
@@ -41,10 +45,16 @@
   let iDesc = $state('');
   let iUrl = $state('');
   let iIcon = $state('mdi:link');
+  let iIconDark = $state('');
   let iTitleErr = $state(false);
   let iUrlErr = $state(false);
 
   let dName = $state('');
+  let dDesc = $state('');
+  let dIcon = $state('');
+  let dIconDark = $state('');
+  let dClean = $state(false);
+  let dCleanStr = $state('off');
   let dSlug = $state('');
   let dPrivacy = $state<'public' | 'private' | 'users'>('private');
   let dLayout = $state<Layout>('rows');
@@ -76,7 +86,7 @@
     try {
       if ($user) {
         const list = await api.listDashboards();
-        dashList = list.map((x) => ({ id: x.id, name: x.name, slug: x.slug }));
+        dashList = list.map((x) => ({ id: x.id, name: x.name, slug: x.slug, icon: x.icon, iconDark: x.iconDark }));
       } else {
         dashList = [];
       }
@@ -147,6 +157,7 @@
     gTitle = '';
     gDesc = '';
     gIcon = '';
+    gIconDark = '';
     gItemSize = '1x1';
     gTitleErr = false;
     groupOpen = true;
@@ -156,6 +167,7 @@
     gTitle = g.title;
     gDesc = g.description || '';
     gIcon = g.icon || '';
+    gIconDark = g.iconDark || '';
     gItemSize = g.itemSize || '1x1';
     gTitleErr = false;
     groupOpen = true;
@@ -167,6 +179,7 @@
       title: gTitle.trim(),
       description: gDesc,
       icon: gIcon,
+      iconDark: gIconDark,
       itemSize: gItemSize,
     };
     if (editingGroup) await api.updateGroup(editingGroup.id, payload);
@@ -182,6 +195,7 @@
     iDesc = '';
     iUrl = '';
     iIcon = 'mdi:link';
+    iIconDark = '';
     iTitleErr = false;
     iUrlErr = false;
     itemOpen = true;
@@ -193,6 +207,7 @@
     iDesc = item.description || '';
     iUrl = item.url;
     iIcon = item.icon;
+    iIconDark = item.iconDark || '';
     iTitleErr = false;
     iUrlErr = false;
     itemOpen = true;
@@ -206,6 +221,7 @@
       description: iDesc,
       url: iUrl.trim(),
       icon: iIcon || 'mdi:link',
+      iconDark: iIconDark,
     };
     if (editingItem) await api.updateItem(editingItem.id, payload);
     else await api.createItem(targetGroupId, { ...payload, position: (itemsByGroup[targetGroupId] || []).length });
@@ -218,25 +234,39 @@
     if (dashboard) {
       dName = dashboard.name;
       dSlug = dashboard.slug;
+      dDesc = dashboard.description || '';
+      dIcon = dashboard.icon || '';
+      dIconDark = dashboard.iconDark || '';
       dPrivacy = dashboard.privacy;
       dLayout = dashboard.layout;
       dWidth = dashboard.width || 'default';
+      dClean = !!dashboard.cleanMode;
+      dCleanStr = dashboard.cleanMode ? 'on' : 'off';
     } else {
       dName = 'Home';
       dSlug = 'home';
+      dDesc = '';
+      dIcon = '';
+      dIconDark = '';
       dPrivacy = 'private';
       dLayout = 'rows';
       dWidth = 'default';
+      dClean = false;
+      dCleanStr = 'off';
     }
     dashOpen = true;
   }
   function openCreateDashboard() {
     dName = '';
     dSlug = '';
+    dDesc = '';
+    dIcon = '';
+    dIconDark = '';
     dPrivacy = 'private';
     dLayout = 'rows';
     dWidth = 'default';
-    // force create path in saveDash
+    dClean = false;
+    dCleanStr = 'off';
     creatingNew = true;
     dashOpen = true;
   }
@@ -247,9 +277,13 @@
       const d = await api.createDashboard({
         name: dName,
         slug: dSlug,
+        description: dDesc,
+        icon: dIcon,
+        iconDark: dIconDark,
         privacy: dPrivacy,
         layout: dLayout,
         width: dWidth,
+        cleanMode: dCleanStr === 'on',
       } as any);
       creatingNew = false;
       dashOpen = false;
@@ -259,9 +293,13 @@
     await api.updateDashboard(dashboard.id, {
       name: dName,
       slug: dSlug,
+      description: dDesc,
+      icon: dIcon,
+      iconDark: dIconDark,
       privacy: dPrivacy,
       layout: dLayout,
       width: dWidth,
+      cleanMode: dCleanStr === 'on',
     } as any);
     dashOpen = false;
     if (dSlug !== dashboard.slug) push('/' + dSlug);
@@ -313,27 +351,7 @@
 {#if loading}
   <div class="flex min-h-dvh items-center justify-center text-sm text-[var(--color-text-subtle)]">Loading…</div>
 {:else if dashboard}
-  <AppLayout
-    dashboards={dashList}
-    currentSlug={dashboard.slug}
-    wide={dashboard.width === 'wide'}
-    onCreateDashboard={openCreateDashboard}
-    onDeleteDashboard={() =>
-      askConfirm(`Delete dashboard “${dashboard?.name}”?`, async () => {
-        if (!dashboard) return;
-        const id = dashboard.id;
-        await api.deleteDashboard(id);
-        editMode.set(false);
-        const rest = dashList.filter((d) => d.id !== id);
-        dashList = rest;
-        if (rest.length > 0) push('/' + rest[0].slug);
-        else {
-          dashboard = null;
-          groups = [];
-          replace('/');
-        }
-      })}
-  >
+  {#snippet boardBody()}
     <DragDropProvider {onDragOver} {onDragEnd}>
       <div
         class={dashboard.layout === 'columns'
@@ -391,16 +409,100 @@
         {/snippet}
       </DragOverlay>
     </DragDropProvider>
+  {/snippet}
 
-    {#if $editMode}
-      <div class="fixed bottom-5 left-1/2 z-30 flex -translate-x-1/2 gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 shadow-xl">
-        <button type="button" class="rounded-full bg-[var(--color-primary)] px-4 py-1.5 text-xs font-medium text-white" onclick={openNewGroup}>+ Group</button>
-        <button type="button" class="rounded-full px-4 py-1.5 text-xs text-[var(--color-text)] hover:bg-[var(--color-surface-2)]" onclick={openDashSettings}>Settings</button>
-      </div>
+  {#snippet editFabs()}
+    {#if $user}
+      {#if $editMode}
+        <div class="pointer-events-none fixed bottom-5 left-4 right-4 z-30 flex items-center justify-between gap-3">
+          <!-- create dashboard -->
+          <button
+            type="button"
+            class="pointer-events-auto flex h-11 items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-xs font-medium text-[var(--color-text)] shadow-lg hover:bg-[var(--color-surface-2)]"
+            onclick={openCreateDashboard}
+            title="New dashboard"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" /></svg>
+            <span class="hidden sm:inline">Dashboard</span>
+          </button>
+
+          <!-- center: group / settings / done -->
+          <div class="pointer-events-auto flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] p-1.5 shadow-lg">
+            <button type="button" class="rounded-full px-3 py-2 text-xs font-medium text-[var(--color-text)] hover:bg-[var(--color-surface-2)]" onclick={openNewGroup}> + Group </button>
+            <button type="button" class="rounded-full px-3 py-2 text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]" onclick={openDashSettings}>
+              Settings
+            </button>
+            <button type="button" class="rounded-full bg-[var(--color-primary)] px-3 py-2 text-xs font-medium text-white hover:bg-[var(--color-primary-hover)]" onclick={() => editMode.set(false)}>
+              Save
+            </button>
+          </div>
+
+          <!-- delete dashboard -->
+          <button
+            type="button"
+            class="pointer-events-auto flex h-11 items-center gap-1.5 rounded-full border border-[var(--color-danger)]/40 bg-[var(--color-surface)] px-4 text-xs font-medium text-[var(--color-danger)] shadow-lg hover:bg-[var(--color-danger-soft)]"
+            onclick={() =>
+              askConfirm(`Delete dashboard “${dashboard?.name}”?`, async () => {
+                if (!dashboard) return;
+                const id = dashboard.id;
+                await api.deleteDashboard(id);
+                editMode.set(false);
+                const rest = dashList.filter((d) => d.id !== id);
+                dashList = rest;
+                if (rest.length > 0) push('/' + rest[0].slug);
+                else {
+                  dashboard = null;
+                  groups = [];
+                  replace('/');
+                }
+              })}
+            title="Delete dashboard"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /></svg>
+            <span class="hidden sm:inline">Delete</span>
+          </button>
+        </div>
+      {:else}
+        <div class="fixed bottom-5 left-1/2 z-30 -translate-x-1/2">
+          <button
+            type="button"
+            class="flex h-11 items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-5 text-xs font-medium text-[var(--color-text)] shadow-lg hover:bg-[var(--color-surface-2)]"
+            onclick={() => editMode.set(true)}
+          >
+            Edit
+          </button>
+        </div>
+      {/if}
     {/if}
-  </AppLayout>
+  {/snippet}
+
+  {#if dashboard.cleanMode}
+    <div class={dashboard.width === 'wide' ? 'mx-auto max-w-none px-4 py-6' : 'mx-auto max-w-6xl px-4 py-6'}>
+      <div class="mb-6 flex items-start gap-3">
+        {#if dashboard.icon}
+          <Icon icon={dashboard.icon} iconDark={dashboard.iconDark} size={40} class="mt-0.5 shrink-0 rounded-xl" />
+        {/if}
+        <div class="min-w-0 flex-1">
+          <h1 class="text-xl font-semibold tracking-tight text-[var(--color-text)]">{dashboard.name}</h1>
+          {#if dashboard.description}
+            <p class="mt-1 text-sm text-[var(--color-text-muted)]">{dashboard.description}</p>
+          {/if}
+        </div>
+        <div class="shrink-0">
+          <NavMenu dashboards={dashList} currentSlug={dashboard.slug} />
+        </div>
+      </div>
+      {@render boardBody()}
+      {@render editFabs()}
+    </div>
+  {:else}
+    <AppLayout dashboards={dashList} currentSlug={dashboard.slug} wide={dashboard.width === 'wide'}>
+      {@render boardBody()}
+      {@render editFabs()}
+    </AppLayout>
+  {/if}
 {:else}
-  <AppLayout dashboards={dashList} currentSlug="" onCreateDashboard={openCreateDashboard}>
+  <AppLayout dashboards={dashList} currentSlug="">
     <div class="flex flex-col items-center gap-3 py-20">
       <p class="text-sm text-[var(--color-text-muted)]">{error || 'No dashboards yet.'}</p>
       {#if $user}
@@ -437,7 +539,7 @@
     </label>
     <div>
       <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Icon</span>
-      <IconPicker bind:value={gIcon} />
+      <IconField bind:value={gIcon} bind:valueDark={gIconDark} />
     </div>
     <label class="block">
       <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Item size in this group</span>
@@ -490,7 +592,7 @@
     </label>
     <div>
       <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Icon</span>
-      <IconPicker bind:value={iIcon} />
+      <IconField bind:value={iIcon} bind:valueDark={iIconDark} defaultIcon="mdi:link" />
     </div>
     <div class="flex justify-end gap-2 pt-2">
       <button type="button" class="rounded-[var(--radius-btn)] px-3 py-2 text-sm text-[var(--color-text-muted)]" onclick={() => (itemOpen = false)}>Cancel</button>
@@ -516,28 +618,55 @@
       <input class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm" bind:value={dSlug} required />
     </label>
     <label class="block">
-      <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Privacy</span>
-      <select class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm" bind:value={dPrivacy}>
-        <option value="public">Public</option>
-        <option value="users">Authenticated users</option>
-        <option value="private">Private</option>
-      </select>
+      <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Description</span>
+      <input class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm" bind:value={dDesc} />
     </label>
-    <label class="block">
-      <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Layout</span>
-      <select class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm" bind:value={dLayout}>
-        <option value="rows">Rows</option>
-        <option value="columns">Columns</option>
-        <option value="masonry">Masonry</option>
-      </select>
-    </label>
-    <label class="block">
-      <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Width</span>
-      <select class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm" bind:value={dWidth}>
-        <option value="default">Default</option>
-        <option value="wide">Wide</option>
-      </select>
-    </label>
+    <div>
+      <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Icon</span>
+      <IconField bind:value={dIcon} bind:valueDark={dIconDark} />
+    </div>
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div class="space-y-3">
+        <label class="block">
+          <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Privacy</span>
+          <select class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm" bind:value={dPrivacy}>
+            <option value="public">Public</option>
+            <option value="users">Authenticated users</option>
+            <option value="private">Private</option>
+          </select>
+        </label>
+        <label class="block">
+          <span class="mb-1 block text-xs text-[var(--color-text-muted)]">Layout</span>
+          <select class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm" bind:value={dLayout}>
+            <option value="rows">Rows</option>
+            <option value="columns">Columns</option>
+            <option value="masonry">Masonry</option>
+          </select>
+        </label>
+      </div>
+      <div class="flex flex-col justify-center gap-4">
+        <div class="flex items-center justify-between gap-3">
+          <span class="text-sm text-[var(--color-text)]">Clean mode</span>
+          <Switch.Root
+            checked={dCleanStr === 'on'}
+            onCheckedChange={(v) => (dCleanStr = v ? 'on' : 'off')}
+            class="peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border border-transparent bg-[var(--color-border)] transition data-[state=checked]:bg-[var(--color-primary)]"
+          >
+            <Switch.Thumb class="pointer-events-none block h-4 w-4 rounded-full bg-white shadow transition-transform translate-x-0.5 data-[state=checked]:translate-x-[1.1rem]" />
+          </Switch.Root>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <span class="text-sm text-[var(--color-text)]">Wide mode</span>
+          <Switch.Root
+            checked={dWidth === 'wide'}
+            onCheckedChange={(v) => (dWidth = v ? 'wide' : 'default')}
+            class="peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border border-transparent bg-[var(--color-border)] transition data-[state=checked]:bg-[var(--color-primary)]"
+          >
+            <Switch.Thumb class="pointer-events-none block h-4 w-4 rounded-full bg-white shadow transition-transform translate-x-0.5 data-[state=checked]:translate-x-[1.1rem]" />
+          </Switch.Root>
+        </div>
+      </div>
+    </div>
     <div class="flex justify-end gap-2 pt-2">
       <button type="button" class="rounded-[var(--radius-btn)] px-3 py-2 text-sm text-[var(--color-text-muted)]" onclick={() => (dashOpen = false)}>Cancel</button>
       <button type="submit" class="rounded-[var(--radius-btn)] bg-[var(--color-primary)] px-3 py-2 text-sm font-medium text-white">Save</button>

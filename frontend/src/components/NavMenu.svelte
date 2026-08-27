@@ -1,0 +1,94 @@
+<script lang="ts">
+  import { DropdownMenu } from 'bits-ui';
+  import { push } from 'svelte-spa-router';
+  import { api, setToken } from '../lib/api';
+  import { user, editMode, theme, applyTheme } from '../lib/stores';
+  import Icon from './Icon.svelte';
+
+  let {
+    dashboards = [],
+    currentSlug = '',
+  }: {
+    dashboards?: { id: string; name: string; slug: string; icon?: string; iconDark?: string }[];
+    currentSlug?: string;
+  } = $props();
+
+  function toggleTheme() {
+    const order: Array<'light' | 'dark' | 'system'> = ['dark', 'light', 'system'];
+    const next = order[(order.indexOf($theme) + 1) % order.length];
+    theme.set(next);
+    applyTheme(next);
+  }
+
+  async function logout() {
+    try {
+      await api.logout();
+    } catch {}
+    setToken(null);
+    user.set(null);
+    editMode.set(false);
+    push('/login');
+  }
+</script>
+
+<DropdownMenu.Root>
+  <DropdownMenu.Trigger
+    class="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-btn)] border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-surface-2)]"
+    aria-label="Menu"
+  >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  </DropdownMenu.Trigger>
+  <DropdownMenu.Portal>
+    <DropdownMenu.Content class="z-50 min-w-[12rem] overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-1 shadow-xl outline-none" sideOffset={6} align="end">
+      {#if $user && dashboards.length > 0}
+        <div class="px-2 py-1.5 text-[10px] font-medium uppercase tracking-wide text-[var(--color-text-subtle)]">Dashboards</div>
+        {#each dashboards as d}
+          <DropdownMenu.Item
+            class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm outline-none data-[highlighted]:bg-[var(--color-surface-2)] {d.slug === currentSlug
+              ? 'text-[var(--color-primary)]'
+              : 'text-[var(--color-text)]'}"
+            onSelect={() => push('/' + d.slug)}
+          >
+            {#if d.icon}
+              <Icon icon={d.icon} iconDark={d.iconDark} size={16} />
+            {/if}
+            <span class="truncate">{d.name}</span>
+          </DropdownMenu.Item>
+        {/each}
+        <DropdownMenu.Separator class="my-1 h-px bg-[var(--color-border-soft)]" />
+      {/if}
+
+      <DropdownMenu.Item
+        class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-[var(--color-text)] outline-none data-[highlighted]:bg-[var(--color-surface-2)]"
+        onSelect={(e) => {
+          e.preventDefault();
+          toggleTheme();
+        }}
+      >
+        <span class="w-4 text-center">{$theme === 'dark' ? '☾' : $theme === 'light' ? '☀' : '◐'}</span>
+        <span>Theme: {$theme}</span>
+      </DropdownMenu.Item>
+
+      {#if $user}
+        <DropdownMenu.Item
+          class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-[var(--color-text)] outline-none data-[highlighted]:bg-[var(--color-surface-2)]"
+          onSelect={logout}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            ><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></svg
+          >
+          <span>Logout</span>
+        </DropdownMenu.Item>
+      {:else}
+        <DropdownMenu.Item
+          class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-[var(--color-text)] outline-none data-[highlighted]:bg-[var(--color-surface-2)]"
+          onSelect={() => push('/login')}
+        >
+          <span>Sign in</span>
+        </DropdownMenu.Item>
+      {/if}
+    </DropdownMenu.Content>
+  </DropdownMenu.Portal>
+</DropdownMenu.Root>

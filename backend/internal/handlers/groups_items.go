@@ -39,6 +39,7 @@ type createGroupReq struct {
 	Title       string          `json:"title"`
 	Description string          `json:"description"`
 	Icon        string          `json:"icon"`
+	IconDark    string          `json:"iconDark"`
 	ItemSize    models.ItemSize `json:"itemSize"`
 	Position    int             `json:"position"`
 }
@@ -63,6 +64,7 @@ func (h *GroupItemHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		Title:       req.Title,
 		Description: req.Description,
 		Icon:        req.Icon,
+		IconDark:    req.IconDark,
 		ItemSize:    req.ItemSize,
 		Position:    req.Position,
 		CreatedAt:   time.Now(),
@@ -90,6 +92,7 @@ func (h *GroupItemHandler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 		Title       *string          `json:"title"`
 		Description *string          `json:"description"`
 		Icon        *string          `json:"icon"`
+		IconDark    *string          `json:"iconDark"`
 		ItemSize    *models.ItemSize `json:"itemSize"`
 		Position    *int             `json:"position"`
 		Collapsed   *bool            `json:"collapsed"`
@@ -106,6 +109,9 @@ func (h *GroupItemHandler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 	if req.Icon != nil {
 		g.Icon = *req.Icon
+	}
+	if req.IconDark != nil {
+		g.IconDark = *req.IconDark
 	}
 	if req.ItemSize != nil {
 		g.ItemSize = *req.ItemSize
@@ -147,6 +153,7 @@ type createItemReq struct {
 	Description string `json:"description"`
 	URL         string `json:"url"`
 	Icon        string `json:"icon"`
+	IconDark    string `json:"iconDark"`
 	Position    int    `json:"position"`
 }
 
@@ -176,6 +183,7 @@ func (h *GroupItemHandler) CreateItem(w http.ResponseWriter, r *http.Request) {
 		Description: req.Description,
 		URL:         req.URL,
 		Icon:        req.Icon,
+		IconDark:    req.IconDark,
 		Position:    req.Position,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
@@ -208,6 +216,7 @@ func (h *GroupItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		Description *string `json:"description"`
 		URL         *string `json:"url"`
 		Icon        *string `json:"icon"`
+		IconDark    *string `json:"iconDark"`
 		Position    *int    `json:"position"`
 		GroupID     *string `json:"groupId"`
 	}
@@ -226,6 +235,9 @@ func (h *GroupItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 	if req.Icon != nil {
 		item.Icon = *req.Icon
+	}
+	if req.IconDark != nil {
+		item.IconDark = *req.IconDark
 	}
 	if req.Position != nil {
 		item.Position = *req.Position
