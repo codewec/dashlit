@@ -96,8 +96,8 @@
 <!-- nested: light -->
 <Dialog.Root bind:open={openLight}>
   <Dialog.Portal>
-    <Dialog.Overlay class="fixed inset-0 z-[60] bg-black/50" />
-    <Dialog.Content class="fixed left-1/2 top-1/2 z-[60] w-[min(22rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2 rounded-card border border-border bg-surface p-4 shadow-2xl outline-none">
+    <Dialog.Overlay class="dialog-overlay fixed inset-0 z-[60] bg-black/50" />
+    <Dialog.Content class="dialog-content fixed left-1/2 top-1/2 z-[60] w-[min(22rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2 rounded-card border border-border bg-surface p-4 shadow-2xl outline-none">
       <Dialog.Title class="text-sm font-semibold text-text">Default icon</Dialog.Title>
       <div class="mt-3">
         {#key openLight}
@@ -115,8 +115,8 @@
 <!-- nested: dark -->
 <Dialog.Root bind:open={openDark}>
   <Dialog.Portal>
-    <Dialog.Overlay class="fixed inset-0 z-[60] bg-black/50" />
-    <Dialog.Content class="fixed left-1/2 top-1/2 z-[60] w-[min(22rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2 rounded-card border border-border bg-surface p-4 shadow-2xl outline-none">
+    <Dialog.Overlay class="dialog-overlay fixed inset-0 z-[60] bg-black/50" />
+    <Dialog.Content class="dialog-content fixed left-1/2 top-1/2 z-[60] w-[min(22rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2 rounded-card border border-border bg-surface p-4 shadow-2xl outline-none">
       <Dialog.Title class="text-sm font-semibold text-text">Dark theme icon</Dialog.Title>
       <div class="mt-3">
         {#key openDark}

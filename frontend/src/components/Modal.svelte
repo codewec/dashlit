@@ -29,10 +29,10 @@
 
 <Dialog.Root bind:open onOpenChange={handleOpenChange}>
   <Dialog.Portal>
-    <Dialog.Overlay class="fixed inset-0 z-50 bg-black/55 data-[state=open]:animate-in data-[state=closed]:animate-out" />
+    <Dialog.Overlay class="dialog-overlay fixed inset-0 z-50 bg-black/55" />
     <Dialog.Content
       class={cn(
-        'fixed left-1/2 top-1/2 z-50 w-[min(28rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2',
+        'dialog-content fixed left-1/2 top-1/2 z-50 w-[min(28rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2',
         'rounded-card border border-border bg-surface p-5 shadow-2xl outline-none',
         'max-h-[min(90dvh,40rem)] overflow-y-auto',
         className,
