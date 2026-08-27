@@ -54,7 +54,7 @@
 
 {#if $editMode}
   <div class="pointer-events-none fixed left-2 right-2 z-30 grid grid-cols-2 items-center gap-2 sm:left-4 sm:right-4 sm:flex sm:justify-between sm:gap-3" style:bottom="{bottomOffset}px">
-    <div class="pointer-events-auto order-2 flex items-center gap-1.5 sm:order-none">
+    <div class="pointer-events-auto order-2 flex items-center gap-1.5 sm:order-0">
       <button
         type="button"
         class="flex h-11 items-center gap-1.5 rounded-full border border-border bg-surface px-3 text-xs font-medium text-text shadow-lg hover:bg-surface-2 sm:px-4"
@@ -82,10 +82,10 @@
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
           <DropdownMenu.Content class="z-50 min-w-40 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl outline-none" sideOffset={8} side="top">
-            <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={onExport}>
+            <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2" onSelect={onExport}>
               Export
             </DropdownMenu.Item>
-            <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={onImport}>
+            <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2" onSelect={onImport}>
               Import
             </DropdownMenu.Item>
           </DropdownMenu.Content>
@@ -93,15 +93,15 @@
       </DropdownMenu.Root>
     </div>
 
-    <div class="pointer-events-auto order-1 col-span-2 flex items-center gap-1 justify-self-center rounded-full border border-border bg-surface p-1.5 shadow-lg sm:order-none sm:col-span-1">
+    <div class="pointer-events-auto order-1 col-span-2 flex items-center gap-1 justify-self-center rounded-full border border-border bg-surface p-1.5 shadow-lg sm:order-0 sm:col-span-1">
       <button type="button" class="rounded-full px-3 py-2 text-xs font-medium text-text hover:bg-surface-2" onclick={onNewGroup}> + Group </button>
       <button type="button" class="rounded-full px-3 py-2 text-xs text-text-muted hover:bg-surface-2 hover:text-text" onclick={onSettings}> Settings </button>
-      <button type="button" class="rounded-full bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary-hover" onclick={() => onSave()}> Save </button>
+      <button type="button" class="rounded-full bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary-hover" onclick={() => onSave()}> Done </button>
     </div>
 
     <button
       type="button"
-      class="pointer-events-auto order-3 flex h-11 w-11 items-center justify-center justify-self-end rounded-full border border-danger/40 bg-surface p-0 text-xs font-medium text-danger shadow-lg hover:bg-danger-soft sm:order-none sm:w-auto sm:gap-1.5 sm:px-4"
+      class="pointer-events-auto order-3 flex h-11 w-11 items-center justify-center justify-self-end rounded-full border border-danger/40 bg-surface p-0 text-xs font-medium text-danger shadow-lg hover:bg-danger-soft sm:order-0 sm:w-auto sm:gap-1.5 sm:px-4"
       onclick={onDeleteDashboard}
       title="Delete dashboard"
     >
@@ -113,7 +113,7 @@
   <div class="group fixed bottom-5 left-1/2 z-30 flex h-11 w-28 -translate-x-1/2 items-end justify-center sm:bottom-0 sm:h-20">
     <button
       type="button"
-      class="flex h-11 items-center rounded-full border border-border bg-surface px-5 text-xs font-medium text-text shadow-lg transition-transform duration-200 ease-out hover:bg-surface-2 sm:translate-y-[1.375rem] sm:group-hover:-translate-y-5 sm:group-focus-within:-translate-y-5"
+      class="flex h-11 items-center rounded-full border border-border bg-surface px-5 text-xs font-medium text-text shadow-lg transition-transform duration-200 ease-out hover:bg-surface-2 sm:translate-y-5.5 sm:group-hover:-translate-y-5 sm:group-focus-within:-translate-y-5"
       onclick={() => editMode.set(true)}
     >
       Edit
