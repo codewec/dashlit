@@ -13,6 +13,7 @@
     layout = 'rows',
     wide = false,
     isOverlay = false,
+    canModify = true,
     children,
     onEdit,
     onDelete,
@@ -24,6 +25,7 @@
     layout?: Layout;
     wide?: boolean;
     isOverlay?: boolean;
+    canModify?: boolean;
     children?: Snippet;
     onEdit?: (g: Group) => void;
     onDelete?: (g: Group) => void;
@@ -38,7 +40,7 @@
     accept: ['item', 'column'],
     collisionPriority: CollisionPriority.Low,
     data: () => ({ group }),
-    disabled: () => !$editMode,
+    disabled: () => !$editMode || !canModify,
   });
 
   // Item grid is the same visual language everywhere.
@@ -67,8 +69,9 @@
     {#if $editMode}
       <button
         type="button"
-        class="absolute left-1.5 top-1.5 z-10 cursor-grab touch-none rounded p-0.5 text-text-subtle hover:bg-surface-2 hover:text-text-muted"
+        class="absolute left-1.5 top-1.5 z-10 cursor-grab touch-none rounded p-0.5 text-text-subtle hover:bg-surface-2 hover:text-text-muted disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
         {@attach handleRef}
+        disabled={!canModify}
         aria-label="Drag group"
       >
         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
@@ -93,18 +96,18 @@
       </div>
       {#if $editMode}
         <div class="flex shrink-0 items-center gap-0.5">
-          <button type="button" class="rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-text" onclick={() => onAddItem?.(group)} title="Add item">
+          <button type="button" disabled={!canModify} class="rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-text disabled:cursor-not-allowed disabled:opacity-40" onclick={() => onAddItem?.(group)} title="Add item">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" /></svg>
           </button>
-          <button type="button" class="rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-text" onclick={() => onEdit?.(group)} title="Edit group">
+          <button type="button" disabled={!canModify} class="rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-text disabled:cursor-not-allowed disabled:opacity-40" onclick={() => onEdit?.(group)} title="Edit group">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
           </button>
-          <button type="button" class="rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-text" onclick={() => onClone?.(group)} title="Clone group">
+          <button type="button" disabled={!canModify} class="rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-text disabled:cursor-not-allowed disabled:opacity-40" onclick={() => onClone?.(group)} title="Clone group">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               ><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg
             >
           </button>
-          <button type="button" class="rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-danger" onclick={() => onDelete?.(group)} title="Delete group">
+          <button type="button" disabled={!canModify} class="rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-danger disabled:cursor-not-allowed disabled:opacity-40" onclick={() => onDelete?.(group)} title="Delete group">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /></svg>
           </button>
         </div>

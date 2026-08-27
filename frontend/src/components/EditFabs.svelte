@@ -5,6 +5,7 @@
 
   let {
     raised = false,
+    canModify = true,
     onCreateDashboard,
     onCloneDashboard,
     onExport,
@@ -15,6 +16,7 @@
     onSave,
   }: {
     raised?: boolean;
+    canModify?: boolean;
     onCreateDashboard: () => void;
     onCloneDashboard: () => void;
     onExport: () => void;
@@ -91,15 +93,18 @@
     </div>
 
     <div class="pointer-events-auto flex shrink-0 items-center gap-1 rounded-full border border-border bg-surface p-1 shadow-lg sm:p-1.5">
-      <button type="button" class="rounded-full px-2 py-2 text-xs font-medium text-text hover:bg-surface-2 sm:px-3" onclick={onNewGroup}> + Group </button>
-      <button type="button" class="rounded-full px-2 py-2 text-xs text-text-muted hover:bg-surface-2 hover:text-text sm:px-3" onclick={onSettings}> Settings </button>
+      {#if canModify}
+        <button type="button" class="rounded-full px-2 py-2 text-xs font-medium text-text hover:bg-surface-2 sm:px-3" onclick={onNewGroup}> + Group </button>
+        <button type="button" class="rounded-full px-2 py-2 text-xs text-text-muted hover:bg-surface-2 hover:text-text sm:px-3" onclick={onSettings}> Settings </button>
+      {/if}
       <button type="button" class="rounded-full bg-primary px-2 py-2 text-xs font-medium text-white hover:bg-primary-hover sm:px-3" onclick={() => onSave()}> Done </button>
     </div>
 
     <button
       type="button"
-      class="pointer-events-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-danger/40 bg-surface p-0 text-xs font-medium text-danger shadow-lg hover:bg-danger-soft sm:w-auto sm:gap-1.5 sm:px-4"
+      class="pointer-events-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-danger/40 bg-surface p-0 text-xs font-medium text-danger shadow-lg hover:bg-danger-soft disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface sm:w-auto sm:gap-1.5 sm:px-4"
       onclick={onDeleteDashboard}
+      disabled={!canModify}
       title="Delete dashboard"
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /></svg>

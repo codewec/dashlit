@@ -55,7 +55,7 @@ export type Dashboard = {
   id: string; ownerId: string; name: string; slug: string;
   description: string; icon: string; iconDark: string;
   layout: Layout; width: Width; privacy: 'public' | 'private' | 'users';
-  cleanMode: boolean; isMain: boolean; theme?: DashboardTheme; groups?: Group[];
+  cleanMode: boolean; isMain: boolean; theme?: DashboardTheme; groups?: Group[]; owner?: User;
 };
 
 export const api = {

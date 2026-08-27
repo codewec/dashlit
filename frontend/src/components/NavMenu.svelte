@@ -5,14 +5,18 @@
   import { user, editMode, theme, applyTheme } from '../lib/stores';
   import Icon from './Icon.svelte';
   import logoUrl from '../assets/vite.svg';
+  import type { DashListItem } from '../lib/dashboard-helpers';
 
   let {
     dashboards = [],
     currentSlug = '',
   }: {
-    dashboards?: { id: string; name: string; slug: string; icon?: string; iconDark?: string }[];
+    dashboards?: DashListItem[];
     currentSlug?: string;
   } = $props();
+
+  const ownDashboards = $derived(dashboards.filter((d) => d.ownerId === $user?.id));
+  const otherDashboards = $derived(dashboards.filter((d) => d.ownerId !== $user?.id));
 
   function toggleTheme() {
     const order: Array<'light' | 'dark' | 'system'> = ['dark', 'light', 'system'];
@@ -41,8 +45,10 @@
   <DropdownMenu.Portal>
     <DropdownMenu.Content class="z-50 min-w-[12rem] overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl outline-none" sideOffset={6} align="end">
       {#if $user && dashboards.length > 0}
-        <div class="px-2 py-1.5 text-[10px] font-medium uppercase tracking-wide text-text-subtle">Dashboards</div>
-        {#each dashboards as d}
+        {#if ownDashboards.length > 0}
+          <div class="px-2 py-1.5 text-[10px] font-medium uppercase tracking-wide text-text-subtle">My dashboards</div>
+        {/if}
+        {#each ownDashboards as d}
           <DropdownMenu.Item
             class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm outline-none data-[highlighted]:bg-surface-2 {d.slug === currentSlug ? 'text-primary' : 'text-text'}"
             onSelect={() => push('/' + d.slug)}
@@ -53,6 +59,28 @@
               <img src={logoUrl} alt="" class="h-4 w-4" width="16" height="16" />
             {/if}
             <span class="truncate">{d.name}</span>
+          </DropdownMenu.Item>
+        {/each}
+        {#if ownDashboards.length > 0 && otherDashboards.length > 0}
+          <DropdownMenu.Separator class="my-1 h-px bg-border-soft" />
+        {/if}
+        {#if otherDashboards.length > 0}
+          <div class="px-2 py-1.5 text-[10px] font-medium uppercase tracking-wide text-text-subtle">Other dashboards</div>
+        {/if}
+        {#each otherDashboards as d}
+          <DropdownMenu.Item
+            class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm outline-none data-[highlighted]:bg-surface-2 {d.slug === currentSlug ? 'text-primary' : 'text-text'}"
+            onSelect={() => push('/' + d.slug)}
+          >
+            {#if d.icon}
+              <Icon icon={d.icon} iconDark={d.iconDark} size={16} />
+            {:else}
+              <img src={logoUrl} alt="" class="h-4 w-4" width="16" height="16" />
+            {/if}
+            <span class="min-w-0">
+              <span class="block truncate">{d.name}</span>
+              <span class="block truncate text-[10px] text-text-subtle">{d.ownerUsername}</span>
+            </span>
           </DropdownMenu.Item>
         {/each}
         <DropdownMenu.Separator class="my-1 h-px bg-border-soft" />

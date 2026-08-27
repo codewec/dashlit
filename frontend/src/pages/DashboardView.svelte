@@ -49,6 +49,9 @@
   let confirmOpen = $state(false);
   let confirmMsg = $state('');
   let confirmAction = $state<(() => Promise<void>) | null>(null);
+  const canModifyDashboard = $derived(
+    !!dashboard && !!$user && (dashboard.ownerId === $user.id || $user.role === 'admin'),
+  );
 
   function askConfirm(message: string, action: () => Promise<void>) {
     confirmMsg = message;
@@ -322,10 +325,11 @@
 {:else if dashboard}
   {@const d = dashboard}
   {#if d.cleanMode}
-    <div class={pageContainerClass(d.width === 'wide')}>
+    <div class={pageContainerClass(d.width === 'wide', !!$user)}>
       <CleanHeader dashboard={d} dashboards={dashList} />
       <DashboardBoard
         dashboard={d}
+        canModify={canModifyDashboard}
         bind:groups
         onEditGroup={openEditGroup}
         onDeleteGroup={(g) =>
@@ -346,6 +350,7 @@
       />
       {#if $user}
         <EditFabs
+          canModify={canModifyDashboard}
           onCreateDashboard={openCreateDashboard}
           onCloneDashboard={cloneDashboard}
           onExport={exportDashboard}
@@ -358,9 +363,10 @@
       {/if}
     </div>
   {:else}
-    <AppLayout dashboards={dashList} currentSlug={d.slug} wide={d.width === 'wide'}>
+    <AppLayout dashboards={dashList} currentSlug={d.slug} wide={d.width === 'wide'} reserveControls={!!$user}>
       <DashboardBoard
         dashboard={d}
+        canModify={canModifyDashboard}
         bind:groups
         onEditGroup={openEditGroup}
         onDeleteGroup={(g) =>
@@ -382,6 +388,7 @@
       {#if $user}
         <EditFabs
           raised
+          canModify={canModifyDashboard}
           onCreateDashboard={openCreateDashboard}
           onCloneDashboard={cloneDashboard}
           onExport={exportDashboard}

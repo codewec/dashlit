@@ -8,20 +8,25 @@
   import Icon from '../components/Icon.svelte';
   import NavMenu from '../components/NavMenu.svelte';
   import logoUrl from '../assets/vite.svg';
+  import type { DashListItem } from '../lib/dashboard-helpers';
 
   let {
     children,
     dashboards = [],
     currentSlug = '',
     wide = false,
+    reserveControls = false,
   }: {
     children?: Snippet;
-    dashboards?: { id: string; name: string; slug: string; icon?: string; iconDark?: string }[];
+    dashboards?: DashListItem[];
     currentSlug?: string;
     wide?: boolean;
+    reserveControls?: boolean;
   } = $props();
 
   const selected = $derived(dashboards.find((d) => d.slug === currentSlug) ?? null);
+  const ownDashboards = $derived(dashboards.filter((d) => d.ownerId === $user?.id));
+  const otherDashboards = $derived(dashboards.filter((d) => d.ownerId !== $user?.id));
   const year = new Date().getFullYear();
 
   function toggleTheme() {
@@ -74,7 +79,10 @@
             </Select.Trigger>
             <Select.Portal>
               <Select.Content class="z-50 min-w-[var(--bits-select-anchor-width)] overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl outline-none" sideOffset={6}>
-                {#each dashboards as d}
+                {#if ownDashboards.length > 0}
+                  <div class="px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-text-subtle">My dashboards</div>
+                {/if}
+                {#each ownDashboards as d}
                   <Select.Item
                     value={d.slug}
                     label={d.name}
@@ -88,6 +96,32 @@
                         <img src={logoUrl} alt="" class="h-4 w-4" width="16" height="16" />
                       {/if}
                       <span class="truncate">{d.name}</span>
+                    {/snippet}
+                  </Select.Item>
+                {/each}
+                {#if ownDashboards.length > 0 && otherDashboards.length > 0}
+                  <div class="my-1 h-px bg-border-soft" role="separator"></div>
+                {/if}
+                {#if otherDashboards.length > 0}
+                  <div class="px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-text-subtle">Other dashboards</div>
+                {/if}
+                {#each otherDashboards as d}
+                  <Select.Item
+                    value={d.slug}
+                    label={d.name}
+                    class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs outline-none data-[highlighted]:bg-surface-2 data-[selected]:text-primary"
+                  >
+                    {#snippet children({ selected: isSelected })}
+                      <span class="w-3 shrink-0 text-primary">{isSelected ? '✓' : ''}</span>
+                      {#if d.icon}
+                        <Icon icon={d.icon} iconDark={d.iconDark} size={16} />
+                      {:else}
+                        <img src={logoUrl} alt="" class="h-4 w-4" width="16" height="16" />
+                      {/if}
+                      <span class="min-w-0">
+                        <span class="block truncate">{d.name}</span>
+                        <span class="block truncate text-[10px] text-text-subtle">{d.ownerUsername}</span>
+                      </span>
                     {/snippet}
                   </Select.Item>
                 {/each}
@@ -127,7 +161,7 @@
     </div>
   </header>
 
-  <main class={cn('mx-auto w-full flex-1 px-4 pb-20 pt-6', wide ? 'max-w-none' : 'max-w-6xl')}>
+  <main class={cn('mx-auto w-full flex-1 px-4', reserveControls ? 'pb-20 pt-6' : 'py-6', wide ? 'max-w-none' : 'max-w-6xl')}>
     {@render children?.()}
   </main>
 

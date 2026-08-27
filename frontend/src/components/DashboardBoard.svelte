@@ -11,6 +11,7 @@
   let {
     dashboard,
     groups = $bindable([]),
+    canModify = true,
     onEditGroup,
     onDeleteGroup,
     onCloneGroup,
@@ -22,6 +23,7 @@
   }: {
     dashboard: Dashboard;
     groups: Group[];
+    canModify?: boolean;
     onEditGroup: (g: Group) => void;
     onDeleteGroup: (g: Group) => void;
     onCloneGroup: (g: Group) => void;
@@ -46,7 +48,7 @@
   ];
 
   function onDragOver(event: any) {
-    if (!$editMode) return;
+    if (!$editMode || !canModify) return;
     const { source } = event.operation;
     if (source?.type === 'column') {
       const targetId = event.operation.target?.id as string | undefined;
@@ -61,7 +63,7 @@
   }
 
   async function onDragEnd() {
-    if (!$editMode) return;
+    if (!$editMode || !canModify) return;
     await onLayoutChange();
   }
 </script>
@@ -70,9 +72,9 @@
   <div class={outerClass}>
     {#each filtered as group, gIndex (group.id)}
       <div class={cellClass} data-dashboard-group={group.id}>
-        <GroupCard {group} index={gIndex} layout={dashboard.layout} wide={dashboard.width === 'wide'} onEdit={onEditGroup} onDelete={onDeleteGroup} onClone={onCloneGroup} {onAddItem}>
+        <GroupCard {group} index={gIndex} layout={dashboard.layout} wide={dashboard.width === 'wide'} {canModify} onEdit={onEditGroup} onDelete={onDeleteGroup} onClone={onCloneGroup} {onAddItem}>
           {#each byGroup[group.id] || [] as item, iIndex (item.id)}
-            <ItemCard {item} index={iIndex} groupId={group.id} itemSize={group.itemSize} onEdit={onEditItem} onDelete={onDeleteItem} onClone={onCloneItem} />
+            <ItemCard {item} index={iIndex} groupId={group.id} itemSize={group.itemSize} {canModify} onEdit={onEditItem} onDelete={onDeleteItem} onClone={onCloneItem} />
           {/each}
         </GroupCard>
       </div>

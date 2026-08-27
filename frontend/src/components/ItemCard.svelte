@@ -11,6 +11,7 @@
     groupId,
     itemSize = '1x1',
     isOverlay = false,
+    canModify = true,
     onEdit,
     onDelete,
     onClone,
@@ -20,6 +21,7 @@
     groupId: string;
     itemSize?: ItemSize;
     isOverlay?: boolean;
+    canModify?: boolean;
     onEdit?: (item: Item) => void;
     onDelete?: (item: Item) => void;
     onClone?: (item: Item) => void;
@@ -32,7 +34,7 @@
     accept: 'item',
     group: () => groupId,
     data: () => ({ group: groupId, item }),
-    disabled: () => !$editMode,
+    disabled: () => !$editMode || !canModify,
   });
 </script>
 
@@ -52,7 +54,7 @@
     title={itemSize === '1x1' ? item.title : undefined}
   >
     {#if $editMode}
-      <button type="button" class="absolute left-1 top-1 z-10 cursor-grab touch-none rounded p-0.5 text-text-subtle hover:bg-surface-2 hover:text-text-muted" {@attach handleRef} aria-label="Drag">
+      <button type="button" disabled={!canModify} class="absolute left-1 top-1 z-10 cursor-grab touch-none rounded p-0.5 text-text-subtle hover:bg-surface-2 hover:text-text-muted disabled:cursor-not-allowed disabled:opacity-40" {@attach handleRef} aria-label="Drag">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
           ><circle cx="9" cy="7" r="1.5" /><circle cx="15" cy="7" r="1.5" /><circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" /><circle cx="9" cy="17" r="1.5" /><circle
             cx="15"
@@ -84,7 +86,8 @@
       >
         <button
           type="button"
-          class="rounded-md bg-surface/95 p-1 text-text-muted shadow-sm ring-1 ring-border hover:text-text"
+          disabled={!canModify}
+          class="rounded-md bg-surface/95 p-1 text-text-muted shadow-sm ring-1 ring-border hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
           onclick={(e) => {
             e.preventDefault();
             onEdit?.(item);
@@ -95,7 +98,8 @@
         </button>
         <button
           type="button"
-          class="rounded-md bg-surface/95 p-1 text-text-muted shadow-sm ring-1 ring-border hover:text-text"
+          disabled={!canModify}
+          class="rounded-md bg-surface/95 p-1 text-text-muted shadow-sm ring-1 ring-border hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
           onclick={(e) => {
             e.preventDefault();
             onClone?.(item);
@@ -108,7 +112,8 @@
         </button>
         <button
           type="button"
-          class="rounded-md bg-surface/95 p-1 text-text-muted shadow-sm ring-1 ring-border hover:text-danger"
+          disabled={!canModify}
+          class="rounded-md bg-surface/95 p-1 text-text-muted shadow-sm ring-1 ring-border hover:text-danger disabled:cursor-not-allowed disabled:opacity-40"
           onclick={(e) => {
             e.preventDefault();
             onDelete?.(item);

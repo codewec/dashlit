@@ -6,6 +6,8 @@ export type DashListItem = {
   slug: string;
   icon?: string;
   iconDark?: string;
+  ownerId: string;
+  ownerUsername: string;
 };
 
 export function toDashList(list: Dashboard[]): DashListItem[] {
@@ -15,6 +17,8 @@ export function toDashList(list: Dashboard[]): DashListItem[] {
     slug: d.slug,
     icon: d.icon,
     iconDark: d.iconDark,
+    ownerId: d.ownerId,
+    ownerUsername: d.owner?.username ?? '',
   }));
 }
 
@@ -177,6 +181,7 @@ export function dashboardToForm(d: Dashboard): DashboardForm {
   };
 }
 
-export function pageContainerClass(wide: boolean): string {
-  return wide ? 'mx-auto max-w-none px-4 pb-20 pt-6' : 'mx-auto max-w-6xl px-4 pb-20 pt-6';
+export function pageContainerClass(wide: boolean, reserveControls = false): string {
+  const spacing = reserveControls ? 'pb-20 pt-6' : 'py-6';
+  return wide ? `mx-auto max-w-none px-4 ${spacing}` : `mx-auto max-w-6xl px-4 ${spacing}`;
 }
