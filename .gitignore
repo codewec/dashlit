@@ -1,12 +1,5 @@
-node_modules
-
 # Output
-.output
-.vercel
-.netlify
-.wrangler
-/.svelte-kit
-/build
+app
 /data
 
 # OS
@@ -19,7 +12,3 @@ Thumbs.db
 !.env.example
 !.env.test
 !.env.ci
-
-# Vite
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*

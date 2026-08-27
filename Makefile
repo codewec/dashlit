@@ -1,0 +1,27 @@
+.PHONY: frontend backend build run dev clean
+
+DATA_DIR ?= ./data
+export DATA_DIR
+
+frontend:
+	cd frontend && npm install && npm run build
+	rm -rf backend/cmd/server/static
+	mkdir -p backend/cmd/server/static
+	cp -r frontend/dist/* backend/cmd/server/static/
+
+backend:
+	cd backend && go build -o ../app ./cmd/server
+
+build: frontend backend
+
+run: build
+	./app
+
+dev-backend:
+	cd backend && DEV_MODE=1 go run ./cmd/server
+
+dev-frontend:
+	cd frontend && npm run dev
+
+clean:
+	rm -rf frontend/dist backend/cmd/server/static app data/*.db

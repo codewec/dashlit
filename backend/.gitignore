@@ -1,0 +1,3 @@
+data
+cmd/server/static/*
+!cmd/server/static/.gitkeep

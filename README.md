@@ -1,61 +1,59 @@
-<h1 align="center">DashLit</h1>
-<p align="center">
-    <i>DashLit is a simple, self-hosted Startpage solution. It’s incredibly easy to set up and use, and its built-in editors let you quickly create your own application hub – even with a convenient drag-and-drop interface. You don’t even need to edit any files!</i>
-    <br/><br/>
-    <img width="130" alt="DashLit" src="https://raw.githubusercontent.com/codewec/dashlit/main/static/favicon.svg"/>
-    <br/> <br/>
-    <img src="https://img.shields.io/github/v/release/codewec/dashlit?logo=hackthebox&color=609966&logoColor=fff" alt="Current Version"/>
-    <img src="https://img.shields.io/github/last-commit/codewec/dashlit?logo=github&color=609966&logoColor=fff" alt="Last commit"/>
-    <a href="https://github.com/codewec/dashlit/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-609966?logo=opensourceinitiative&logoColor=fff" alt="License MIT"/></a>
-    <a href="https://dashlit.cwec.dev/" target="_blank"><img src="https://img.shields.io/badge/doc-609966"/></a>
-    <a href="https://demo.dashlit.cwec.dev/" target="_blank"><img src="https://img.shields.io/badge/live-demo-609966"/></a>
-    <br/><br/>
-    <img src="https://raw.githubusercontent.com/codewec/dashlit/main/docs/public/main_page.png" alt="DashLit" width="100%"/>
-</p>
+# DashLit beta
 
+Self-hosted bookmark dashboard (Svelte 5 + Go + SQLite).
 
-## 🚀 Getting started
+Single binary: frontend is built and embedded into the Go server.
 
-<!-- #region docker-configuration -->
-### Docker
+## Features
 
-This Docker image is published on the GitHub container registry - `ghcr.io/codewec/dashlit`.
+- Multiple dashboards per user, custom slug, privacy (public / users / private)
+- Admin can set a main dashboard for `/`
+- Groups + items (links) with 1×1 / 1×2 sizes
+- Edit mode with modal forms
+- Icons: Iconify, URL, upload (stored on disk + Iconify cache)
+- Themes: light / dark / system + per-dashboard overrides (API ready)
+- Local login/register (first user = admin); OIDC (PocketID) hooks prepared
+- Simple search/filter on items
 
-#### Minimal configuration without password
+## Stack
 
-```yaml
-services:
-  app:
-    container_name: dashlit-app
-    image: ghcr.io/codewec/dashlit:latest
-    restart: unless-stopped
-    environment:
-      ORIGIN: '${ORIGIN:-http://localhost:3000}' # please provide URL if different
-    ports:
-      - '3000:3000'
-    volumes:
-      - ./data:/app/data
+- Frontend: Svelte 5, TypeScript, Vite, svelte-spa-router
+- Backend: Go, chi, uptrace/bun, SQLite (modernc)
+- Auth: JWT (cookie + Bearer)
+
+## Quick start
+
+```bash
+# requires: Go 1.22+, Node 20+, npm
+make build
+./bookmarks
+# open http://localhost:8080
 ```
 
-#### Full configuration with password
+Dev (two terminals):
 
-```yaml
-services:
-  app:
-    container_name: dashlit-app
-    image: ghcr.io/codewec/dashlit:latest
-    environment:
-      ORIGIN: '${ORIGIN:-http://localhost:3000}' # please provide URL if different
-      NODE_ENV: '${NODE_ENV:-production}' # optional for production environment
-      HOST_HEADER: '${HOST_HEADER:-HOST}' # optional for nginx reverse proxy
-      ADDRESS_HEADER: '${ADDRESS_HEADER:-X-Real-IP}' # optional for nginx reverse proxy
-      PROTOCOL_HEADER: '${PROTOCOL_HEADER:-X-Forwarded-Proto}' # optional for nginx reverse proxy
-      PASSWORD: '${PASSWORD:-password}'
-      SECRET_KEY: '${SECRET_KEY:-any-secret-string-for-jwt-auth}' # optional key for JWT authentication
-    restart: unless-stopped
-    ports:
-      - '3000:3000'
-    volumes:
-      - ./data:/app/data
+```bash
+make dev-backend    # :8080 API
+make dev-frontend   # :5173 UI with proxy to API
 ```
-<!-- #endregion docker-configuration -->
+
+## Env
+
+| Variable           | Default                                        | Description              |
+| ------------------ | ---------------------------------------------- | ------------------------ |
+| ADDR               | `:8080`                                        | Listen address           |
+| DATA_DIR           | `./data`                                       | DB + icons               |
+| JWT_SECRET         | (dev default)                                  | **Change in production** |
+| OIDC_ISSUER        |                                                | PocketID issuer URL      |
+| OIDC_CLIENT_ID     |                                                |                          |
+| OIDC_CLIENT_SECRET |                                                |                          |
+| OIDC_REDIRECT_URL  | `http://localhost:8080/api/auth/oidc/callback` |                          |
+| DEV_MODE           | `false`                                        | Verbose SQL              |
+
+## API (prefix `/api`)
+
+- `POST /auth/login|register|logout`, `GET /auth/me`
+- `GET/POST /dashboards`, `GET /dashboards/main`, `GET/PUT/DELETE /dashboards/{id}`
+- `POST /dashboards/{id}/set-main` (admin)
+- Groups/items CRUD + `PUT /dashboards/{id}/layout` (batch positions after DnD)
+- `POST /icons/upload`, `GET /icons/{id}`, `GET /icons/iconify/{prefix}/{name}`

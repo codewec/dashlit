@@ -1,0 +1,69 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --color-bg: #0c0e12;
+  --color-bg-elevated: #12151c;
+  --color-surface: #181c27;
+  --color-surface-2: #1e2433;
+  --color-border: #2a3142;
+  --color-border-soft: #222836;
+  --color-text: #e8ecf4;
+  --color-text-muted: #8b95a8;
+  --color-text-subtle: #5c6578;
+  --color-primary: #3d8b7a;
+  --color-primary-hover: #4a9d8a;
+  --color-primary-fg: #ffffff;
+  --color-accent: #5b9fd4;
+  --color-danger: #e85d5d;
+  --color-danger-soft: rgba(232, 93, 93, 0.12);
+  --radius-card: 1rem;
+  --radius-btn: 0.625rem;
+}
+
+[data-theme='light'] {
+  --color-bg: #f3f1ea;
+  --color-bg-elevated: #faf8f3;
+  --color-surface: #ffffff;
+  --color-surface-2: #f7f5ef;
+  --color-border: #e4e0d5;
+  --color-border-soft: #ebe7dc;
+  --color-text: #1a2332;
+  --color-text-muted: #5c6b7a;
+  --color-text-subtle: #8a96a3;
+  --color-primary: #1f6b5c;
+  --color-primary-hover: #18574a;
+  --color-primary-fg: #ffffff;
+  --color-accent: #2d6a9f;
+  --color-danger: #c94444;
+  --color-danger-soft: rgba(201, 68, 68, 0.1);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-text);
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, color-mix(in oklab, var(--color-primary) 12%, transparent), transparent),
+      radial-gradient(900px 500px at 90% 0%, color-mix(in oklab, var(--color-accent) 8%, transparent), transparent),
+      var(--color-bg);
+  }
+  * {
+    border-color: var(--color-border);
+  }
+  input, select, textarea {
+    font: inherit;
+  }
+}
+
+/* form field error */
+.field-error {
+  border-color: var(--color-danger) !important;
+  box-shadow: 0 0 0 3px var(--color-danger-soft);
+}
