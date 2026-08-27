@@ -11,7 +11,7 @@
 
 <button
   type="button"
-  class="fixed bottom-5 right-5 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-base text-[var(--color-text-muted)] shadow-lg hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+  class="fixed bottom-5 right-5 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-base text-text-muted shadow-lg hover:bg-surface-2 hover:text-text"
   onclick={toggleTheme}
   title="Theme: {$theme}"
   aria-label="Toggle theme"

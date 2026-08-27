@@ -29,24 +29,22 @@
 
 <Dialog.Root bind:open onOpenChange={handleOpenChange}>
   <Dialog.Portal>
-    <Dialog.Overlay
-      class="fixed inset-0 z-50 bg-black/55 data-[state=open]:animate-in data-[state=closed]:animate-out"
-    />
+    <Dialog.Overlay class="fixed inset-0 z-50 bg-black/55 data-[state=open]:animate-in data-[state=closed]:animate-out" />
     <Dialog.Content
       class={cn(
         'fixed left-1/2 top-1/2 z-50 w-[min(28rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2',
-        'rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-2xl outline-none',
+        'rounded-card border border-border bg-surface p-5 shadow-2xl outline-none',
         'max-h-[min(90dvh,40rem)] overflow-y-auto',
-        className
+        className,
       )}
     >
       {#if title}
-        <Dialog.Title class="text-lg font-semibold tracking-tight text-[var(--color-text)]">
+        <Dialog.Title class="text-lg font-semibold tracking-tight text-text">
           {title}
         </Dialog.Title>
       {/if}
       {#if description}
-        <Dialog.Description class="mt-1 text-sm text-[var(--color-text-muted)]">
+        <Dialog.Description class="mt-1 text-sm text-text-muted">
           {description}
         </Dialog.Description>
       {/if}

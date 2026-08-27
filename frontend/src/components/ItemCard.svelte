@@ -24,7 +24,7 @@
   } = $props();
 
   const { ref, handleRef, isDragging } = useSortable({
-    id: item.id,
+    id: () => item.id,
     index: () => index,
     type: 'item',
     accept: 'item',
@@ -40,22 +40,17 @@
     target={$editMode ? undefined : '_blank'}
     rel="noopener"
     class={cn(
-      'group relative flex border border-[var(--color-border-soft)] bg-[var(--color-surface)] transition',
-      'hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-surface-2)]',
+      'group relative flex border border-border-soft bg-surface transition',
+      'hover:border-primary/40 hover:bg-surface-2',
       itemSize === '1x1' ? 'aspect-square w-full flex-col items-center justify-center rounded-2xl p-2' : 'min-h-[4.25rem] w-full items-center gap-3 rounded-2xl p-3',
       isDragging.current && !isOverlay && 'invisible',
-      isOverlay && 'shadow-xl ring-2 ring-[var(--color-primary)]/30',
+      isOverlay && 'shadow-xl ring-2 ring-primary/30',
     )}
     onclick={(e) => $editMode && e.preventDefault()}
     title={itemSize === '1x1' ? item.title : undefined}
   >
     {#if $editMode}
-      <button
-        type="button"
-        class="absolute left-1 top-1 z-10 cursor-grab touch-none rounded p-0.5 text-[var(--color-text-subtle)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-muted)]"
-        {@attach handleRef}
-        aria-label="Drag"
-      >
+      <button type="button" class="absolute left-1 top-1 z-10 cursor-grab touch-none rounded p-0.5 text-text-subtle hover:bg-surface-2 hover:text-text-muted" {@attach handleRef} aria-label="Drag">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
           ><circle cx="9" cy="7" r="1.5" /><circle cx="15" cy="7" r="1.5" /><circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" /><circle cx="9" cy="17" r="1.5" /><circle
             cx="15"
@@ -71,9 +66,9 @@
     {:else}
       <Icon icon={item.icon} iconDark={item.iconDark} size={28} class="shrink-0 rounded-lg" />
       <div class="min-w-0 flex-1">
-        <div class="truncate text-sm font-medium text-[var(--color-text)]">{item.title}</div>
+        <div class="truncate text-sm font-medium text-text">{item.title}</div>
         {#if item.description}
-          <div class="truncate text-xs text-[var(--color-text-muted)]">{item.description}</div>
+          <div class="truncate text-xs text-text-muted">{item.description}</div>
         {/if}
       </div>
     {/if}
@@ -82,7 +77,7 @@
       <div class="absolute right-1 top-1 flex gap-0.5 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
         <button
           type="button"
-          class="rounded-md bg-[var(--color-surface)]/95 p-1 text-[var(--color-text-muted)] shadow-sm ring-1 ring-[var(--color-border)] hover:text-[var(--color-text)]"
+          class="rounded-md bg-surface/95 p-1 text-text-muted shadow-sm ring-1 ring-border hover:text-text"
           onclick={(e) => {
             e.preventDefault();
             onEdit?.(item);
@@ -93,7 +88,7 @@
         </button>
         <button
           type="button"
-          class="rounded-md bg-[var(--color-surface)]/95 p-1 text-[var(--color-text-muted)] shadow-sm ring-1 ring-[var(--color-border)] hover:text-[var(--color-danger)]"
+          class="rounded-md bg-surface/95 p-1 text-text-muted shadow-sm ring-1 ring-border hover:text-danger"
           onclick={(e) => {
             e.preventDefault();
             onDelete?.(item);
@@ -107,6 +102,6 @@
   </a>
 
   {#if !isOverlay && isDragging.current}
-    <div class="absolute inset-0 rounded-2xl border-2 border-dashed border-[var(--color-primary)]/50 bg-[var(--color-primary)]/5"></div>
+    <div class="absolute inset-0 rounded-2xl border-2 border-dashed border-primary/50 bg-primary/5"></div>
   {/if}
 </div>

@@ -30,7 +30,7 @@
   } = $props();
 
   const { ref, handleRef, isDragging } = useSortable({
-    id: group.id,
+    id: () => group.id,
     index: () => index,
     type: 'column',
     accept: ['item', 'column'],
@@ -57,15 +57,15 @@
 <section class="relative h-full w-full" {@attach ref}>
   <div
     class={cn(
-      'relative h-full rounded-[var(--radius-card)] border border-[var(--color-border-soft)] bg-[var(--color-surface)]/80 p-4 pt-5 backdrop-blur-sm',
+      'relative h-full rounded-card border border-border-soft bg-surface/80 p-4 pt-5 backdrop-blur-sm',
       isDragging.current && !isOverlay && 'invisible',
-      isOverlay && 'shadow-2xl ring-2 ring-[var(--color-primary)]/25',
+      isOverlay && 'shadow-2xl ring-2 ring-primary/25',
     )}
   >
     {#if $editMode}
       <button
         type="button"
-        class="absolute left-1.5 top-1.5 z-10 cursor-grab touch-none rounded p-0.5 text-[var(--color-text-subtle)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-muted)]"
+        class="absolute left-1.5 top-1.5 z-10 cursor-grab touch-none rounded p-0.5 text-text-subtle hover:bg-surface-2 hover:text-text-muted"
         {@attach handleRef}
         aria-label="Drag group"
       >
@@ -84,35 +84,20 @@
         <Icon icon={group.icon} iconDark={group.iconDark} size={22} class="mt-0.5 shrink-0 rounded-md" />
       {/if}
       <div class="min-w-0 flex-1">
-        <h3 class="truncate text-sm font-semibold tracking-tight text-[var(--color-text)]">{group.title}</h3>
+        <h3 class="truncate text-sm font-semibold tracking-tight text-text">{group.title}</h3>
         {#if group.description}
-          <p class="mt-0.5 line-clamp-2 text-xs text-[var(--color-text-muted)]">{group.description}</p>
+          <p class="mt-0.5 line-clamp-2 text-xs text-text-muted">{group.description}</p>
         {/if}
       </div>
       {#if $editMode}
         <div class="flex shrink-0 items-center gap-0.5">
-          <button
-            type="button"
-            class="rounded-md p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
-            onclick={() => onAddItem?.(group)}
-            title="Add item"
-          >
+          <button type="button" class="rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-text" onclick={() => onAddItem?.(group)} title="Add item">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" /></svg>
           </button>
-          <button
-            type="button"
-            class="rounded-md p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
-            onclick={() => onEdit?.(group)}
-            title="Edit group"
-          >
+          <button type="button" class="rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-text" onclick={() => onEdit?.(group)} title="Edit group">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
           </button>
-          <button
-            type="button"
-            class="rounded-md p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-danger)]"
-            onclick={() => onDelete?.(group)}
-            title="Delete group"
-          >
+          <button type="button" class="rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-danger" onclick={() => onDelete?.(group)} title="Delete group">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /></svg>
           </button>
         </div>
@@ -123,6 +108,6 @@
     </div>
   </div>
   {#if !isOverlay && isDragging.current}
-    <div class="absolute inset-0 rounded-[var(--radius-card)] border-2 border-dashed border-[var(--color-primary)]/40 bg-[var(--color-primary)]/5"></div>
+    <div class="absolute inset-0 rounded-card border-2 border-dashed border-primary/40 bg-primary/5"></div>
   {/if}
 </section>

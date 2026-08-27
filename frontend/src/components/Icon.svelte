@@ -12,8 +12,5 @@
 {#if src}
   <img {src} width={size} height={size} {alt} class="shrink-0 object-contain {className}" style="width:{size}px;height:{size}px" loading="lazy" />
 {:else}
-  <span
-    class="inline-flex shrink-0 items-center justify-center rounded-md bg-[var(--color-surface-2)] text-[var(--color-text-subtle)] {className}"
-    style="width:{size}px;height:{size}px;font-size:11px">?</span
-  >
+  <span class="inline-flex shrink-0 items-center justify-center rounded-md bg-surface-2 text-text-subtle {className}" style="width:{size}px;height:{size}px;font-size:11px">?</span>
 {/if}

@@ -70,12 +70,12 @@
 </script>
 
 <div class="space-y-2">
-  <div class="flex gap-1 rounded-lg bg-[var(--color-surface-2)] p-1">
+  <div class="flex gap-1 rounded-lg bg-surface-2 p-1">
     {#each ['search', 'url', 'upload'] as SourceTab[] as t}
       <button
         type="button"
         class="flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition
-          {sourceTab === t ? 'bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}"
+          {sourceTab === t ? 'bg-surface text-text shadow-sm' : 'text-text-muted hover:text-text'}"
         onclick={() => {
           sourceTab = t;
           openDropdown = false;
@@ -89,15 +89,15 @@
   <div class="relative min-h-[2.5rem]">
     {#if sourceTab === 'search'}
       <div class="flex items-center gap-2">
-        <div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)]">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border-soft bg-bg-elevated">
           {#if value}
             <Icon icon={value} size={22} />
           {:else}
-            <span class="text-[10px] text-[var(--color-text-subtle)]">—</span>
+            <span class="text-[10px] text-text-subtle">—</span>
           {/if}
         </div>
         <input
-          class="min-w-0 flex-1 rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--color-primary)]"
+          class="min-w-0 flex-1 rounded-btn border border-border bg-bg-elevated px-3 py-2 text-sm outline-none focus:border-primary"
           placeholder="Search icons…"
           bind:value={query}
           onfocus={() => {
@@ -106,19 +106,19 @@
         />
       </div>
       {#if openDropdown && (searching || results.length || query)}
-        <div class="absolute left-0 right-0 top-full z-[60] mt-1 max-h-48 overflow-y-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-2 shadow-xl">
+        <div class="absolute left-0 right-0 top-full z-[60] mt-1 max-h-48 overflow-y-auto rounded-xl border border-border bg-surface p-2 shadow-xl">
           {#if searching}
-            <p class="py-3 text-center text-xs text-[var(--color-text-subtle)]">Searching…</p>
+            <p class="py-3 text-center text-xs text-text-subtle">Searching…</p>
           {:else if results.length === 0}
-            <p class="py-3 text-center text-xs text-[var(--color-text-subtle)]">No results</p>
+            <p class="py-3 text-center text-xs text-text-subtle">No results</p>
           {:else}
             <div class="grid grid-cols-6 gap-1 sm:grid-cols-8">
               {#each results as name}
                 <button
                   type="button"
                   title={name}
-                  class="flex aspect-square items-center justify-center rounded-lg border border-transparent p-1 hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-2)]
-                    {value === name ? 'border-[var(--color-primary)] bg-[var(--color-surface-2)]' : ''}"
+                  class="flex aspect-square items-center justify-center rounded-lg border border-transparent p-1 hover:border-primary hover:bg-surface-2
+                    {value === name ? 'border-primary bg-surface-2' : ''}"
                   onclick={() => selectIcon(name)}
                 >
                   <img src={iconSrc(name)} alt="" class="h-5 w-5 object-contain" loading="lazy" />
@@ -130,34 +130,32 @@
       {/if}
     {:else if sourceTab === 'url'}
       <div class="flex h-9 items-center gap-2">
-        <div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)]">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border-soft bg-bg-elevated">
           {#if value}
             <Icon icon={value} size={22} />
           {:else}
-            <span class="text-[10px] text-[var(--color-text-subtle)]">—</span>
+            <span class="text-[10px] text-text-subtle">—</span>
           {/if}
         </div>
         <input
-          class="min-w-0 flex-1 rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 text-sm outline-none focus:border-[var(--color-primary)]"
+          class="min-w-0 flex-1 rounded-btn border border-border bg-bg-elevated px-3 text-sm outline-none focus:border-primary"
           placeholder="https://…"
           bind:value={urlInput}
           onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), applyUrl())}
         />
-        <button type="button" class="h-9 shrink-0 rounded-[var(--radius-btn)] bg-[var(--color-primary)] px-3 text-xs font-medium text-white hover:bg-[var(--color-primary-hover)]" onclick={applyUrl}>
-          Apply
-        </button>
+        <button type="button" class="h-9 shrink-0 rounded-btn bg-primary px-3 text-xs font-medium text-white hover:bg-primary-hover" onclick={applyUrl}> Apply </button>
       </div>
     {:else}
       <div class="flex items-center gap-2">
-        <div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)]">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border-soft bg-bg-elevated">
           {#if value}
             <Icon icon={value} size={22} />
           {:else}
-            <span class="text-[10px] text-[var(--color-text-subtle)]">—</span>
+            <span class="text-[10px] text-text-subtle">—</span>
           {/if}
         </div>
         <label
-          class="flex h-9 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-btn)] border border-dashed border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 text-xs text-[var(--color-text-muted)] hover:border-[var(--color-primary)]"
+          class="flex h-9 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-btn border border-dashed border-border bg-bg-elevated px-3 text-xs text-text-muted hover:border-primary"
         >
           <span>Upload PNG / SVG / WebP</span>
           <input type="file" accept="image/png,image/svg+xml,image/jpeg,image/webp,image/x-icon" class="hidden" onchange={onFile} />

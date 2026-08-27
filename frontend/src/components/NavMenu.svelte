@@ -4,6 +4,7 @@
   import { api, setToken } from '../lib/api';
   import { user, editMode, theme, applyTheme } from '../lib/stores';
   import Icon from './Icon.svelte';
+  import logoUrl from '../assets/vite.svg';
 
   let {
     dashboards = [],
@@ -32,36 +33,33 @@
 </script>
 
 <DropdownMenu.Root>
-  <DropdownMenu.Trigger
-    class="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-btn)] border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-surface-2)]"
-    aria-label="Menu"
-  >
+  <DropdownMenu.Trigger class="inline-flex h-9 w-9 items-center justify-center rounded-btn border border-border text-text hover:bg-surface-2" aria-label="Menu">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M4 6h16M4 12h16M4 18h16" />
     </svg>
   </DropdownMenu.Trigger>
   <DropdownMenu.Portal>
-    <DropdownMenu.Content class="z-50 min-w-[12rem] overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-1 shadow-xl outline-none" sideOffset={6} align="end">
+    <DropdownMenu.Content class="z-50 min-w-[12rem] overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl outline-none" sideOffset={6} align="end">
       {#if $user && dashboards.length > 0}
-        <div class="px-2 py-1.5 text-[10px] font-medium uppercase tracking-wide text-[var(--color-text-subtle)]">Dashboards</div>
+        <div class="px-2 py-1.5 text-[10px] font-medium uppercase tracking-wide text-text-subtle">Dashboards</div>
         {#each dashboards as d}
           <DropdownMenu.Item
-            class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm outline-none data-[highlighted]:bg-[var(--color-surface-2)] {d.slug === currentSlug
-              ? 'text-[var(--color-primary)]'
-              : 'text-[var(--color-text)]'}"
+            class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm outline-none data-[highlighted]:bg-surface-2 {d.slug === currentSlug ? 'text-primary' : 'text-text'}"
             onSelect={() => push('/' + d.slug)}
           >
             {#if d.icon}
               <Icon icon={d.icon} iconDark={d.iconDark} size={16} />
+            {:else}
+              <img src={logoUrl} alt="" class="h-4 w-4" width="16" height="16" />
             {/if}
             <span class="truncate">{d.name}</span>
           </DropdownMenu.Item>
         {/each}
-        <DropdownMenu.Separator class="my-1 h-px bg-[var(--color-border-soft)]" />
+        <DropdownMenu.Separator class="my-1 h-px bg-border-soft" />
       {/if}
 
       <DropdownMenu.Item
-        class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-[var(--color-text)] outline-none data-[highlighted]:bg-[var(--color-surface-2)]"
+        class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2"
         onSelect={(e) => {
           e.preventDefault();
           toggleTheme();
@@ -72,20 +70,14 @@
       </DropdownMenu.Item>
 
       {#if $user}
-        <DropdownMenu.Item
-          class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-[var(--color-text)] outline-none data-[highlighted]:bg-[var(--color-surface-2)]"
-          onSelect={logout}
-        >
+        <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={logout}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             ><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></svg
           >
           <span>Logout</span>
         </DropdownMenu.Item>
       {:else}
-        <DropdownMenu.Item
-          class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-[var(--color-text)] outline-none data-[highlighted]:bg-[var(--color-surface-2)]"
-          onSelect={() => push('/login')}
-        >
+        <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => push('/login')}>
           <span>Sign in</span>
         </DropdownMenu.Item>
       {/if}

@@ -35,60 +35,52 @@
 </script>
 
 <AuthLayout>
-  <form class="rounded-[var(--radius-card)] border border-[var(--color-border-soft)] bg-[var(--color-surface)] p-6 shadow-xl" onsubmit={submit}>
+  <form class="rounded-card border border-border-soft bg-surface p-6 shadow-xl" onsubmit={submit}>
     <div class="mb-6 text-center">
-      <div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-primary)] text-sm font-bold text-white">B</div>
+      <div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-sm font-bold text-white">B</div>
       <h1 class="text-xl font-semibold tracking-tight">DashLit</h1>
-      <p class="mt-1 text-sm text-[var(--color-text-muted)]">
+      <p class="mt-1 text-sm text-text-muted">
         {mode === 'login' ? 'Sign in to your dashboard' : 'Create an account (first user is admin)'}
       </p>
     </div>
 
     {#if error}
-      <p class="mb-3 rounded-lg bg-[var(--color-danger-soft)] px-3 py-2 text-sm text-[var(--color-danger)]">{error}</p>
+      <p class="mb-3 rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{error}</p>
     {/if}
 
     <label class="mb-3 block">
-      <span class="mb-1 block text-xs font-medium text-[var(--color-text-muted)]">Username</span>
+      <span class="mb-1 block text-xs font-medium text-text-muted">Username</span>
       <input
-        class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2.5 text-sm outline-none focus:border-[var(--color-primary)] {usernameError
-          ? 'field-error'
-          : ''}"
+        class="w-full rounded-btn border border-border bg-bg-elevated px-3 py-2.5 text-sm outline-none focus:border-primary {usernameError ? 'field-error' : ''}"
         bind:value={username}
         onblur={() => (touched.username = true)}
         autocomplete="username"
         required
       />
-      {#if usernameError}<span class="mt-1 block text-xs text-[var(--color-danger)]">{usernameError}</span>{/if}
+      {#if usernameError}<span class="mt-1 block text-xs text-danger">{usernameError}</span>{/if}
     </label>
 
     <label class="mb-4 block">
-      <span class="mb-1 block text-xs font-medium text-[var(--color-text-muted)]">Password</span>
+      <span class="mb-1 block text-xs font-medium text-text-muted">Password</span>
       <input
         type="password"
-        class="w-full rounded-[var(--radius-btn)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2.5 text-sm outline-none focus:border-[var(--color-primary)] {passwordError
-          ? 'field-error'
-          : ''}"
+        class="w-full rounded-btn border border-border bg-bg-elevated px-3 py-2.5 text-sm outline-none focus:border-primary {passwordError ? 'field-error' : ''}"
         bind:value={password}
         onblur={() => (touched.password = true)}
         autocomplete={mode === 'login' ? 'current-password' : 'new-password'}
         required
         minlength="6"
       />
-      {#if passwordError}<span class="mt-1 block text-xs text-[var(--color-danger)]">{passwordError}</span>{/if}
+      {#if passwordError}<span class="mt-1 block text-xs text-danger">{passwordError}</span>{/if}
     </label>
 
-    <button
-      type="submit"
-      disabled={loading}
-      class="w-full rounded-[var(--radius-btn)] bg-[var(--color-primary)] py-2.5 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)] disabled:opacity-60"
-    >
+    <button type="submit" disabled={loading} class="w-full rounded-btn bg-primary py-2.5 text-sm font-medium text-white hover:bg-primary-hover disabled:opacity-60">
       {loading ? '…' : mode === 'login' ? 'Sign in' : 'Create account'}
     </button>
 
     <button
       type="button"
-      class="mt-3 w-full py-2 text-center text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+      class="mt-3 w-full py-2 text-center text-sm text-text-muted hover:text-text"
       onclick={() => {
         mode = mode === 'login' ? 'register' : 'login';
         error = '';
