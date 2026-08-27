@@ -24,6 +24,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export type User = { id: string; username: string; role: 'admin' | 'user' };
+export type AuthConfig = {
+  passwordLoginEnabled: boolean;
+  passwordRegistrationEnabled: boolean;
+  oidcEnabled: boolean;
+  oidcButtonTitle: string;
+};
 export type ThemeColors = {
   background?: string; surface?: string; surfaceHover?: string;
   primary?: string; primaryForeground?: string; accent?: string;
@@ -53,6 +59,7 @@ export type Dashboard = {
 };
 
 export const api = {
+  authConfig: () => request<AuthConfig>('/auth/config'),
   login: (username: string, password: string) =>
     request<{ token: string; user: User }>('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
   register: (username: string, password: string) =>

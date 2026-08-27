@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Router from 'svelte-spa-router';
-  import { api, setToken, getToken } from './lib/api';
+  import { api, setToken } from './lib/api';
   import { user, theme, applyTheme } from './lib/stores';
   import Login from './pages/Login.svelte';
   import DashboardView from './pages/DashboardView.svelte';
@@ -19,13 +19,18 @@
     theme.set(saved);
     applyTheme(saved);
 
-    if (getToken()) {
-      try {
-        user.set(await api.me());
-      } catch {
-        setToken(null);
-        user.set(null);
-      }
+    // An OIDC callback creates an HttpOnly cookie session. Drop any older
+    // local bearer token so it cannot mask the new cookie during /auth/me.
+    if (new URLSearchParams(window.location.search).get('oidc') === '1') {
+      setToken(null);
+      history.replaceState(null, '', `${window.location.pathname}${window.location.hash}`);
+    }
+
+    try {
+      user.set(await api.me());
+    } catch {
+      setToken(null);
+      user.set(null);
     }
     ready = true;
   });
