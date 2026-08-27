@@ -127,7 +127,7 @@
     </div>
   </header>
 
-  <main class={cn('mx-auto w-full flex-1 px-4 py-6', wide ? 'max-w-none' : 'max-w-6xl')}>
+  <main class={cn('mx-auto w-full flex-1 px-4 pb-20 pt-6', wide ? 'max-w-none' : 'max-w-6xl')}>
     {@render children?.()}
   </main>
 

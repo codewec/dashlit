@@ -24,11 +24,7 @@ export function filterGroups(groups: Group[], query: string): Group[] {
   return groups
     .map((g) => ({
       ...g,
-      items: (g.items ?? []).filter(
-        (it) =>
-          it.title.toLowerCase().includes(q) ||
-          (it.description || '').toLowerCase().includes(q)
-      ),
+      items: (g.items ?? []).filter((it) => it.title.toLowerCase().includes(q) || (it.description || '').toLowerCase().includes(q)),
     }))
     .filter((g) => (g.items?.length ?? 0) > 0 || g.title.toLowerCase().includes(q));
 }
@@ -43,14 +39,10 @@ export function itemsByGroupMap(groups: Group[]): Record<string, Item[]> {
 
 export function groupsOuterClass(layout: Layout, wide: boolean): string {
   if (layout === 'columns') {
-    return wide
-      ? 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-      : 'grid grid-cols-1 gap-4 md:grid-cols-2';
+    return wide ? 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid grid-cols-1 gap-4 md:grid-cols-2';
   }
   if (layout === 'masonry') {
-    return wide
-      ? 'columns-1 gap-4 space-y-4 sm:columns-2 lg:columns-3 xl:columns-4 [&>*]:mb-4 [&>*]:break-inside-avoid'
-      : 'columns-1 gap-4 space-y-4 md:columns-2 [&>*]:mb-4 [&>*]:break-inside-avoid';
+    return wide ? 'columns-1 gap-4 space-y-4 sm:columns-2 lg:columns-3 xl:columns-4 [&>*]:mb-4 [&>*]:break-inside-avoid' : 'columns-1 gap-4 space-y-4 md:columns-2 [&>*]:mb-4 [&>*]:break-inside-avoid';
   }
   return 'flex flex-col gap-4';
 }
@@ -80,10 +72,7 @@ export function reorderGroups(groups: Group[], fromId: string, toId: string): Gr
   return next;
 }
 
-export function applyItemMove(
-  groups: Group[],
-  bag: Record<string, Item[]>
-): Group[] {
+export function applyItemMove(groups: Group[], bag: Record<string, Item[]>): Group[] {
   return groups.map((g) => ({
     ...g,
     items: (bag[g.id] || []).map((it, i) => ({ ...it, groupId: g.id, position: i })),
@@ -189,5 +178,5 @@ export function dashboardToForm(d: Dashboard): DashboardForm {
 }
 
 export function pageContainerClass(wide: boolean): string {
-  return wide ? 'mx-auto max-w-none px-4 py-6' : 'mx-auto max-w-6xl px-4 py-6';
+  return wide ? 'mx-auto max-w-none px-4 pb-20 pt-6' : 'mx-auto max-w-6xl px-4 pb-20 pt-6';
 }

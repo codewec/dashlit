@@ -78,7 +78,7 @@
     {#if $editMode}
       <div
         class={cn(
-          'absolute z-10 flex gap-0.5 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100',
+          'absolute z-10 flex gap-0.5 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100',
           itemSize === '1x1' ? 'bottom-1 left-1/2 -translate-x-1/2' : 'bottom-1.5 right-1.5',
         )}
       >

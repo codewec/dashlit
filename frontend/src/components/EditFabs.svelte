@@ -49,12 +49,9 @@
   });
 </script>
 
-<!-- Reserve room for the fixed controls on touch-sized screens. -->
-<div class={$editMode ? 'h-32 sm:hidden' : 'h-20 sm:hidden'} aria-hidden="true"></div>
-
 {#if $editMode}
-  <div class="pointer-events-none fixed left-2 right-2 z-30 grid grid-cols-2 items-center gap-2 sm:left-4 sm:right-4 sm:flex sm:justify-between sm:gap-3" style:bottom="{bottomOffset}px">
-    <div class="pointer-events-auto order-2 flex items-center gap-1.5 sm:order-0">
+  <div class="pointer-events-none fixed left-1 right-1 z-30 flex items-center justify-between gap-1 sm:left-4 sm:right-4 sm:gap-3" style:bottom="{bottomOffset}px">
+    <div class="pointer-events-auto flex min-w-0 items-center gap-1 sm:gap-1.5">
       <button
         type="button"
         class="flex h-11 items-center gap-1.5 rounded-full border border-border bg-surface px-3 text-xs font-medium text-text shadow-lg hover:bg-surface-2 sm:px-4"
@@ -93,15 +90,15 @@
       </DropdownMenu.Root>
     </div>
 
-    <div class="pointer-events-auto order-1 col-span-2 flex items-center gap-1 justify-self-center rounded-full border border-border bg-surface p-1.5 shadow-lg sm:order-0 sm:col-span-1">
-      <button type="button" class="rounded-full px-3 py-2 text-xs font-medium text-text hover:bg-surface-2" onclick={onNewGroup}> + Group </button>
-      <button type="button" class="rounded-full px-3 py-2 text-xs text-text-muted hover:bg-surface-2 hover:text-text" onclick={onSettings}> Settings </button>
-      <button type="button" class="rounded-full bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary-hover" onclick={() => onSave()}> Done </button>
+    <div class="pointer-events-auto flex shrink-0 items-center gap-1 rounded-full border border-border bg-surface p-1 shadow-lg sm:p-1.5">
+      <button type="button" class="rounded-full px-2 py-2 text-xs font-medium text-text hover:bg-surface-2 sm:px-3" onclick={onNewGroup}> + Group </button>
+      <button type="button" class="rounded-full px-2 py-2 text-xs text-text-muted hover:bg-surface-2 hover:text-text sm:px-3" onclick={onSettings}> Settings </button>
+      <button type="button" class="rounded-full bg-primary px-2 py-2 text-xs font-medium text-white hover:bg-primary-hover sm:px-3" onclick={() => onSave()}> Done </button>
     </div>
 
     <button
       type="button"
-      class="pointer-events-auto order-3 flex h-11 w-11 items-center justify-center justify-self-end rounded-full border border-danger/40 bg-surface p-0 text-xs font-medium text-danger shadow-lg hover:bg-danger-soft sm:order-0 sm:w-auto sm:gap-1.5 sm:px-4"
+      class="pointer-events-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-danger/40 bg-surface p-0 text-xs font-medium text-danger shadow-lg hover:bg-danger-soft sm:w-auto sm:gap-1.5 sm:px-4"
       onclick={onDeleteDashboard}
       title="Delete dashboard"
     >
@@ -110,12 +107,13 @@
     </button>
   </div>
 {:else}
-  <div class="group fixed bottom-5 left-1/2 z-30 flex h-11 w-28 -translate-x-1/2 items-end justify-center sm:bottom-0 sm:h-20">
+  <div class="fixed left-1/2 z-30 flex h-11 w-28 -translate-x-1/2 items-center justify-center" style:bottom="{bottomOffset}px">
     <button
       type="button"
-      class="flex h-11 items-center rounded-full border border-border bg-surface px-5 text-xs font-medium text-text shadow-lg transition-transform duration-200 ease-out hover:bg-surface-2 sm:translate-y-5.5 sm:group-hover:-translate-y-5 sm:group-focus-within:-translate-y-5"
+      class="flex h-11 items-center gap-1.5 rounded-full border border-border bg-surface px-5 text-xs font-medium text-text shadow-lg hover:bg-surface-2"
       onclick={() => editMode.set(true)}
     >
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
       Edit
     </button>
   </div>
