@@ -13,18 +13,22 @@
     groups = $bindable([]),
     onEditGroup,
     onDeleteGroup,
+    onCloneGroup,
     onAddItem,
     onEditItem,
     onDeleteItem,
+    onCloneItem,
     onLayoutChange,
   }: {
     dashboard: Dashboard;
     groups: Group[];
     onEditGroup: (g: Group) => void;
     onDeleteGroup: (g: Group) => void;
+    onCloneGroup: (g: Group) => void;
     onAddItem: (g: Group) => void;
     onEditItem: (item: Item) => void;
     onDeleteItem: (item: Item) => void;
+    onCloneItem: (item: Item) => void;
     onLayoutChange: () => void | Promise<void>;
   } = $props();
 
@@ -58,9 +62,9 @@
   <div class={outerClass}>
     {#each filtered as group, gIndex (group.id)}
       <div class={cellClass}>
-        <GroupCard {group} index={gIndex} layout={dashboard.layout} wide={dashboard.width === 'wide'} onEdit={onEditGroup} onDelete={onDeleteGroup} {onAddItem}>
+        <GroupCard {group} index={gIndex} layout={dashboard.layout} wide={dashboard.width === 'wide'} onEdit={onEditGroup} onDelete={onDeleteGroup} onClone={onCloneGroup} {onAddItem}>
           {#each byGroup[group.id] || [] as item, iIndex (item.id)}
-            <ItemCard {item} index={iIndex} groupId={group.id} itemSize={group.itemSize} onEdit={onEditItem} onDelete={onDeleteItem} />
+            <ItemCard {item} index={iIndex} groupId={group.id} itemSize={group.itemSize} onEdit={onEditItem} onDelete={onDeleteItem} onClone={onCloneItem} />
           {/each}
         </GroupCard>
       </div>

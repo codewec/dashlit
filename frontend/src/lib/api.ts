@@ -68,6 +68,22 @@ export const api = {
     request<Dashboard>(`/dashboards/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteDashboard: (id: string) => request(`/dashboards/${id}`, { method: 'DELETE' }),
   setMain: (id: string) => request(`/dashboards/${id}/set-main`, { method: 'POST' }),
+  cloneDashboard: (id: string) =>
+    request<Dashboard>(`/dashboards/${id}/clone`, { method: 'POST' }),
+  exportDashboard: async (id: string) => {
+    const headers: Record<string, string> = {};
+    const token = getToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`/api/dashboards/${id}/export`, { headers, credentials: 'include' });
+    if (!res.ok) throw new Error('Export failed');
+    return res.blob();
+  },
+  importDashboard: (data: unknown) =>
+    request<Dashboard>('/dashboards/import', { method: 'POST', body: JSON.stringify(data) }),
+  cloneGroup: (id: string) =>
+    request<Group>(`/groups/${id}/clone`, { method: 'POST' }),
+  cloneItem: (id: string) =>
+    request<Item>(`/items/${id}/clone`, { method: 'POST' }),
   createGroup: (dashboardId: string, data: Partial<Group> & { title: string }) =>
     request<Group>(`/dashboards/${dashboardId}/groups`, { method: 'POST', body: JSON.stringify(data) }),
   updateGroup: (id: string, data: Partial<Group>) =>

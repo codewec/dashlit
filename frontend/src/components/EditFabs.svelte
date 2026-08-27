@@ -1,20 +1,27 @@
 <script lang="ts">
+  import { DropdownMenu } from 'bits-ui';
   import { editMode } from '../lib/stores';
 
   let {
-    dashboardName = '',
     raised = false,
     onCreateDashboard,
+    onCloneDashboard,
+    onExport,
+    onImport,
     onNewGroup,
     onSettings,
     onDeleteDashboard,
+    onSave,
   }: {
-    dashboardName?: string;
     raised?: boolean;
     onCreateDashboard: () => void;
+    onCloneDashboard: () => void;
+    onExport: () => void;
+    onImport: () => void;
     onNewGroup: () => void;
     onSettings: () => void;
     onDeleteDashboard: () => void;
+    onSave: () => void | Promise<void>;
   } = $props();
 
   const bottom = $derived(raised ? 'bottom-16' : 'bottom-5');
@@ -22,20 +29,49 @@
 
 {#if $editMode}
   <div class="pointer-events-none fixed {bottom} left-4 right-4 z-30 flex items-center justify-between gap-3">
-    <button
-      type="button"
-      class="pointer-events-auto flex h-11 items-center gap-1.5 rounded-full border border-border bg-surface px-4 text-xs font-medium text-text shadow-lg hover:bg-surface-2"
-      onclick={onCreateDashboard}
-      title="New dashboard"
-    >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" /></svg>
-      <span class="hidden sm:inline">Dashboard</span>
-    </button>
+    <div class="pointer-events-auto flex items-center gap-1.5">
+      <button
+        type="button"
+        class="flex h-11 items-center gap-1.5 rounded-full border border-border bg-surface px-3 text-xs font-medium text-text shadow-lg hover:bg-surface-2 sm:px-4"
+        onclick={onCreateDashboard}
+        title="New dashboard"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" /></svg>
+        <span class="hidden sm:inline">New</span>
+      </button>
+      <button
+        type="button"
+        class="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface text-text shadow-lg hover:bg-surface-2"
+        onclick={onCloneDashboard}
+        title="Clone dashboard"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          ><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg
+        >
+      </button>
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger class="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface text-text shadow-lg hover:bg-surface-2" title="Import / Export">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            ><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="M7 10l5 5 5-5" /><path d="M12 15V3" /></svg
+          >
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Portal>
+          <DropdownMenu.Content class="z-50 min-w-[10rem] overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl outline-none" sideOffset={8} side="top">
+            <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={onExport}>
+              Export
+            </DropdownMenu.Item>
+            <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={onImport}>
+              Import
+            </DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu.Portal>
+      </DropdownMenu.Root>
+    </div>
 
     <div class="pointer-events-auto flex items-center gap-1 rounded-full border border-border bg-surface p-1.5 shadow-lg">
       <button type="button" class="rounded-full px-3 py-2 text-xs font-medium text-text hover:bg-surface-2" onclick={onNewGroup}> + Group </button>
       <button type="button" class="rounded-full px-3 py-2 text-xs text-text-muted hover:bg-surface-2 hover:text-text" onclick={onSettings}> Settings </button>
-      <button type="button" class="rounded-full bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary-hover" onclick={() => editMode.set(false)}> Save </button>
+      <button type="button" class="rounded-full bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary-hover" onclick={() => onSave()}> Save </button>
     </div>
 
     <button

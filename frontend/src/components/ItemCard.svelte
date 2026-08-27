@@ -13,6 +13,7 @@
     isOverlay = false,
     onEdit,
     onDelete,
+    onClone,
   }: {
     item: Item;
     index: number;
@@ -21,6 +22,7 @@
     isOverlay?: boolean;
     onEdit?: (item: Item) => void;
     onDelete?: (item: Item) => void;
+    onClone?: (item: Item) => void;
   } = $props();
 
   const { ref, handleRef, isDragging } = useSortable({
@@ -74,7 +76,12 @@
     {/if}
 
     {#if $editMode}
-      <div class="absolute right-1 top-1 flex gap-0.5 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
+      <div
+        class={cn(
+          'absolute z-10 flex gap-0.5 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100',
+          itemSize === '1x1' ? 'bottom-1 left-1/2 -translate-x-1/2' : 'bottom-1.5 right-1.5',
+        )}
+      >
         <button
           type="button"
           class="rounded-md bg-surface/95 p-1 text-text-muted shadow-sm ring-1 ring-border hover:text-text"
@@ -85,6 +92,19 @@
           aria-label="Edit"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+        </button>
+        <button
+          type="button"
+          class="rounded-md bg-surface/95 p-1 text-text-muted shadow-sm ring-1 ring-border hover:text-text"
+          onclick={(e) => {
+            e.preventDefault();
+            onClone?.(item);
+          }}
+          aria-label="Clone"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            ><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg
+          >
         </button>
         <button
           type="button"

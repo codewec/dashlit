@@ -241,6 +241,55 @@
     }
   }
 
+  async function cloneDashboard() {
+    if (!dashboard) return;
+    const d = await api.cloneDashboard(dashboard.id);
+    push('/' + d.slug);
+  }
+
+  async function exportDashboard() {
+    if (!dashboard) return;
+    const blob = await api.exportDashboard(dashboard.id);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${dashboard.slug}.dashlit.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importDashboard() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json,.json';
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        const d = await api.importDashboard(data);
+        push('/' + d.slug);
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : 'Import failed';
+        alert(msg);
+      }
+    };
+    input.click();
+  }
+
+  async function cloneGroup(g: Group) {
+    const created = await api.cloneGroup(g.id);
+    groups = [...groups, created];
+  }
+
+  async function cloneItem(item: Item) {
+    const created = await api.cloneItem(item.id);
+    groups = groups.map((x) =>
+      x.id === created.groupId ? { ...x, items: [...(x.items ?? []), created] } : x,
+    );
+  }
+
   async function persistLayout() {
     if (!dashboard) return;
     try {
@@ -273,6 +322,7 @@
             await api.deleteGroup(g.id);
             await load();
           })}
+        onCloneGroup={cloneGroup}
         onAddItem={openNewItem}
         onEditItem={openEditItem}
         onDeleteItem={(it) =>
@@ -280,15 +330,19 @@
             await api.deleteItem(it.id);
             await load();
           })}
+        onCloneItem={cloneItem}
         onLayoutChange={persistLayout}
       />
       {#if $user}
         <EditFabs
-          dashboardName={d.name}
           onCreateDashboard={openCreateDashboard}
+          onCloneDashboard={cloneDashboard}
+          onExport={exportDashboard}
+          onImport={importDashboard}
           onNewGroup={openNewGroup}
           onSettings={openDashSettings}
           onDeleteDashboard={() => askConfirm(`Delete dashboard “${d.name}”?`, deleteDashboard)}
+          onSave={() => editMode.set(false)}
         />
       {/if}
     </div>
@@ -303,6 +357,7 @@
             await api.deleteGroup(g.id);
             await load();
           })}
+        onCloneGroup={cloneGroup}
         onAddItem={openNewItem}
         onEditItem={openEditItem}
         onDeleteItem={(it) =>
@@ -310,16 +365,20 @@
             await api.deleteItem(it.id);
             await load();
           })}
+        onCloneItem={cloneItem}
         onLayoutChange={persistLayout}
       />
       {#if $user}
         <EditFabs
           raised
-          dashboardName={d.name}
           onCreateDashboard={openCreateDashboard}
+          onCloneDashboard={cloneDashboard}
+          onExport={exportDashboard}
+          onImport={importDashboard}
           onNewGroup={openNewGroup}
           onSettings={openDashSettings}
           onDeleteDashboard={() => askConfirm(`Delete dashboard “${d.name}”?`, deleteDashboard)}
+          onSave={() => editMode.set(false)}
         />
       {/if}
     </AppLayout>
