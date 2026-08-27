@@ -28,10 +28,10 @@ func (h *DashboardHandler) List(w http.ResponseWriter, r *http.Request) {
 	user := auth.UserFromContext(r.Context())
 	ctx := r.Context()
 	var list []*models.Dashboard
-	q := h.db.NewSelect().Model(&list).Order("name ASC")
+	q := h.db.NewSelect().Model(&list).Relation("Owner").Order("name ASC")
 	if user == nil {
 		q = q.Where("privacy = ?", models.PrivacyPublic)
-	} else {
+	} else if user.Role != models.RoleAdmin {
 		q = q.Where("privacy = ? OR privacy = ? OR owner_id = ?", models.PrivacyPublic, models.PrivacyUsers, user.ID)
 	}
 	if err := q.Scan(ctx); err != nil {
