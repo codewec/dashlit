@@ -20,6 +20,10 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_oidc_identity
+ON users(oidc_issuer, oidc_subject)
+WHERE oidc_issuer IS NOT NULL AND oidc_subject IS NOT NULL;
+
 CREATE TABLE IF NOT EXISTS dashboards (
   id TEXT PRIMARY KEY,
   owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -84,6 +88,7 @@ CREATE TABLE IF NOT EXISTS uploaded_icons (
 		return err
 	}, func(ctx context.Context, db *bun.DB) error {
 		_, err := db.ExecContext(ctx, `
+DROP INDEX IF EXISTS idx_users_oidc_identity;
 DROP TABLE IF EXISTS uploaded_icons;
 DROP TABLE IF EXISTS items;
 DROP TABLE IF EXISTS groups;

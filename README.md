@@ -12,7 +12,7 @@ Single binary: frontend is built and embedded into the Go server.
 - Edit mode with modal forms
 - Icons: Iconify, URL, upload (stored on disk + Iconify cache)
 - Themes: light / dark / system + per-dashboard overrides (API ready)
-- Local login/register (first user = admin); OIDC (PocketID) hooks prepared
+- Local login/register (first user = admin) and OIDC (including Pocket ID)
 - Simple search/filter on items
 
 ## Stack
@@ -47,8 +47,14 @@ make dev-frontend   # :5173 UI with proxy to API
 | OIDC_ISSUER        |                                                | PocketID issuer URL      |
 | OIDC_CLIENT_ID     |                                                |                          |
 | OIDC_CLIENT_SECRET |                                                |                          |
-| OIDC_REDIRECT_URL  | `http://localhost:8080/api/auth/oidc/callback` |                          |
+| OIDC_REDIRECT_URL  | `http://localhost:8080/api/auth/oidc/callback` | Registered callback URL |
+| OIDC_BUTTON_TITLE  | `Sign in with OIDC`                            | Login button label       |
+| DISABLE_PASSWORD_REGISTRATION | `false`                             | Disable local sign-up    |
+| DISABLE_OIDC_REGISTRATION | `false`                                 | Do not auto-create OIDC users |
+| DISABLE_PASSWORD_LOGIN | `false`                                    | Disable passwords once OIDC is configured |
 | DEV_MODE           | `false`                                        | Verbose SQL              |
+
+The server automatically reads a `.env` file from its working directory. Existing process environment variables take precedence. For Pocket ID, register `OIDC_REDIRECT_URL` as the client's callback URL and enable the `openid`, `profile`, and `email` scopes.
 
 ## API (prefix `/api`)
 

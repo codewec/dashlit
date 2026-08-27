@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -28,6 +29,8 @@ type Service struct {
 	db  *bun.DB
 	cfg *config.Config
 }
+
+var ErrOIDCRegistrationDisabled = errors.New("creating users through OIDC is disabled")
 
 func NewService(db *bun.DB, cfg *config.Config) *Service {
 	return &Service{db: db, cfg: cfg}
@@ -122,6 +125,58 @@ func (s *Service) GetUser(ctx context.Context, id string) (*models.User, error) 
 	user := new(models.User)
 	err := s.db.NewSelect().Model(user).Where("id = ?", id).Scan(ctx)
 	return user, err
+}
+
+func (s *Service) FindOrCreateOIDCUser(ctx context.Context, identity *OIDCIdentity, allowCreate bool) (*models.User, error) {
+	user := new(models.User)
+	err := s.db.NewSelect().Model(user).
+		Where("oidc_issuer = ? AND oidc_subject = ?", identity.Issuer, identity.Subject).
+		Scan(ctx)
+	if err == nil {
+		return user, nil
+	}
+	if !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
+	}
+	if !allowCreate {
+		return nil, ErrOIDCRegistrationDisabled
+	}
+
+	base := oidcUsername(identity)
+	username := base
+	for suffix := 2; ; suffix++ {
+		count, err := s.db.NewSelect().Model((*models.User)(nil)).Where("username = ?", username).Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if count == 0 {
+			break
+		}
+		username = fmt.Sprintf("%s-%d", base, suffix)
+	}
+
+	count, err := s.db.NewSelect().Model((*models.User)(nil)).Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	role := models.RoleUser
+	if count == 0 {
+		role = models.RoleAdmin
+	}
+	now := time.Now()
+	user = &models.User{
+		ID:          uuid.NewString(),
+		Username:    username,
+		Role:        role,
+		OIDCSubject: &identity.Subject,
+		OIDCIssuer:  &identity.Issuer,
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+	if _, err := s.db.NewInsert().Model(user).Exec(ctx); err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 type contextKey string

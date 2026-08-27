@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"io/fs"
 	"log"
@@ -23,6 +24,9 @@ var staticFS embed.FS
 
 func main() {
 	cfg := config.Load()
+	if (strings.TrimSpace(cfg.OIDCIssuer) == "") != (strings.TrimSpace(cfg.OIDCClientID) == "") {
+		log.Fatal("OIDC_ISSUER and OIDC_CLIENT_ID must either both be set or both be empty")
+	}
 
 	database, err := db.Connect(cfg)
 	if err != nil {
@@ -31,7 +35,11 @@ func main() {
 	defer database.Close()
 
 	authSvc := auth.NewService(database, cfg)
-	authH := handlers.NewAuthHandler(authSvc)
+	oidcAuthenticator, err := auth.NewOIDCAuthenticator(context.Background(), cfg)
+	if err != nil {
+		log.Fatalf("oidc: %v", err)
+	}
+	authH := handlers.NewAuthHandler(authSvc, cfg, oidcAuthenticator)
 	dashH := handlers.NewDashboardHandler(database)
 	giH := handlers.NewGroupItemHandler(database)
 	iconH := handlers.NewIconHandler(database, cfg)
@@ -51,8 +59,11 @@ func main() {
 	r.Use(auth.Middleware(authSvc))
 
 	r.Route("/api", func(r chi.Router) {
+		r.Get("/auth/config", authH.Configuration)
 		r.Post("/auth/login", authH.Login)
 		r.Post("/auth/register", authH.Register)
+		r.Get("/auth/oidc/login", authH.OIDCLogin)
+		r.Get("/auth/oidc/callback", authH.OIDCCallback)
 		r.Post("/auth/logout", authH.Logout)
 		r.Get("/auth/me", authH.Me)
 
