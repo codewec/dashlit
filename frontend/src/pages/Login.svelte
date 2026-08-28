@@ -7,6 +7,7 @@
   import ThemeFab from '../components/ThemeFab.svelte';
   import logoUrl from '../assets/dashlit.svg';
   import { toastError } from '../lib/toasts';
+  import { Switch } from 'bits-ui';
 
   let username = $state('');
   let password = $state('');
@@ -17,13 +18,13 @@
   let authConfig = $state<AuthConfig | null>(null);
   let configLoading = $state(true);
   let oidcLoginURL = $state('/api/auth/oidc/login');
+  let importLegacy = $state(false);
 
   const usernameError = $derived(touched.username && !username.trim() ? 'Required' : '');
   const passwordError = $derived(touched.password && password.length < 6 ? 'Min 6 characters' : '');
   const passwordFormEnabled = $derived(!!authConfig && (mode === 'register' ? authConfig.passwordRegistrationEnabled : authConfig.passwordLoginEnabled));
 
   onMount(async () => {
-    oidcLoginURL = `/api/auth/oidc/login?return_to=${encodeURIComponent(window.location.origin + '/')}`;
     const query = window.location.hash.split('?', 2)[1];
     const oidcError = query ? new URLSearchParams(query).get('oidc_error') : null;
     if (oidcError) {
@@ -32,6 +33,7 @@
     }
     try {
       authConfig = await api.authConfig();
+      updateOIDCLoginURL();
       if (!authConfig.passwordRegistrationEnabled) mode = 'login';
     } catch (err: unknown) {
       error = err instanceof Error ? err.message : 'Could not load authentication settings';
@@ -39,6 +41,12 @@
       configLoading = false;
     }
   });
+
+  function updateOIDCLoginURL() {
+    const params = new URLSearchParams({ return_to: window.location.origin + '/' });
+    if (importLegacy) params.set('import_legacy', '1');
+    oidcLoginURL = `/api/auth/oidc/login?${params.toString()}`;
+  }
 
   async function submit(e: Event) {
     e.preventDefault();
@@ -48,7 +56,7 @@
     error = '';
     loading = true;
     try {
-      const res = mode === 'login' ? await api.login(username, password) : await api.register(username, password);
+      const res = mode === 'login' ? await api.login(username, password) : await api.register(username, password, importLegacy);
       setToken(res.token);
       user.set(res.user);
       push('/');
@@ -132,6 +140,23 @@
         >
           {mode === 'login' ? 'Need an account? Register' : 'Already have an account? Sign in'}
         </button>
+      {/if}
+
+      {#if authConfig.legacyDashboardAvailable}
+        <div class="mt-4 flex items-center justify-between gap-4 rounded-lg border border-border-soft bg-bg-elevated px-3 py-2.5">
+          <span class="text-sm text-text-muted">Legacy version data found. Import after creating the first user.</span>
+          <Switch.Root
+            checked={importLegacy}
+            onCheckedChange={(value) => {
+              importLegacy = !!value;
+              updateOIDCLoginURL();
+            }}
+            aria-label="Import legacy dashboard"
+            class="peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full bg-border transition data-[state=checked]:bg-primary"
+          >
+            <Switch.Thumb class="pointer-events-none block h-5 w-5 translate-x-0.5 rounded-full bg-white shadow transition-transform data-[state=checked]:translate-x-5" />
+          </Switch.Root>
+        </div>
       {/if}
 
       {#if !authConfig.passwordLoginEnabled && !authConfig.oidcEnabled && !authConfig.passwordRegistrationEnabled}

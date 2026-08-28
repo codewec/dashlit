@@ -29,6 +29,7 @@ export type AuthConfig = {
   passwordRegistrationEnabled: boolean;
   oidcEnabled: boolean;
   oidcButtonTitle: string;
+  legacyDashboardAvailable: boolean;
 };
 export type ItemSize = '1x1' | '1x2';
 export type Layout = 'rows' | 'columns' | 'masonry';
@@ -63,8 +64,8 @@ export const api = {
   authConfig: () => request<AuthConfig>('/auth/config'),
   login: (username: string, password: string) =>
     request<{ token: string; user: User }>('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
-  register: (username: string, password: string) =>
-    request<{ token: string; user: User }>('/auth/register', { method: 'POST', body: JSON.stringify({ username, password }) }),
+  register: (username: string, password: string, importLegacy = false) =>
+    request<{ token: string; user: User }>('/auth/register', { method: 'POST', body: JSON.stringify({ username, password, importLegacy }) }),
   logout: () => request('/auth/logout', { method: 'POST' }),
   me: () => request<User>('/auth/me'),
   updateProfile: (data: { username: string; newPassword?: string }) =>
