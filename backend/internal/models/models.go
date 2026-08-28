@@ -3,10 +3,16 @@ package models
 import "github.com/uptrace/bun"
 
 type Role string
+type AuthMethod string
 
 const (
 	RoleAdmin Role = "admin"
 	RoleUser  Role = "user"
+)
+
+const (
+	AuthMethodPassword AuthMethod = "password"
+	AuthMethodOIDC     AuthMethod = "oidc"
 )
 
 type Privacy string
@@ -42,12 +48,13 @@ const (
 type User struct {
 	bun.BaseModel `bun:"table:users,alias:u"`
 
-	ID           string  `bun:"id,pk,type:text" json:"id"`
-	Username     string  `bun:"username,unique,notnull" json:"username"`
-	PasswordHash *string `bun:"password_hash" json:"-"`
-	Role         Role    `bun:"role,notnull,default:'user'" json:"role"`
-	OIDCSubject  *string `bun:"oidc_subject" json:"-"`
-	OIDCIssuer   *string `bun:"oidc_issuer" json:"-"`
+	ID           string     `bun:"id,pk,type:text" json:"id"`
+	Username     string     `bun:"username,unique,notnull" json:"username"`
+	PasswordHash *string    `bun:"password_hash" json:"-"`
+	Role         Role       `bun:"role,notnull,default:'user'" json:"role"`
+	OIDCSubject  *string    `bun:"oidc_subject" json:"-"`
+	OIDCIssuer   *string    `bun:"oidc_issuer" json:"-"`
+	AuthMethod   AuthMethod `bun:"-" json:"authMethod,omitempty"`
 }
 
 type Dashboard struct {

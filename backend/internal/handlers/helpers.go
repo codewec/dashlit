@@ -8,7 +8,7 @@ import (
 )
 
 var reservedSlugs = map[string]bool{
-	"login": true, "logout": true, "settings": true, "admin": true,
+	"login": true, "logout": true, "profile": true, "settings": true, "admin": true,
 	"api": true, "assets": true, "_app": true, "oidc": true, "auth": true,
 	"icons": true, "static": true, "favicon.ico": true,
 }

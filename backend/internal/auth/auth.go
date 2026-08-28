@@ -19,9 +19,10 @@ import (
 )
 
 type Claims struct {
-	UserID   string      `json:"uid"`
-	Username string      `json:"username"`
-	Role     models.Role `json:"role"`
+	UserID     string            `json:"uid"`
+	Username   string            `json:"username"`
+	Role       models.Role       `json:"role"`
+	AuthMethod models.AuthMethod `json:"auth_method"`
 	jwt.RegisteredClaims
 }
 
@@ -47,9 +48,10 @@ func (s *Service) CheckPassword(hash, password string) bool {
 
 func (s *Service) CreateToken(user *models.User) (string, error) {
 	claims := Claims{
-		UserID:   user.ID,
-		Username: user.Username,
-		Role:     user.Role,
+		UserID:     user.ID,
+		Username:   user.Username,
+		Role:       user.Role,
+		AuthMethod: user.AuthMethod,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -112,6 +114,7 @@ func (s *Service) Login(ctx context.Context, username, password string) (*models
 	if user.PasswordHash == nil || !s.CheckPassword(*user.PasswordHash, password) {
 		return nil, "", errors.New("invalid credentials")
 	}
+	user.AuthMethod = models.AuthMethodPassword
 	token, err := s.CreateToken(user)
 	if err != nil {
 		return nil, "", err
@@ -123,6 +126,38 @@ func (s *Service) GetUser(ctx context.Context, id string) (*models.User, error) 
 	user := new(models.User)
 	err := s.db.NewSelect().Model(user).Where("id = ?", id).Scan(ctx)
 	return user, err
+}
+
+func (s *Service) UpdateProfile(ctx context.Context, user *models.User, username, newPassword string) error {
+	username = strings.TrimSpace(username)
+	if username == "" || len(username) > 64 {
+		return errors.New("username must be 1-64 characters")
+	}
+
+	var passwordHash *string
+	if newPassword != "" {
+		if len(newPassword) < 6 {
+			return errors.New("new password must be at least 6 characters")
+		}
+		hash, err := s.HashPassword(newPassword)
+		if err != nil {
+			return err
+		}
+		passwordHash = &hash
+	}
+
+	query := s.db.NewUpdate().Model((*models.User)(nil)).Set("username = ?", username).Where("id = ?", user.ID)
+	if passwordHash != nil {
+		query = query.Set("password_hash = ?", *passwordHash)
+	}
+	if _, err := query.Exec(ctx); err != nil {
+		return err
+	}
+	user.Username = username
+	if passwordHash != nil {
+		user.PasswordHash = passwordHash
+	}
+	return nil
 }
 
 func (s *Service) FindOrCreateOIDCUser(ctx context.Context, identity *OIDCIdentity, allowCreate bool) (*models.User, error) {
@@ -225,6 +260,11 @@ func Middleware(svc *Service) func(http.Handler) http.Handler {
 				next.ServeHTTP(w, r)
 				return
 			}
+			if claims.AuthMethod != models.AuthMethodPassword && claims.AuthMethod != models.AuthMethodOIDC {
+				next.ServeHTTP(w, r)
+				return
+			}
+			user.AuthMethod = claims.AuthMethod
 			ctx := context.WithValue(r.Context(), UserContextKey, user)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

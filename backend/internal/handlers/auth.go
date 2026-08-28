@@ -12,6 +12,7 @@ import (
 
 	"github.com/bookmarks-dashboard/backend/internal/auth"
 	"github.com/bookmarks-dashboard/backend/internal/config"
+	"github.com/bookmarks-dashboard/backend/internal/models"
 	"golang.org/x/oauth2"
 )
 
@@ -99,6 +100,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusConflict, "username taken or error")
 		return
 	}
+	user.AuthMethod = models.AuthMethodPassword
 	token, err := h.svc.CreateToken(user)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "token error")
@@ -235,6 +237,7 @@ func (h *AuthHandler) OIDCCallback(w http.ResponseWriter, r *http.Request) {
 		h.oidcFailure(w, r, returnCookie, "Could not load the OIDC account")
 		return
 	}
+	user.AuthMethod = models.AuthMethodOIDC
 	token, err := h.svc.CreateToken(user)
 	if err != nil {
 		h.oidcFailure(w, r, returnCookie, "Could not create an application session")
@@ -269,6 +272,39 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 	user := auth.UserFromContext(r.Context())
 	if user == nil {
 		writeError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	writeJSON(w, http.StatusOK, user)
+}
+
+func (h *AuthHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	if user == nil {
+		writeError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	var req struct {
+		Username    string `json:"username"`
+		NewPassword string `json:"newPassword"`
+	}
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid body")
+		return
+	}
+	if user.AuthMethod == models.AuthMethodOIDC && strings.TrimSpace(req.Username) != user.Username {
+		writeError(w, http.StatusForbidden, "username cannot be changed during an OIDC session")
+		return
+	}
+	if req.NewPassword != "" && !h.cfg.PasswordLoginEnabled() {
+		writeError(w, http.StatusForbidden, "password login is disabled")
+		return
+	}
+	if err := h.svc.UpdateProfile(r.Context(), user, req.Username, req.NewPassword); err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "unique") {
+			writeError(w, http.StatusConflict, "username is already taken")
+			return
+		}
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	writeJSON(w, http.StatusOK, user)
