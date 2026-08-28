@@ -19,3 +19,12 @@
 	</div>
 {/if}
 {@render children()}
+
+<aside class="upgrade-notice" aria-label="New DashLit version available">
+	<span>A new version of DashLit is available.</span>
+	<a
+		href="https://codewec.github.io/dashlit/guide/migration"
+		target="_blank"
+		rel="noreferrer">View the upgrade guide</a
+	>
+</aside>
