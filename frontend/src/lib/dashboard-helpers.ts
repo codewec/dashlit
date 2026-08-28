@@ -8,10 +8,11 @@ export type DashListItem = {
   iconDark?: string;
   ownerId: string;
   ownerUsername: string;
+  isDefault: boolean;
 };
 
-export function toDashList(list: Dashboard[]): DashListItem[] {
-  return list.map((d) => ({
+export function toDashList(list: Dashboard[] | null | undefined): DashListItem[] {
+  return (list ?? []).map((d) => ({
     id: d.id,
     name: d.name,
     slug: d.slug,
@@ -19,6 +20,7 @@ export function toDashList(list: Dashboard[]): DashListItem[] {
     iconDark: d.iconDark,
     ownerId: d.ownerId,
     ownerUsername: d.owner?.username ?? '',
+    isDefault: !!d.isDefault,
   }));
 }
 
@@ -112,6 +114,7 @@ export type DashboardForm = {
   layout: Layout;
   width: Width;
   cleanMode: boolean;
+  isDefault: boolean;
   creating: boolean;
 };
 
@@ -162,6 +165,7 @@ export function emptyDashboardForm(creating = true): DashboardForm {
     layout: 'rows',
     width: 'default',
     cleanMode: false,
+    isDefault: false,
     creating,
   };
 }
@@ -177,6 +181,7 @@ export function dashboardToForm(d: Dashboard): DashboardForm {
     layout: d.layout,
     width: d.width || 'default',
     cleanMode: !!d.cleanMode,
+    isDefault: !!d.isDefault,
     creating: false,
   };
 }

@@ -7,10 +7,12 @@
   let {
     open = $bindable(false),
     form = $bindable(),
+    canSetDefault = false,
     onSave,
   }: {
     open?: boolean;
     form: DashboardForm;
+    canSetDefault?: boolean;
     onSave: () => void | Promise<void>;
   } = $props();
 
@@ -85,6 +87,22 @@
           </Switch.Root>
         </div>
       </div>
+      {#if canSetDefault}
+        <div class="flex items-center justify-between gap-3 sm:block">
+          <span class="text-sm text-text sm:mb-1 sm:block sm:text-xs sm:text-text-muted">Default dashboard</span>
+          <div class="sm:flex sm:h-10 sm:items-center sm:rounded-btn sm:border sm:border-border sm:bg-bg-elevated sm:px-3">
+            <Switch.Root
+              checked={form.isDefault}
+              onCheckedChange={(v) => (form.isDefault = !!v)}
+              class="peer inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full border border-transparent bg-border transition data-[state=checked]:bg-primary sm:h-5 sm:w-9"
+            >
+              <Switch.Thumb
+                class="pointer-events-none block h-6 w-6 translate-x-0.5 rounded-full bg-white shadow transition-transform data-[state=checked]:translate-x-[1.35rem] sm:h-4 sm:w-4 sm:data-[state=checked]:translate-x-[1.1rem]"
+              />
+            </Switch.Root>
+          </div>
+        </div>
+      {/if}
     </div>
 
     <div class="flex justify-end gap-2 pt-2">

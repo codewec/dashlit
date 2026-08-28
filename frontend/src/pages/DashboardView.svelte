@@ -89,18 +89,25 @@
           return;
         }
       } else {
-        try {
-          d = await api.getMain();
-        } catch {
-          d = null;
-        }
-        if (!d && $user && dashList.length > 0) {
-          replace('/' + dashList[0].slug);
+        const owned = $user ? dashList.filter((candidate) => candidate.ownerId === $user?.id) : [];
+        if (owned.length > 0) {
+          const preferred = owned.find((candidate) => candidate.isDefault) ?? owned[0];
+          replace('/' + preferred.slug);
           return;
-        }
-        if (!d && !$user) {
-          replace('/login');
-          return;
+        } else {
+          try {
+            d = await api.getMain();
+          } catch {
+            d = null;
+          }
+          if (!d && $user && dashList.length > 0) {
+            replace('/' + dashList[0].slug);
+            return;
+          }
+          if (!d && !$user) {
+            replace('/login');
+            return;
+          }
         }
       }
 
@@ -218,12 +225,17 @@
     if (dashForm.creating || !dashboard) {
       if (!$user) return;
       const d = await api.createDashboard(body);
+      if (dashForm.isDefault) await api.setDefault(d.id, true);
       dashOpen = false;
       push('/' + d.slug);
       return;
     }
     const prevSlug = dashboard.slug;
+    const wasDefault = dashboard.isDefault;
     await api.updateDashboard(dashboard.id, body);
+    if (dashboard.ownerId === $user?.id && dashForm.isDefault !== wasDefault) {
+      await api.setDefault(dashboard.id, dashForm.isDefault);
+    }
     dashOpen = false;
     if (dashForm.slug !== prevSlug) push('/' + dashForm.slug);
     else await load();
@@ -414,7 +426,12 @@
 
 <GroupFormModal bind:open={groupOpen} bind:form={groupForm} editing={!!editingGroup} onSave={saveGroup} />
 <ItemFormModal bind:open={itemOpen} bind:form={itemForm} editing={!!editingItem} onSave={saveItem} />
-<DashboardFormModal bind:open={dashOpen} bind:form={dashForm} onSave={saveDash} />
+<DashboardFormModal
+  bind:open={dashOpen}
+  bind:form={dashForm}
+  canSetDefault={!!$user && (dashForm.creating || dashboard?.ownerId === $user.id)}
+  onSave={saveDash}
+/>
 <ConfirmModal
   bind:open={confirmOpen}
   title="Confirm"

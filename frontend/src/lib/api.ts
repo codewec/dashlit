@@ -55,7 +55,7 @@ export type Dashboard = {
   id: string; ownerId: string; name: string; slug: string;
   description: string; icon: string; iconDark: string;
   layout: Layout; width: Width; privacy: 'public' | 'private' | 'users';
-  cleanMode: boolean; isMain: boolean; theme?: DashboardTheme; groups?: Group[]; owner?: User;
+  cleanMode: boolean; isMain: boolean; isDefault: boolean; theme?: DashboardTheme; groups?: Group[]; owner?: User;
 };
 
 export const api = {
@@ -75,6 +75,8 @@ export const api = {
     request<Dashboard>(`/dashboards/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteDashboard: (id: string) => request(`/dashboards/${id}`, { method: 'DELETE' }),
   setMain: (id: string) => request(`/dashboards/${id}/set-main`, { method: 'POST' }),
+  setDefault: (id: string, isDefault: boolean) =>
+    request(`/dashboards/${id}/set-default`, { method: 'POST', body: JSON.stringify({ isDefault }) }),
   cloneDashboard: (id: string) =>
     request<Dashboard>(`/dashboards/${id}/clone`, { method: 'POST' }),
   exportDashboard: async (id: string) => {
