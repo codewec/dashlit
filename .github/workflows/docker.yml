@@ -2,7 +2,7 @@ name: Build and publish container
 
 on:
   push:
-    branches: [beta]
+    branches: [main]
     tags: ['v*']
   workflow_dispatch:
 
@@ -41,7 +41,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           flavor: latest=false
           tags: |
-            type=raw,value=beta
+            type=raw,value=main,enable=${{ github.ref == 'refs/heads/main' }}
             type=ref,event=tag
           labels: |
             org.opencontainers.image.title=DashLit

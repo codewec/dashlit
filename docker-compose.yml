@@ -1,6 +1,6 @@
 services:
   dashlit:
-    image: ghcr.io/codewec/dashlit:${DASHLIT_TAG:-beta}
+    image: ghcr.io/codewec/dashlit:${DASHLIT_TAG:-main}
     container_name: dashlit
     pull_policy: always
     restart: unless-stopped

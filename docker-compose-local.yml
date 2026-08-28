@@ -4,9 +4,9 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        VERSION: beta-local
+        VERSION: local
         COMMIT: local
-    image: dashlit:beta-local
+    image: dashlit:local
     container_name: dashlit
     restart: unless-stopped
     user: '${UID:-1000}:${GID:-1000}'

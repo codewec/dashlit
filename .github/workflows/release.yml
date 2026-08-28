@@ -1,4 +1,4 @@
-name: Create beta release
+name: Create release
 
 on:
   push:
@@ -15,11 +15,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Validate prerelease tag
+      - name: Validate release tag
         shell: bash
         run: |
-          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-[-.0-9A-Za-z]+$ ]]; then
-            echo "Expected a prerelease tag such as v1.0.0-beta.1"
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Expected a release tag such as v1.0.0"
             exit 1
           fi
       - name: Generate release notes
@@ -33,7 +33,7 @@ jobs:
         env:
           OUTPUT: release-notes.md
           GITHUB_REPO: ${{ github.repository }}
-      - name: Create GitHub prerelease
+      - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --prerelease --notes-file "${{ steps.git-cliff.outputs.changelog }}"
+        run: gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --notes-file "${{ steps.git-cliff.outputs.changelog }}"

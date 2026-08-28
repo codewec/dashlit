@@ -1,14 +1,14 @@
 # Releasing DashLit
 
-This document describes the beta release process for maintainers. DashLit uses Conventional Commits, git-cliff, GitHub prereleases, and multi-architecture images published to GHCR.
+This document describes the release process for maintainers. DashLit uses Conventional Commits, git-cliff, GitHub Releases, and multi-architecture images published to GHCR.
 
 ## Release model
 
-- Development happens on the `beta` branch.
-- Beta versions use tags such as `v1.0.0-beta.1`.
-- Every push to `beta` updates `ghcr.io/codewec/dashlit:beta`.
-- Every prerelease tag publishes both `:<version>` and `:beta`.
-- The `latest` image tag is intentionally not published during beta.
+- Development happens on the `main` branch.
+- Stable versions use tags such as `v1.0.0`.
+- Every push to `main` updates `ghcr.io/codewec/dashlit:main`.
+- Every release tag publishes `ghcr.io/codewec/dashlit:<version>`.
+- The `latest` image tag remains on the legacy generation and is intentionally not published by the current workflow.
 - Git tags are the source of truth for release versions.
 
 ## Prerequisites
@@ -27,15 +27,15 @@ fix(back): validate imported item URLs
 docs: update Docker instructions
 ```
 
-## Create a beta release
+## Create a release
 
 ### 1. Prepare the branch
 
-Start from an up-to-date and clean `beta` branch:
+Start from an up-to-date and clean `main` branch:
 
 ```bash
-git switch beta
-git pull --ff-only origin beta
+git switch main
+git pull --ff-only origin main
 git status
 ```
 
@@ -50,6 +50,9 @@ cd ../frontend
 pnpm install --frozen-lockfile
 pnpm exec svelte-check
 pnpm run build
+cd ../docs
+npm ci
+npm run build
 cd ..
 ```
 
@@ -61,19 +64,19 @@ git-cliff shows commits since the latest matching `v*` tag:
 make changelog-preview
 ```
 
-Review the output before choosing the version.
+Review the output and choose the next semantic version.
 
 ### 4. Update `CHANGELOG.md`
 
-Choose the next prerelease version and generate its changelog section:
+Generate the changelog section for the selected version:
 
 ```bash
-make release-changelog VERSION=v1.0.0-beta.1
+make release-changelog VERSION=v1.0.0
 ```
 
 The command:
 
-- validates the prerelease tag format;
+- validates the stable release tag format;
 - refuses to add an existing version twice;
 - collects commits since the latest version tag;
 - prepends the new version section to `CHANGELOG.md`.
@@ -83,7 +86,7 @@ Review and commit the generated file:
 ```bash
 git diff -- CHANGELOG.md
 git add CHANGELOG.md
-git commit -m "chore(release): prepare v1.0.0-beta.1"
+git commit -m "chore(release): prepare v1.0.0"
 ```
 
 The `chore(release)` commit is excluded from generated release notes.
@@ -91,24 +94,24 @@ The `chore(release)` commit is excluded from generated release notes.
 ### 5. Push the release commit
 
 ```bash
-git push origin beta
+git push origin main
 ```
 
 This starts the container workflow and updates:
 
 ```text
-ghcr.io/codewec/dashlit:beta
+ghcr.io/codewec/dashlit:main
 ```
 
-It does not create a GitHub Release.
+It also publishes the updated documentation when `CHANGELOG.md` changes. It does not create a GitHub Release yet.
 
 ### 6. Create and push the tag
 
 Create the tag on the release commit that contains the updated changelog:
 
 ```bash
-git tag -a v1.0.0-beta.1 -m "DashLit v1.0.0-beta.1"
-git push origin v1.0.0-beta.1
+git tag -a v1.0.0 -m "DashLit v1.0.0"
+git push origin v1.0.0
 ```
 
 Pushing the tag starts two workflows:
@@ -116,37 +119,33 @@ Pushing the tag starts two workflows:
 1. The container workflow publishes `linux/amd64` and `linux/arm64` images:
 
    ```text
-   ghcr.io/codewec/dashlit:v1.0.0-beta.1
-   ghcr.io/codewec/dashlit:beta
+   ghcr.io/codewec/dashlit:v1.0.0
    ```
 
-2. The release workflow uses git-cliff to generate notes and creates a GitHub prerelease.
+2. The release workflow uses git-cliff to generate notes and creates a GitHub Release.
 
-Follow both workflows on the repository's Actions page. The release and container jobs run independently, so the GitHub prerelease may appear shortly before the image finishes publishing.
+The `main` image has already been built from the same release commit by the branch push. The tag workflow does not publish or change `latest`.
 
 ### 7. Verify the release
 
 ```bash
-docker pull ghcr.io/codewec/dashlit:v1.0.0-beta.1
-docker pull ghcr.io/codewec/dashlit:beta
+docker pull ghcr.io/codewec/dashlit:v1.0.0
+docker pull ghcr.io/codewec/dashlit:main
 ```
 
-Check that the GitHub Release is marked as a prerelease and contains the expected notes.
+Confirm that both images report the expected version and architecture, the GitHub Release contains the expected notes, and the documentation shows the new changelog entry.
 
-## Next beta
+## Next release
 
-For the next beta of the same base version, increment the prerelease number:
+Choose the next version according to Semantic Versioning:
 
-```text
-v1.0.0-beta.2
-v1.0.0-beta.3
-```
-
-Use a new base version when appropriate, for example `v1.1.0-beta.1`.
+- patch for backward-compatible fixes, for example `v1.0.1`;
+- minor for backward-compatible features, for example `v1.1.0`;
+- major for breaking changes, for example `v2.0.0`.
 
 ## Important notes
 
-- Never move or overwrite a published version tag. Create a new prerelease version instead.
-- Do not create tags without the prerelease suffix while the project is in beta.
-- Do not publish `latest` manually during the beta phase.
+- Never move or overwrite a published version tag. Create a new version instead.
+- Do not publish or retarget `latest`; legacy users rely on it remaining on the previous generation.
+- Create release tags only from commits already present on `main`.
 - Back up persistent application data before testing an upgrade.

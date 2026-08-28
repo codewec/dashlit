@@ -8,16 +8,14 @@
 
 <p align="center">
   <a href="https://github.com/codewec/dashlit/actions/workflows/docker.yml">
-    <img alt="Build" src="https://img.shields.io/github/actions/workflow/status/codewec/dashlit/docker.yml?
-    branch=beta&label=build">
+    <img alt="Build" src="https://img.shields.io/github/actions/workflow/status/codewec/dashlit/docker.yml?branch=main&label=build">
   </a>
   <a href="https://github.com/codewec/dashlit/releases">
   <img alt="GitHub Release" src="https://img.shields.io/github/v/release/codewec/dashlit"></a>
   <a href="https://codewec.github.io/dashlit/"><img alt="Documentation" src="https://img.shields.io/badge/docs-read-brightgreen?logo=readthedocs"></a>
   <a href="https://github.com/codewec/dashlit/discussions"><img alt="GitHub Discussions" src="https://img.shields.io/github/discussions/all/codewec/dashlit"></a>
    <a href="https://catppuccin.com/">
-    <img alt="Catppuccin themes" src="https://img.shields.io/badge/themes-Catppuccin-cba6f7?
-    logo=catppuccin&logoColor=1e1e2e">
+    <img alt="Catppuccin themes" src="https://img.shields.io/badge/themes-Catppuccin-cba6f7?logo=catppuccin&logoColor=1e1e2e">
   </a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/codewec/dashlit"></a>
 </p>
@@ -49,17 +47,17 @@
 
 ## Run with Docker
 
-The beta image is published for `linux/amd64` and `linux/arm64`.
+The current image is published for `linux/amd64` and `linux/arm64` under the `main` tag.
 
 ```bash
-docker pull ghcr.io/codewec/dashlit:beta
+docker pull ghcr.io/codewec/dashlit:main
 docker run -d \
   --name dashlit \
   --restart unless-stopped \
   -p 3000:8080 \
   -e JWT_SECRET='replace-with-a-long-random-secret' \
   -v dashlit-data:/data \
-  ghcr.io/codewec/dashlit:beta
+  ghcr.io/codewec/dashlit:main
 ```
 
 Open [http://localhost:3000](http://localhost:3000). The first account created with password authentication becomes an administrator.
@@ -72,10 +70,10 @@ For production, copy [`.env.example`](.env.example) to `.env`, set at least `JWT
 docker compose -f docker-compose.yml up -d
 ```
 
-The production compose file pulls `ghcr.io/codewec/dashlit:beta`. Pin a prerelease by setting `DASHLIT_TAG`, for example:
+The production compose file pulls `ghcr.io/codewec/dashlit:main`. Pin a release by setting `DASHLIT_TAG`, for example:
 
 ```dotenv
-DASHLIT_TAG=v1.0.0-beta.1
+DASHLIT_TAG=v1.0.0
 ```
 
 To build the image from the current checkout instead:
@@ -184,7 +182,7 @@ make git-cliff-install
 make changelog-preview
 ```
 
-During beta, releases use prerelease tags such as `v1.0.0-beta.1`. A tag publishes both the versioned container tag and `beta`, and creates a GitHub prerelease. The `latest` container tag is intentionally not published yet.
+Releases use tags such as `v1.0.0`. Each release publishes a matching versioned container image and creates a GitHub Release. The `main` image tag follows the current generation, while `latest` remains on the legacy generation and is intentionally not published by these workflows.
 
 See [RELEASING.md](RELEASING.md) for the complete maintainer release procedure.
 

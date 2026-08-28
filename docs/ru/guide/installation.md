@@ -9,7 +9,7 @@
 ```yaml
 services:
   dashlit:
-    image: ghcr.io/codewec/dashlit:beta
+    image: ghcr.io/codewec/dashlit:main
     container_name: dashlit
     restart: unless-stopped
     ports:
@@ -40,14 +40,14 @@ docker compose up -d
 ## Docker CLI
 
 ```bash
-docker pull ghcr.io/codewec/dashlit:beta
+docker pull ghcr.io/codewec/dashlit:main
 docker run -d \
   --name dashlit \
   --restart unless-stopped \
   -p 3000:8080 \
   -e JWT_SECRET='replace-with-a-long-random-secret' \
   -v dashlit-data:/data \
-  ghcr.io/codewec/dashlit:beta
+  ghcr.io/codewec/dashlit:main
 ```
 
 ## Обратный прокси
@@ -62,11 +62,13 @@ OIDC_REDIRECT_URL=https://dash.example.com/api/auth/oidc/callback
 
 ## Фиксация версии
 
-Тег `beta` указывает на последнюю beta-сборку. Для предсказуемых обновлений используйте конкретный тег, например:
+Тег `main` указывает на последнюю сборку текущего поколения DashLit. Для предсказуемых обновлений используйте конкретный тег релиза, например:
 
 ```yaml
-image: ghcr.io/codewec/dashlit:v1.0.0-beta.1
+image: ghcr.io/codewec/dashlit:v1.0.0
 ```
+
+Тег `latest` намеренно не используется для текущего поколения, чтобы существующие установки старой версии не обновились автоматически.
 
 Перед обновлением прочитайте [историю изменений](/ru/changelog), сохраните `/data`, загрузите новый образ и пересоздайте контейнер.
 

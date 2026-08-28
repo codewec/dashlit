@@ -28,7 +28,7 @@ Example Compose mount using an existing host directory:
 ```yaml
 services:
   dashlit:
-    image: ghcr.io/codewec/dashlit:beta
+    image: ghcr.io/codewec/dashlit:main
     volumes:
       - ./data:/data
 ```
@@ -42,7 +42,7 @@ For example, if the old host directory is `./data`, the relevant service can be 
 ```yaml
 services:
   dashlit:
-    image: ghcr.io/codewec/dashlit:beta
+    image: ghcr.io/codewec/dashlit:main
     container_name: dashlit
     restart: unless-stopped
     ports:

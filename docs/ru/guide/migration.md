@@ -32,7 +32,7 @@
 ```yaml
 services:
   dashlit:
-    image: ghcr.io/codewec/dashlit:beta
+    image: ghcr.io/codewec/dashlit:main
     container_name: dashlit
     restart: unless-stopped
     ports:

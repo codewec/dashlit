@@ -9,7 +9,7 @@ Create a directory for the deployment and save the following as `docker-compose.
 ```yaml
 services:
   dashlit:
-    image: ghcr.io/codewec/dashlit:beta
+    image: ghcr.io/codewec/dashlit:main
     container_name: dashlit
     restart: unless-stopped
     ports:
@@ -40,14 +40,14 @@ Open `http://localhost:3000`. Register the first account; it becomes the adminis
 ## Docker CLI
 
 ```bash
-docker pull ghcr.io/codewec/dashlit:beta
+docker pull ghcr.io/codewec/dashlit:main
 docker run -d \
   --name dashlit \
   --restart unless-stopped \
   -p 3000:8080 \
   -e JWT_SECRET='replace-with-a-long-random-secret' \
   -v dashlit-data:/data \
-  ghcr.io/codewec/dashlit:beta
+  ghcr.io/codewec/dashlit:main
 ```
 
 ## Reverse proxy
@@ -62,11 +62,13 @@ OIDC_REDIRECT_URL=https://dash.example.com/api/auth/oidc/callback
 
 ## Pinning a release
 
-The `beta` tag follows the newest beta build. For predictable upgrades, replace it with a versioned prerelease tag, for example:
+The `main` tag follows the newest build of the current DashLit generation. For predictable upgrades, replace it with a versioned release tag, for example:
 
 ```yaml
-image: ghcr.io/codewec/dashlit:v1.0.0-beta.1
+image: ghcr.io/codewec/dashlit:v1.0.0
 ```
+
+The `latest` tag is intentionally not used for the current generation so existing legacy installations are not upgraded automatically.
 
 Read the [changelog](/changelog), back up `/data`, pull the new image, and recreate the container.
 

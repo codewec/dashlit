@@ -71,11 +71,11 @@ changelog-preview: $(GIT_CLIFF_BIN)
 release-changelog: $(GIT_CLIFF_BIN)
 	@version='$(VERSION)'; \
 	if [ -z "$$version" ]; then \
-		echo "VERSION is required (example: make release-changelog VERSION=v1.0.0-beta.1)" >&2; \
+		echo "VERSION is required (example: make release-changelog VERSION=v1.0.0)" >&2; \
 		exit 1; \
 	fi; \
-	if ! printf '%s\n' "$$version" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+-[-.0-9A-Za-z]+$$'; then \
-		echo "VERSION must be a prerelease tag such as v1.0.0-beta.1" >&2; \
+	if ! printf '%s\n' "$$version" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$$'; then \
+		echo "VERSION must be a release tag such as v1.0.0" >&2; \
 		exit 1; \
 	fi; \
 	if grep -Fq "## [$${version#v}]" CHANGELOG.md; then \

@@ -68,7 +68,7 @@ DashLit даёт командам, владельцам домашних сер�
 ```yaml
 services:
   dashlit:
-    image: ghcr.io/codewec/dashlit:beta
+    image: ghcr.io/codewec/dashlit:main
     ports:
       - '3000:8080'
     environment:
