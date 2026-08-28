@@ -1,6 +1,7 @@
 # Output
 app
 /data
+/bin/
 
 # OS
 .DS_Store

@@ -1,0 +1,33 @@
+services:
+  dashlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VERSION: beta-local
+        COMMIT: local
+    image: dashlit:beta-local
+    container_name: dashlit
+    restart: unless-stopped
+    user: "${UID:-1000}:${GID:-1000}"
+    ports:
+      - "${DASHLIT_PORT:-8080}:8080"
+    environment:
+      ADDR: ":8080"
+      DATA_DIR: /data
+      JWT_SECRET: "${JWT_SECRET:-local-development-secret-change-me}"
+      DEV_MODE: "${DEV_MODE:-false}"
+      OIDC_ISSUER: "${OIDC_ISSUER:-}"
+      OIDC_CLIENT_ID: "${OIDC_CLIENT_ID:-}"
+      OIDC_CLIENT_SECRET: "${OIDC_CLIENT_SECRET:-}"
+      OIDC_REDIRECT_URL: "${OIDC_REDIRECT_URL:-http://localhost:8080/api/auth/oidc/callback}"
+      OIDC_BUTTON_TITLE: "${OIDC_BUTTON_TITLE:-Sign in with OIDC}"
+      DISABLE_PASSWORD_REGISTRATION: "${DISABLE_PASSWORD_REGISTRATION:-false}"
+      DISABLE_OIDC_REGISTRATION: "${DISABLE_OIDC_REGISTRATION:-false}"
+      DISABLE_OIDC_USER_MERGE: "${DISABLE_OIDC_USER_MERGE:-false}"
+      DISABLE_PASSWORD_LOGIN: "${DISABLE_PASSWORD_LOGIN:-false}"
+    volumes:
+      - dashlit-data-local:/data
+
+volumes:
+  dashlit-data-local:

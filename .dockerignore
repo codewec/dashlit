@@ -1,0 +1,14 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+.idea
+.vscode
+data
+app
+frontend/node_modules
+frontend/dist
+backend/cmd/server/static/*
+!backend/cmd/server/static/.gitkeep
+**/.DS_Store

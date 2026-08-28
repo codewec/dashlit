@@ -1,0 +1,39 @@
+name: Create beta release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate prerelease tag
+        shell: bash
+        run: |
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-[-.0-9A-Za-z]+$ ]]; then
+            echo "Expected a prerelease tag such as v1.0.0-beta.1"
+            exit 1
+          fi
+      - name: Generate release notes
+        id: git-cliff
+        uses: orhun/git-cliff-action@v4
+        with:
+          version: v2.13.0
+          config: cliff.toml
+          args: --latest --strip header
+          github_token: ${{ github.token }}
+        env:
+          OUTPUT: release-notes.md
+          GITHUB_REPO: ${{ github.repository }}
+      - name: Create GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --prerelease --notes-file "${{ steps.git-cliff.outputs.changelog }}"
