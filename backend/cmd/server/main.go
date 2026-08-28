@@ -40,6 +40,7 @@ func main() {
 		log.Fatalf("oidc: %v", err)
 	}
 	authH := handlers.NewAuthHandler(authSvc, cfg, oidcAuthenticator)
+	adminH := handlers.NewAdminHandler(database, authSvc, cfg)
 	dashH := handlers.NewDashboardHandler(database)
 	giH := handlers.NewGroupItemHandler(database)
 	iconH := handlers.NewIconHandler(database, cfg)
@@ -93,6 +94,13 @@ func main() {
 		r.With(auth.RequireAuth).Post("/icons/upload", iconH.Upload)
 		r.Get("/icons/{id}", iconH.Serve)
 		r.Get("/icons/iconify/{prefix}/{name}", iconH.ProxyIconify)
+
+		r.Route("/admin", func(r chi.Router) {
+			r.Use(auth.RequireAdmin)
+			r.Get("/overview", adminH.Overview)
+			r.Put("/users/{id}", adminH.UpdateUser)
+			r.Delete("/users/{id}", adminH.DeleteUser)
+		})
 	})
 
 	// Static frontend

@@ -47,7 +47,7 @@ func main() {
 
 	home := &models.Dashboard{
 		ID: uuid.NewString(), OwnerID: adminID, Name: "Home", Slug: "home",
-		Layout: models.LayoutRows, Width: models.WidthDefault, Privacy: models.PrivacyPrivate,
+		Layout: models.LayoutRows, Width: models.WidthDefault, Privacy: models.PrivacyPublic,
 		IsMain: true,
 	}
 	media := &models.Dashboard{

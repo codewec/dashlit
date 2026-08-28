@@ -202,6 +202,10 @@ func (h *DashboardHandler) Update(w http.ResponseWriter, r *http.Request) {
 		d.Width = req.Width
 	}
 	if req.Privacy != "" {
+		if d.IsMain && req.Privacy == models.PrivacyPrivate {
+			writeError(w, http.StatusBadRequest, "system default dashboard cannot be private")
+			return
+		}
 		d.Privacy = req.Privacy
 	}
 	d.CleanMode = req.CleanMode
@@ -242,6 +246,15 @@ func (h *DashboardHandler) SetMain(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := chi.URLParam(r, "id")
+	d := new(models.Dashboard)
+	if err := h.db.NewSelect().Model(d).Where("id = ?", id).Scan(r.Context()); err != nil {
+		writeError(w, http.StatusNotFound, "not found")
+		return
+	}
+	if d.Privacy == models.PrivacyPrivate {
+		writeError(w, http.StatusBadRequest, "system default dashboard cannot be private")
+		return
+	}
 	ctx := r.Context()
 	tx, err := h.db.BeginTx(ctx, nil)
 	if err != nil {
