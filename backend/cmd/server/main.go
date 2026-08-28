@@ -17,6 +17,7 @@ import (
 	"github.com/bookmarks-dashboard/backend/internal/config"
 	"github.com/bookmarks-dashboard/backend/internal/db"
 	"github.com/bookmarks-dashboard/backend/internal/handlers"
+	"github.com/bookmarks-dashboard/backend/internal/legacy"
 )
 
 //go:embed all:static
@@ -35,11 +36,16 @@ func main() {
 	defer database.Close()
 
 	authSvc := auth.NewService(database, cfg)
+	legacyMigrator, err := legacy.NewMigrator(context.Background(), database, cfg)
+	if err != nil {
+		log.Printf("legacy dashboard migration disabled: %v", err)
+		legacyMigrator = &legacy.Migrator{}
+	}
 	oidcAuthenticator, err := auth.NewOIDCAuthenticator(context.Background(), cfg)
 	if err != nil {
 		log.Fatalf("oidc: %v", err)
 	}
-	authH := handlers.NewAuthHandler(authSvc, cfg, oidcAuthenticator)
+	authH := handlers.NewAuthHandler(authSvc, cfg, oidcAuthenticator, legacyMigrator)
 	adminH := handlers.NewAdminHandler(database, authSvc, cfg)
 	dashH := handlers.NewDashboardHandler(database)
 	giH := handlers.NewGroupItemHandler(database)

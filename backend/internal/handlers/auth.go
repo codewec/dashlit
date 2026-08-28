@@ -12,18 +12,20 @@ import (
 
 	"github.com/bookmarks-dashboard/backend/internal/auth"
 	"github.com/bookmarks-dashboard/backend/internal/config"
+	"github.com/bookmarks-dashboard/backend/internal/legacy"
 	"github.com/bookmarks-dashboard/backend/internal/models"
 	"golang.org/x/oauth2"
 )
 
 type AuthHandler struct {
-	svc  *auth.Service
-	cfg  *config.Config
-	oidc *auth.OIDCAuthenticator
+	svc    *auth.Service
+	cfg    *config.Config
+	oidc   *auth.OIDCAuthenticator
+	legacy *legacy.Migrator
 }
 
-func NewAuthHandler(svc *auth.Service, cfg *config.Config, oidcAuthenticator *auth.OIDCAuthenticator) *AuthHandler {
-	return &AuthHandler{svc: svc, cfg: cfg, oidc: oidcAuthenticator}
+func NewAuthHandler(svc *auth.Service, cfg *config.Config, oidcAuthenticator *auth.OIDCAuthenticator, legacyMigrator *legacy.Migrator) *AuthHandler {
+	return &AuthHandler{svc: svc, cfg: cfg, oidc: oidcAuthenticator, legacy: legacyMigrator}
 }
 
 type authConfigResponse struct {
@@ -31,21 +33,24 @@ type authConfigResponse struct {
 	PasswordRegistrationEnabled bool   `json:"passwordRegistrationEnabled"`
 	OIDCEnabled                 bool   `json:"oidcEnabled"`
 	OIDCButtonTitle             string `json:"oidcButtonTitle"`
+	LegacyDashboardAvailable    bool   `json:"legacyDashboardAvailable"`
 }
 
-func (h *AuthHandler) Configuration(w http.ResponseWriter, _ *http.Request) {
+func (h *AuthHandler) Configuration(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	writeJSON(w, http.StatusOK, authConfigResponse{
 		PasswordLoginEnabled:        h.cfg.PasswordLoginEnabled(),
 		PasswordRegistrationEnabled: h.cfg.PasswordRegistrationEnabled(),
 		OIDCEnabled:                 h.oidc != nil,
 		OIDCButtonTitle:             h.cfg.OIDCButtonTitle,
+		LegacyDashboardAvailable:    h.legacy.Available(r.Context()),
 	})
 }
 
 type loginReq struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username     string `json:"username"`
+	Password     string `json:"password"`
+	ImportLegacy bool   `json:"importLegacy"`
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -95,12 +100,21 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "username required, password min 6 chars")
 		return
 	}
+	// Capture this before Register inserts the first user. Available deliberately
+	// becomes false as soon as any user exists.
+	importLegacy := req.ImportLegacy && h.legacy.Available(r.Context())
 	user, err := h.svc.Register(r.Context(), req.Username, req.Password)
 	if err != nil {
 		writeError(w, http.StatusConflict, "username taken or error")
 		return
 	}
 	user.AuthMethod = models.AuthMethodPassword
+	if importLegacy {
+		if err := h.legacy.ImportForFirstUser(r.Context(), user); err != nil {
+			writeError(w, http.StatusInternalServerError, "account created, but legacy dashboard import failed")
+			return
+		}
+	}
 	token, err := h.svc.CreateToken(user)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "token error")
@@ -125,6 +139,7 @@ const (
 	oidcNonceCookie    = "oidc_nonce"
 	oidcVerifierCookie = "oidc_verifier"
 	oidcReturnCookie   = "oidc_return_to"
+	oidcLegacyCookie   = "oidc_import_legacy"
 )
 
 func randomURLSafeString() (string, error) {
@@ -166,6 +181,9 @@ func (h *AuthHandler) OIDCLogin(w http.ResponseWriter, r *http.Request) {
 	if returnTo != "" {
 		h.setOIDCCookie(w, oidcReturnCookie, base64.RawURLEncoding.EncodeToString([]byte(returnTo)), 600)
 	}
+	if r.URL.Query().Get("import_legacy") == "1" && h.legacy.Available(r.Context()) {
+		h.setOIDCCookie(w, oidcLegacyCookie, "1", 600)
+	}
 	http.Redirect(w, r, h.oidc.AuthorizationURL(state, nonce, verifier), http.StatusFound)
 }
 
@@ -206,7 +224,8 @@ func (h *AuthHandler) OIDCCallback(w http.ResponseWriter, r *http.Request) {
 	nonceCookie, nonceErr := r.Cookie(oidcNonceCookie)
 	verifierCookie, verifierErr := r.Cookie(oidcVerifierCookie)
 	returnCookie, _ := r.Cookie(oidcReturnCookie)
-	for _, name := range []string{oidcStateCookie, oidcNonceCookie, oidcVerifierCookie, oidcReturnCookie} {
+	legacyCookie, _ := r.Cookie(oidcLegacyCookie)
+	for _, name := range []string{oidcStateCookie, oidcNonceCookie, oidcVerifierCookie, oidcReturnCookie, oidcLegacyCookie} {
 		h.setOIDCCookie(w, name, "", -1)
 	}
 	state := r.URL.Query().Get("state")
@@ -238,6 +257,12 @@ func (h *AuthHandler) OIDCCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user.AuthMethod = models.AuthMethodOIDC
+	if legacyCookie != nil && legacyCookie.Value == "1" {
+		if err := h.legacy.ImportForFirstUser(r.Context(), user); err != nil {
+			h.oidcFailure(w, r, returnCookie, "Account created, but legacy dashboard import failed")
+			return
+		}
+	}
 	token, err := h.svc.CreateToken(user)
 	if err != nil {
 		h.oidcFailure(w, r, returnCookie, "Could not create an application session")
