@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -37,10 +36,9 @@ func main() {
 
 	adminID := uuid.NewString()
 	userID := uuid.NewString()
-	now := time.Now()
 
-	admin := &models.User{ID: adminID, Username: "admin", PasswordHash: hash("admin123"), Role: models.RoleAdmin, CreatedAt: now, UpdatedAt: now}
-	demo := &models.User{ID: userID, Username: "demo", PasswordHash: hash("user123"), Role: models.RoleUser, CreatedAt: now, UpdatedAt: now}
+	admin := &models.User{ID: adminID, Username: "admin", PasswordHash: hash("admin123"), Role: models.RoleAdmin}
+	demo := &models.User{ID: userID, Username: "demo", PasswordHash: hash("user123"), Role: models.RoleUser}
 	for _, u := range []*models.User{admin, demo} {
 		if _, err := database.NewInsert().Model(u).Exec(ctx); err != nil {
 			log.Fatal(err)
@@ -50,17 +48,15 @@ func main() {
 	home := &models.Dashboard{
 		ID: uuid.NewString(), OwnerID: adminID, Name: "Home", Slug: "home",
 		Layout: models.LayoutRows, Width: models.WidthDefault, Privacy: models.PrivacyPrivate,
-		IsMain: true, CreatedAt: now, UpdatedAt: now,
+		IsMain: true,
 	}
 	media := &models.Dashboard{
 		ID: uuid.NewString(), OwnerID: adminID, Name: "Media", Slug: "media",
 		Layout: models.LayoutMasonry, Width: models.WidthWide, Privacy: models.PrivacyUsers,
-		CreatedAt: now, UpdatedAt: now,
 	}
 	dev := &models.Dashboard{
 		ID: uuid.NewString(), OwnerID: userID, Name: "Dev Tools", Slug: "dev",
 		Layout: models.LayoutColumns, Width: models.WidthDefault, Privacy: models.PrivacyPrivate,
-		CreatedAt: now, UpdatedAt: now,
 	}
 	for _, d := range []*models.Dashboard{home, media, dev} {
 		if _, err := database.NewInsert().Model(d).Exec(ctx); err != nil {
@@ -80,7 +76,7 @@ func main() {
 			g := &models.Group{
 				ID: uuid.NewString(), DashboardID: dashID,
 				Title: gs.title, Description: gs.desc, Icon: gs.icon,
-				ItemSize: gs.size, Position: gi, CreatedAt: now, UpdatedAt: now,
+				ItemSize: gs.size, Position: gi,
 			}
 			if _, err := database.NewInsert().Model(g).Exec(ctx); err != nil {
 				return err
@@ -89,7 +85,7 @@ func main() {
 				it := &models.Item{
 					ID: uuid.NewString(), GroupID: g.ID,
 					Title: is.title, Description: is.desc, URL: is.url, Icon: is.icon,
-					Position: ii, CreatedAt: now, UpdatedAt: now,
+					Position: ii,
 				}
 				if _, err := database.NewInsert().Model(it).Exec(ctx); err != nil {
 					return err

@@ -59,19 +59,17 @@ func (h *IconHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer dst.Close()
-	size, err := io.Copy(dst, file)
+	_, err = io.Copy(dst, file)
 	if err != nil {
 		_ = os.Remove(dstPath)
 		writeError(w, http.StatusInternalServerError, "save failed")
 		return
 	}
 	rec := &models.UploadedIcon{
-		ID:           id,
-		Filename:     filename,
-		OriginalName: header.Filename,
-		Mime:         mime,
-		Size:         size,
-		OwnerID:      user.ID,
+		ID:       id,
+		Filename: filename,
+		Mime:     mime,
+		OwnerID:  user.ID,
 	}
 	if _, err := h.db.NewInsert().Model(rec).Exec(r.Context()); err != nil {
 		_ = os.Remove(dstPath)

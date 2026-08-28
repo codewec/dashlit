@@ -15,9 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT,
   role TEXT NOT NULL DEFAULT 'user',
   oidc_subject TEXT,
-  oidc_issuer TEXT,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  oidc_issuer TEXT
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_oidc_identity
@@ -37,10 +35,7 @@ CREATE TABLE IF NOT EXISTS dashboards (
   privacy TEXT NOT NULL DEFAULT 'private',
   clean_mode INTEGER NOT NULL DEFAULT 0,
   is_main INTEGER NOT NULL DEFAULT 0,
-  is_default INTEGER NOT NULL DEFAULT 0,
-  theme JSON,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  is_default INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_dashboards_one_main ON dashboards(is_main) WHERE is_main = 1;
@@ -54,10 +49,7 @@ CREATE TABLE IF NOT EXISTS groups (
   icon TEXT NOT NULL DEFAULT '',
   icon_dark TEXT NOT NULL DEFAULT '',
   item_size TEXT NOT NULL DEFAULT '1x1',
-  position INTEGER NOT NULL DEFAULT 0,
-  collapsed INTEGER NOT NULL DEFAULT 0,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  position INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_groups_dashboard ON groups(dashboard_id, position);
@@ -70,9 +62,7 @@ CREATE TABLE IF NOT EXISTS items (
   url TEXT NOT NULL,
   icon TEXT NOT NULL,
   icon_dark TEXT NOT NULL DEFAULT '',
-  position INTEGER NOT NULL DEFAULT 0,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  position INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_items_group ON items(group_id, position);
@@ -80,11 +70,8 @@ CREATE INDEX IF NOT EXISTS idx_items_group ON items(group_id, position);
 CREATE TABLE IF NOT EXISTS uploaded_icons (
   id TEXT PRIMARY KEY,
   filename TEXT NOT NULL,
-  original_name TEXT NOT NULL,
   mime TEXT NOT NULL,
-  size INTEGER NOT NULL,
-  owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE
 );
 `)
 		return err

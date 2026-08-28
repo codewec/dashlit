@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -67,8 +66,6 @@ func (h *GroupItemHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		IconDark:    req.IconDark,
 		ItemSize:    req.ItemSize,
 		Position:    req.Position,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
 	}
 	if _, err := h.db.NewInsert().Model(g).Exec(r.Context()); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
@@ -95,7 +92,6 @@ func (h *GroupItemHandler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 		IconDark    *string          `json:"iconDark"`
 		ItemSize    *models.ItemSize `json:"itemSize"`
 		Position    *int             `json:"position"`
-		Collapsed   *bool            `json:"collapsed"`
 	}
 	if err := decodeJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid body")
@@ -119,10 +115,6 @@ func (h *GroupItemHandler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	if req.Position != nil {
 		g.Position = *req.Position
 	}
-	if req.Collapsed != nil {
-		g.Collapsed = *req.Collapsed
-	}
-	g.UpdatedAt = time.Now()
 	if _, err := h.db.NewUpdate().Model(g).WherePK().Exec(r.Context()); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -185,8 +177,6 @@ func (h *GroupItemHandler) CreateItem(w http.ResponseWriter, r *http.Request) {
 		Icon:        req.Icon,
 		IconDark:    req.IconDark,
 		Position:    req.Position,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
 	}
 	if _, err := h.db.NewInsert().Model(item).Exec(r.Context()); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
@@ -245,7 +235,6 @@ func (h *GroupItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	if req.GroupID != nil {
 		item.GroupID = *req.GroupID
 	}
-	item.UpdatedAt = time.Now()
 	if _, err := h.db.NewUpdate().Model(item).WherePK().Exec(r.Context()); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -310,7 +299,6 @@ func (h *GroupItemHandler) UpdateLayout(w http.ResponseWriter, r *http.Request) 
 	for _, g := range req.Groups {
 		if _, err := tx.NewUpdate().Model((*models.Group)(nil)).
 			Set("position = ?", g.Position).
-			Set("updated_at = ?", time.Now()).
 			Where("id = ? AND dashboard_id = ?", g.ID, dashboardID).
 			Exec(ctx); err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())
@@ -321,7 +309,6 @@ func (h *GroupItemHandler) UpdateLayout(w http.ResponseWriter, r *http.Request) 
 		if _, err := tx.NewUpdate().Model((*models.Item)(nil)).
 			Set("position = ?", it.Position).
 			Set("group_id = ?", it.GroupID).
-			Set("updated_at = ?", time.Now()).
 			Where("id = ?", it.ID).
 			Exec(ctx); err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())
@@ -349,11 +336,10 @@ func (h *GroupItemHandler) CloneGroup(w http.ResponseWriter, r *http.Request) {
 	}
 	var maxPos int
 	_ = h.db.NewSelect().Model((*models.Group)(nil)).ColumnExpr("COALESCE(MAX(position), -1)").Where("dashboard_id = ?", g.DashboardID).Scan(r.Context(), &maxPos)
-	now := time.Now()
 	ng := &models.Group{
 		ID: uuid.NewString(), DashboardID: g.DashboardID,
 		Title: g.Title + " (copy)", Description: g.Description, Icon: g.Icon, IconDark: g.IconDark,
-		ItemSize: g.ItemSize, Position: maxPos + 1, CreatedAt: now, UpdatedAt: now,
+		ItemSize: g.ItemSize, Position: maxPos + 1,
 	}
 	if _, err := h.db.NewInsert().Model(ng).Exec(r.Context()); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
@@ -364,7 +350,6 @@ func (h *GroupItemHandler) CloneGroup(w http.ResponseWriter, r *http.Request) {
 			ID: uuid.NewString(), GroupID: ng.ID,
 			Title: it.Title, Description: it.Description, URL: it.URL,
 			Icon: it.Icon, IconDark: it.IconDark, Position: i,
-			CreatedAt: now, UpdatedAt: now,
 		}
 		if _, err := h.db.NewInsert().Model(ni).Exec(r.Context()); err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())
@@ -392,12 +377,10 @@ func (h *GroupItemHandler) CloneItem(w http.ResponseWriter, r *http.Request) {
 	}
 	var maxPos int
 	_ = h.db.NewSelect().Model((*models.Item)(nil)).ColumnExpr("COALESCE(MAX(position), -1)").Where("group_id = ?", item.GroupID).Scan(r.Context(), &maxPos)
-	now := time.Now()
 	ni := &models.Item{
 		ID: uuid.NewString(), GroupID: item.GroupID,
 		Title: item.Title + " (copy)", Description: item.Description, URL: item.URL,
 		Icon: item.Icon, IconDark: item.IconDark, Position: maxPos + 1,
-		CreatedAt: now, UpdatedAt: now,
 	}
 	if _, err := h.db.NewInsert().Model(ni).Exec(r.Context()); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())

@@ -96,8 +96,6 @@ func (s *Service) Register(ctx context.Context, username, password string) (*mod
 		Username:     username,
 		PasswordHash: &hash,
 		Role:         role,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
 	}
 	if _, err := s.db.NewInsert().Model(user).Exec(ctx); err != nil {
 		return nil, err
@@ -143,11 +141,9 @@ func (s *Service) FindOrCreateOIDCUser(ctx context.Context, identity *OIDCIdenti
 		existing := new(models.User)
 		err := s.db.NewSelect().Model(existing).Where("username = ?", base).Scan(ctx)
 		if err == nil && existing.OIDCIssuer == nil && existing.OIDCSubject == nil {
-			now := time.Now()
 			res, err := s.db.NewUpdate().Model(existing).
 				Set("oidc_issuer = ?", identity.Issuer).
 				Set("oidc_subject = ?", identity.Subject).
-				Set("updated_at = ?", now).
 				WherePK().
 				Where("oidc_issuer IS NULL AND oidc_subject IS NULL").
 				Exec(ctx)
@@ -157,7 +153,6 @@ func (s *Service) FindOrCreateOIDCUser(ctx context.Context, identity *OIDCIdenti
 			if affected, _ := res.RowsAffected(); affected == 1 {
 				existing.OIDCIssuer = &identity.Issuer
 				existing.OIDCSubject = &identity.Subject
-				existing.UpdatedAt = now
 				return existing, nil
 			}
 		} else if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -189,15 +184,12 @@ func (s *Service) FindOrCreateOIDCUser(ctx context.Context, identity *OIDCIdenti
 	if count == 0 {
 		role = models.RoleAdmin
 	}
-	now := time.Now()
 	user = &models.User{
 		ID:          uuid.NewString(),
 		Username:    username,
 		Role:        role,
 		OIDCSubject: &identity.Subject,
 		OIDCIssuer:  &identity.Issuer,
-		CreatedAt:   now,
-		UpdatedAt:   now,
 	}
 	if _, err := s.db.NewInsert().Model(user).Exec(ctx); err != nil {
 		return nil, err

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -101,16 +100,15 @@ func (h *DashboardHandler) GetMain(w http.ResponseWriter, r *http.Request) {
 }
 
 type createDashboardReq struct {
-	Name        string                 `json:"name"`
-	Slug        string                 `json:"slug"`
-	Description string                 `json:"description"`
-	Icon        string                 `json:"icon"`
-	IconDark    string                 `json:"iconDark"`
-	Layout      models.Layout          `json:"layout"`
-	Width       models.Width           `json:"width"`
-	Privacy     models.Privacy         `json:"privacy"`
-	CleanMode   bool                   `json:"cleanMode"`
-	Theme       *models.DashboardTheme `json:"theme"`
+	Name        string         `json:"name"`
+	Slug        string         `json:"slug"`
+	Description string         `json:"description"`
+	Icon        string         `json:"icon"`
+	IconDark    string         `json:"iconDark"`
+	Layout      models.Layout  `json:"layout"`
+	Width       models.Width   `json:"width"`
+	Privacy     models.Privacy `json:"privacy"`
+	CleanMode   bool           `json:"cleanMode"`
 }
 
 func (h *DashboardHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -153,9 +151,6 @@ func (h *DashboardHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Layout:      req.Layout,
 		Width:       req.Width,
 		Privacy:     req.Privacy,
-		Theme:       req.Theme,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
 	}
 	d.CleanMode = req.CleanMode
 	if _, err := h.db.NewInsert().Model(d).Exec(r.Context()); err != nil {
@@ -210,10 +205,6 @@ func (h *DashboardHandler) Update(w http.ResponseWriter, r *http.Request) {
 		d.Privacy = req.Privacy
 	}
 	d.CleanMode = req.CleanMode
-	if req.Theme != nil {
-		d.Theme = req.Theme
-	}
-	d.UpdatedAt = time.Now()
 	if _, err := h.db.NewUpdate().Model(d).WherePK().Exec(r.Context()); err != nil {
 		writeError(w, http.StatusConflict, "update failed")
 		return
@@ -262,7 +253,7 @@ func (h *DashboardHandler) SetMain(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	res, err := tx.NewUpdate().Model((*models.Dashboard)(nil)).Set("is_main = ?", true).Set("updated_at = ?", time.Now()).Where("id = ?", id).Exec(ctx)
+	res, err := tx.NewUpdate().Model((*models.Dashboard)(nil)).Set("is_main = ?", true).Where("id = ?", id).Exec(ctx)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -327,7 +318,6 @@ func (h *DashboardHandler) SetDefault(w http.ResponseWriter, r *http.Request) {
 	}
 	res, err := tx.NewUpdate().Model((*models.Dashboard)(nil)).
 		Set("is_default = ?", req.IsDefault).
-		Set("updated_at = ?", time.Now()).
 		Where("id = ? AND owner_id = ?", id, user.ID).
 		Exec(ctx)
 	if err != nil {
@@ -488,12 +478,10 @@ func (h *DashboardHandler) importPayload(ctx context.Context, user *models.User,
 	if privacy == "" {
 		privacy = models.PrivacyPrivate
 	}
-	now := time.Now()
 	d := &models.Dashboard{
 		ID: uuid.NewString(), OwnerID: user.ID, Name: name, Slug: slug,
 		Description: src.Description, Icon: src.Icon, IconDark: src.IconDark,
 		Layout: layout, Width: width, Privacy: privacy, CleanMode: src.CleanMode,
-		CreatedAt: now, UpdatedAt: now,
 	}
 	if _, err := h.db.NewInsert().Model(d).Exec(ctx); err != nil {
 		return nil, err
@@ -503,7 +491,6 @@ func (h *DashboardHandler) importPayload(ctx context.Context, user *models.User,
 			ID: uuid.NewString(), DashboardID: d.ID,
 			Title: gs.Title, Description: gs.Description, Icon: gs.Icon, IconDark: gs.IconDark,
 			ItemSize: gs.ItemSize, Position: gs.Position,
-			CreatedAt: now, UpdatedAt: now,
 		}
 		if g.ItemSize == "" {
 			g.ItemSize = models.Size1x1
@@ -519,7 +506,6 @@ func (h *DashboardHandler) importPayload(ctx context.Context, user *models.User,
 				ID: uuid.NewString(), GroupID: g.ID,
 				Title: is.Title, Description: is.Description, URL: is.URL,
 				Icon: is.Icon, IconDark: is.IconDark, Position: is.Position,
-				CreatedAt: now, UpdatedAt: now,
 			}
 			if it.Icon == "" {
 				it.Icon = "mdi:link"
