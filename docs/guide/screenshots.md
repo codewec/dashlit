@@ -1,27 +1,19 @@
 # Screenshot gallery
 
-This page is reserved for product screenshots. Keeping the placeholders in the documentation makes the intended crop and subject clear when images are added later.
+Explore the main DashLit interface, dashboard customization, themes, and administration tools.
 
 ## Main dashboard
 
-<div class="screenshot-placeholder">
-  <div><strong>Wide landscape image</strong><br>Show a populated dashboard in the default theme.</div>
-</div>
+<img class="doc-screenshot" src="/dahslit-default.png" alt="A populated DashLit dashboard in the default theme" loading="lazy">
 
 ## Dashboard editing
 
-<div class="screenshot-placeholder">
-  <div><strong>Wide landscape image</strong><br>Show drag-and-drop editing, groups, and item controls.</div>
-</div>
+<img class="doc-screenshot" src="/dashlit-edit.png" alt="Dashboard editing with groups and item controls" loading="lazy">
 
 ## Themes and clean mode
 
-<div class="screenshot-placeholder">
-  <div><strong>Two-image comparison</strong><br>Show a dark theme and a clean-mode display.</div>
-</div>
+<img class="doc-screenshot" src="/dashlit-clean-themes.png" alt="DashLit clean mode with light and dark themes" loading="lazy">
 
 ## Administration
 
-<div class="screenshot-placeholder">
-  <div><strong>Wide landscape image</strong><br>Show the user and dashboard administration page with private details obscured.</div>
-</div>
+<img class="doc-screenshot" src="/dashlit-admin.png" alt="DashLit administration interface" loading="lazy">

@@ -1,27 +1,19 @@
 # Галерея скриншотов
 
-Страница зарезервирована для скриншотов продукта. Заглушки показывают желаемый сюжет и формат будущих изображений.
+Посмотрите на основной интерфейс DashLit, настройку дашборда, темы и инструменты администрирования.
 
 ## Главный дашборд
 
-<div class="screenshot-placeholder">
-  <div><strong>Широкое изображение</strong><br>Заполненный дашборд в стандартной теме.</div>
-</div>
+<img class="doc-screenshot" src="/dahslit-default.png" alt="Заполненный дашборд DashLit в стандартной теме" loading="lazy">
 
 ## Редактирование
 
-<div class="screenshot-placeholder">
-  <div><strong>Широкое изображение</strong><br>Перетаскивание, группы и элементы управления ссылками.</div>
-</div>
+<img class="doc-screenshot" src="/dashlit-edit.png" alt="Редактирование дашборда, групп и элементов" loading="lazy">
 
 ## Темы и чистый режим
 
-<div class="screenshot-placeholder">
-  <div><strong>Сравнение двух изображений</strong><br>Тёмная тема и дашборд в чистом режиме.</div>
-</div>
+<img class="doc-screenshot" src="/dashlit-clean-themes.png" alt="Чистый режим DashLit в светлой и тёмной темах" loading="lazy">
 
 ## Администрирование
 
-<div class="screenshot-placeholder">
-  <div><strong>Широкое изображение</strong><br>Страница управления пользователями и дашбордами без приватных данных.</div>
-</div>
+<img class="doc-screenshot" src="/dashlit-admin.png" alt="Интерфейс администрирования DashLit" loading="lazy">

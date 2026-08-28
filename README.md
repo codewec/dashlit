@@ -7,16 +7,30 @@
 <p align="center">A modern, fast, and self-hosted dashboard for your links and services.</p>
 
 <p align="center">
-  <a href="https://github.com/codewec/dashlit/actions/workflows/docker.yml"><img alt="Container build" src="https://github.com/codewec/dashlit/actions/workflows/docker.yml/badge.svg?branch=beta"></a>
+  <a href="https://github.com/codewec/dashlit/actions/workflows/docker.yml">
+    <img alt="Build" src="https://img.shields.io/github/actions/workflow/status/codewec/dashlit/docker.yml?
+    branch=beta&label=build">
+  </a>
   <a href="https://github.com/codewec/dashlit/releases">
   <img alt="GitHub Release" src="https://img.shields.io/github/v/release/codewec/dashlit"></a>
   <a href="https://codewec.github.io/dashlit/"><img alt="Documentation" src="https://img.shields.io/badge/docs-read-brightgreen?logo=readthedocs"></a>
   <a href="https://github.com/codewec/dashlit/discussions"><img alt="GitHub Discussions" src="https://img.shields.io/github/discussions/all/codewec/dashlit"></a>
+   <a href="https://catppuccin.com/">
+    <img alt="Catppuccin themes" src="https://img.shields.io/badge/themes-Catppuccin-cba6f7?
+    logo=catppuccin&logoColor=1e1e2e">
+  </a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/codewec/dashlit"></a>
 </p>
 
 > [!TIP]
 > **Visit the [DashLit documentation](https://codewec.github.io/dashlit/)** for complete installation and configuration guides, detailed feature descriptions, migration instructions and screenshots.
+
+## Screenshots
+
+<p align="center">
+  <img src=".github/screenshots/dahslit-default.png" width="49%" alt="DashLit default dashboard">
+  <img src=".github/screenshots/dashlit-clean-themes.png" width="49%" alt="DashLit clean layout and themes">
+</p>
 
 ## Highlights
 

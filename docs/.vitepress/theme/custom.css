@@ -42,3 +42,51 @@
   text-align: center;
   background: var(--vp-c-brand-soft);
 }
+
+.home-screenshots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin: 32px 0;
+}
+
+.home-screenshots figure {
+  margin: 0;
+}
+
+.home-screenshots img {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 16px;
+  box-shadow: 0 16px 36px rgba(30, 30, 46, 0.12);
+  cursor: zoom-in;
+}
+
+.doc-screenshot {
+  display: block;
+  width: 100%;
+  margin: 20px 0 36px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 16px;
+  box-shadow: 0 16px 36px rgba(30, 30, 46, 0.12);
+  cursor: zoom-in;
+}
+
+.home-screenshots figcaption {
+  margin-top: 10px;
+  color: var(--vp-c-text-2);
+  font-size: 14px;
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .home-screenshots {
+    grid-template-columns: 1fr;
+  }
+}
+
+.medium-zoom-overlay,
+.medium-zoom-image--opened {
+  z-index: 100;
+}

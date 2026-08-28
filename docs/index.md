@@ -50,8 +50,15 @@ features:
 
 DashLit gives teams, homelabs, and individuals a focused place to reach the services they use every day. It ships as a Go server with the Svelte interface embedded, so deployment is just one container and one persistent data directory.
 
-<div class="screenshot-placeholder">
-  <div><strong>Hero screenshot placeholder</strong><br>Add a wide dashboard screenshot here later.</div>
+<div class="home-screenshots">
+  <figure>
+    <img src="/dahslit-default.png" alt="DashLit dashboard in the default layout" loading="lazy">
+    <figcaption>Everything you need, organized on one dashboard</figcaption>
+  </figure>
+  <figure>
+    <img src="/dashlit-clean-themes.png" alt="DashLit clean layout with light and dark themes" loading="lazy">
+    <figcaption>Clean mode with light and dark themes</figcaption>
+  </figure>
 </div>
 
 ## Ready in a few seconds

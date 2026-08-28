@@ -50,8 +50,15 @@ features:
 
 DashLit даёт командам, владельцам домашних серверов и отдельным пользователям удобное место для доступа к ежедневным сервисам. Go-сервер уже содержит интерфейс на Svelte, поэтому для запуска достаточно одного контейнера и одного постоянного каталога данных.
 
-<div class="screenshot-placeholder">
-  <div><strong>Место для главного скриншота</strong><br>Позже добавьте сюда широкий скриншот заполненного дашборда.</div>
+<div class="home-screenshots">
+  <figure>
+    <img src="/dahslit-default.png" alt="Дашборд DashLit со стандартной раскладкой" loading="lazy">
+    <figcaption>Все нужные сервисы на одном организованном дашборде</figcaption>
+  </figure>
+  <figure>
+    <img src="/dashlit-clean-themes.png" alt="Чистая раскладка DashLit в светлой и тёмной темах" loading="lazy">
+    <figcaption>Чистый режим со светлыми и тёмными темами</figcaption>
+  </figure>
 </div>
 
 ## Запуск за несколько секунд
