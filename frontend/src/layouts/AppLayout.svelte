@@ -19,12 +19,14 @@
     currentSlug = '',
     wide = false,
     reserveControls = false,
+    showSearch = true,
   }: {
     children?: Snippet;
     dashboards?: DashListItem[];
     currentSlug?: string;
     wide?: boolean;
     reserveControls?: boolean;
+    showSearch?: boolean;
   } = $props();
 
   const selected = $derived(dashboards.find((d) => d.slug === currentSlug) ?? null);
@@ -130,12 +132,14 @@
       {/if}
 
       <div class="min-w-0 flex-1">
-        <input
-          type="search"
-          placeholder="Filter…"
-          bind:value={$searchQuery}
-          class="w-full max-w-xs rounded-btn border border-border bg-surface px-3 py-1.5 text-sm outline-none placeholder:text-text-subtle focus:border-primary"
-        />
+        {#if showSearch}
+          <input
+            type="search"
+            placeholder="Filter…"
+            bind:value={$searchQuery}
+            class="w-full max-w-xs rounded-btn border border-border bg-surface px-3 py-1.5 text-sm outline-none placeholder:text-text-subtle focus:border-primary"
+          />
+        {/if}
       </div>
 
       <div class="ml-auto hidden items-center gap-1 sm:flex">
@@ -154,6 +158,9 @@
           </DropdownMenu.Portal>
         </DropdownMenu.Root>
         {#if $user}
+          <a href="#/profile" class="flex h-8 w-8 items-center justify-center rounded-btn text-text-muted hover:bg-surface-2 hover:text-text" title="Profile" aria-label="Profile">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
+          </a>
           <button type="button" class="flex h-8 w-8 items-center justify-center rounded-btn text-text-muted hover:bg-surface-2 hover:text-text" onclick={logout} title="Logout" aria-label="Logout">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               ><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></svg

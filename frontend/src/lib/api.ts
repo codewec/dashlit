@@ -23,7 +23,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return res.json();
 }
 
-export type User = { id: string; username: string; role: 'admin' | 'user' };
+export type User = { id: string; username: string; role: 'admin' | 'user'; authMethod: 'password' | 'oidc' };
 export type AuthConfig = {
   passwordLoginEnabled: boolean;
   passwordRegistrationEnabled: boolean;
@@ -57,6 +57,8 @@ export const api = {
     request<{ token: string; user: User }>('/auth/register', { method: 'POST', body: JSON.stringify({ username, password }) }),
   logout: () => request('/auth/logout', { method: 'POST' }),
   me: () => request<User>('/auth/me'),
+  updateProfile: (data: { username: string; newPassword?: string }) =>
+    request<User>('/auth/profile', { method: 'PUT', body: JSON.stringify(data) }),
   listDashboards: () => request<Dashboard[]>('/dashboards'),
   getDashboard: (idOrSlug: string) => request<Dashboard>(`/dashboards/${idOrSlug}`),
   getMain: () => request<Dashboard | null>('/dashboards/main'),
