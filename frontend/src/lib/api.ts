@@ -36,7 +36,8 @@ export type Width = 'default' | 'wide';
 
 export type Item = {
   id: string; groupId: string; title: string; description: string;
-  url: string; icon: string; iconDark: string; position: number;
+  url: string; icon: string; iconDark: string; pingEnabled: boolean;
+  pingOnlyDown: boolean; position: number;
 };
 export type Group = {
   id: string; dashboardId: string; title: string; description: string;
@@ -95,6 +96,7 @@ export const api = {
     request<Group>(`/groups/${id}/clone`, { method: 'POST' }),
   cloneItem: (id: string) =>
     request<Item>(`/items/${id}/clone`, { method: 'POST' }),
+  pingItem: (id: string) => request<{ reachable: boolean }>(`/items/${id}/ping`),
   createGroup: (dashboardId: string, data: Partial<Group> & { title: string }) =>
     request<Group>(`/dashboards/${dashboardId}/groups`, { method: 'POST', body: JSON.stringify(data) }),
   updateGroup: (id: string, data: Partial<Group>) =>

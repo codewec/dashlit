@@ -105,6 +105,8 @@ export type ItemForm = {
   icon: string;
   iconDark: string;
   groupId: string;
+  pingEnabled: boolean;
+  pingOnlyDown: boolean;
 };
 
 export type DashboardForm = {
@@ -143,6 +145,8 @@ export function emptyItemForm(groupId = ''): ItemForm {
     icon: 'mdi:link',
     iconDark: '',
     groupId,
+    pingEnabled: false,
+    pingOnlyDown: false,
   };
 }
 
@@ -154,6 +158,8 @@ export function itemToForm(item: Item): ItemForm {
     icon: item.icon,
     iconDark: item.iconDark || '',
     groupId: item.groupId,
+    pingEnabled: item.pingEnabled ?? false,
+    pingOnlyDown: item.pingOnlyDown ?? false,
   };
 }
 

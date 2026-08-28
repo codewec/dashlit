@@ -5,6 +5,7 @@
   import type { Item, ItemSize } from '../lib/api';
   import { editMode } from '../lib/stores';
   import { cn } from '../lib/cn';
+  import { api } from '../lib/api';
 
   let {
     item,
@@ -37,6 +38,30 @@
     data: () => ({ group: groupId, item }),
     disabled: () => !$editMode || !canModify,
   });
+
+  let pingReachable = $state<boolean | null>(null);
+
+  $effect(() => {
+    if (!item.pingEnabled || isOverlay) {
+      pingReachable = null;
+      return;
+    }
+    let active = true;
+    const check = async () => {
+      try {
+        const result = await api.pingItem(item.id);
+        if (active) pingReachable = result.reachable;
+      } catch {
+        if (active) pingReachable = false;
+      }
+    };
+    void check();
+    const interval = window.setInterval(check, 30_000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  });
 </script>
 
 <div class="relative h-full w-full" {@attach ref}>
@@ -64,6 +89,24 @@
           /></svg
         >
       </button>
+    {/if}
+
+    {#if item.pingEnabled && pingReachable !== null && (!item.pingOnlyDown || !pingReachable)}
+      {#if itemSize === '1x1'}
+        <span
+          class="absolute right-2 top-2 z-[5] h-2.5 w-2.5 rounded-full shadow-sm ring-2 ring-surface {pingReachable ? 'bg-success' : 'bg-danger'}"
+          title={pingReachable ? 'URL is available' : 'URL is unavailable'}
+          aria-label={pingReachable ? 'Online' : 'Offline'}
+        ></span>
+      {:else}
+        <span
+          class="absolute right-1.5 top-1.5 z-[5] inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-medium shadow-sm {pingReachable ? 'bg-success/15 text-success' : 'bg-danger-soft text-danger'}"
+          title={pingReachable ? 'URL is available' : 'URL is unavailable'}
+        >
+          <span class="h-1.5 w-1.5 rounded-full {pingReachable ? 'bg-success' : 'bg-danger'}"></span>
+          {pingReachable ? 'Online' : 'Offline'}
+        </span>
+      {/if}
     {/if}
 
     {#if itemSize === '1x1'}

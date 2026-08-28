@@ -195,6 +195,8 @@
       url: itemForm.url.trim(),
       icon: itemForm.icon || 'mdi:link',
       iconDark: itemForm.iconDark,
+      pingEnabled: itemForm.pingEnabled,
+      pingOnlyDown: itemForm.pingOnlyDown,
     };
     try {
       if (editingItem) await api.updateItem(editingItem.id, payload);

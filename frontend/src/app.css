@@ -17,6 +17,7 @@
   --color-accent: #2d6a9f;
   --color-danger: #c94444;
   --color-danger-soft: rgba(201, 68, 68, 0.1);
+  --color-success: #2e7d5b;
   --radius-card: 1rem;
   --radius-btn: 0.625rem;
 }
@@ -37,6 +38,7 @@
   --color-accent: #2d6a9f;
   --color-danger: #c94444;
   --color-danger-soft: rgba(201, 68, 68, 0.1);
+  --color-success: #2e7d5b;
 }
 
 [data-theme='latte'] {
@@ -55,6 +57,7 @@
   --color-accent: #8839ef;
   --color-danger: #d20f39;
   --color-danger-soft: color-mix(in srgb, #d20f39 12%, transparent);
+  --color-success: #40a02b;
 }
 
 [data-theme='frappe'] {
@@ -73,6 +76,7 @@
   --color-accent: #ca9ee6;
   --color-danger: #e78284;
   --color-danger-soft: color-mix(in srgb, #e78284 14%, transparent);
+  --color-success: #a6d189;
 }
 
 [data-theme='macchiato'] {
@@ -91,6 +95,7 @@
   --color-accent: #c6a0f6;
   --color-danger: #ed8796;
   --color-danger-soft: color-mix(in srgb, #ed8796 14%, transparent);
+  --color-success: #a6da95;
 }
 
 [data-theme='mocha'] {
@@ -109,6 +114,7 @@
   --color-accent: #cba6f7;
   --color-danger: #f38ba8;
   --color-danger-soft: color-mix(in srgb, #f38ba8 14%, transparent);
+  --color-success: #a6e3a1;
 }
 
 @layer base {
