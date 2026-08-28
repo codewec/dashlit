@@ -59,6 +59,12 @@ export type AdminOverview = {
   dashboards: Dashboard[];
   flags: Record<string, boolean>;
 };
+export type IconSearchResult = {
+  name: string;
+  icon: string;
+  iconDark?: string;
+  source: 'selfh.st' | 'Iconify';
+};
 
 export const api = {
   authConfig: () => request<AuthConfig>('/auth/config'),
@@ -117,32 +123,12 @@ export const api = {
     fd.append('icon', file);
     return request<{ id: string; icon: string; url: string }>('/icons/upload', { method: 'POST', body: fd });
   },
-  searchIcons: async (query: string) => {
-    if (!query.trim()) return [] as string[];
-    const res = await fetch(`https://api.iconify.design/search?query=${encodeURIComponent(query)}&limit=64`);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return (data.icons || []) as string[];
-  },
+  searchIconifyIcons: (query: string) =>
+    request<IconSearchResult[]>(`/icons/search/iconify?q=${encodeURIComponent(query)}`),
+  searchSelfhstIcons: (query: string) =>
+    request<IconSearchResult[]>(`/icons/search/selfhst?q=${encodeURIComponent(query)}`),
   adminOverview: () => request<AdminOverview>('/admin/overview'),
   adminUpdateUser: (id: string, data: { username: string; newPassword?: string; resetOIDC?: boolean }) =>
     request(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   adminDeleteUser: (id: string) => request(`/admin/users/${id}`, { method: 'DELETE' }),
 };
-
-export function iconSrc(icon: string): string {
-  if (!icon) return '';
-  if (icon.startsWith('http') || icon.startsWith('/')) return icon;
-  if (icon.startsWith('local:')) return `/api/icons/${icon.slice(6)}`;
-  if (icon.includes(':')) {
-    const [prefix, name] = icon.split(':');
-    return `/api/icons/iconify/${prefix}/${name}`;
-  }
-  return icon;
-}
-
-/** Resolve themed icon: prefer dark when theme is dark and iconDark set. */
-export function resolveIcon(icon: string, iconDark: string | undefined, isDark: boolean): string {
-  if (isDark && iconDark) return iconDark;
-  return icon || '';
-}

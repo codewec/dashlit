@@ -2,6 +2,7 @@
   import { Dialog } from 'bits-ui';
   import Icon from './Icon.svelte';
   import IconPicker from './IconPicker.svelte';
+  import { iconPreviewClass } from '../lib/icon-helpers';
 
   let {
     value = $bindable(''),
@@ -16,19 +17,23 @@
   let openLight = $state(false);
   let openDark = $state(false);
   let draft = $state('');
+  let pairedDraft = $state('');
 
   function openPicker(which: 'light' | 'dark') {
     draft = which === 'light' ? value || defaultIcon : valueDark;
+    pairedDraft = which === 'light' ? valueDark : value || defaultIcon;
     if (which === 'light') openLight = true;
     else openDark = true;
   }
 
   function applyLight() {
     value = draft || defaultIcon;
+    valueDark = pairedDraft;
     openLight = false;
   }
   function applyDark() {
     valueDark = draft;
+    value = pairedDraft || defaultIcon;
     openDark = false;
   }
 
@@ -48,11 +53,11 @@
     <span class="text-[11px] text-text-muted">Default</span>
     <button
       type="button"
-      class="relative flex h-14 w-14 items-center justify-center rounded-xl border border-border bg-bg-elevated hover:border-primary"
+      class="relative flex h-14 w-14 items-center justify-center rounded-xl border border-border {iconPreviewClass('light')} hover:border-primary"
       onclick={() => openPicker('light')}
       title="Choose default icon"
     >
-      <Icon icon={value || defaultIcon} size={28} />
+      <Icon icon={value || defaultIcon} theme="light" size={28} />
       {#if value && value !== defaultIcon}
         <span
           role="button"
@@ -70,12 +75,12 @@
     <span class="text-[11px] text-text-muted">Dark</span>
     <button
       type="button"
-      class="relative flex h-14 w-14 items-center justify-center rounded-xl border border-dashed border-border bg-bg-elevated hover:border-primary"
+      class="relative flex h-14 w-14 items-center justify-center rounded-xl border border-dashed border-border {iconPreviewClass('dark')} hover:border-primary"
       onclick={() => openPicker('dark')}
       title="Choose dark theme icon"
     >
       {#if valueDark}
-        <Icon icon={valueDark} size={28} />
+        <Icon icon={valueDark} theme="dark" size={28} />
         <span
           role="button"
           tabindex="0"
@@ -84,7 +89,7 @@
           onkeydown={(e) => e.key === 'Enter' && clearDark(e as any)}>×</span
         >
       {:else}
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-text-subtle">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-white/50">
           <rect x="3" y="3" width="18" height="18" rx="4" />
           <path d="M12 8v8M8 12h8" />
         </svg>
@@ -101,7 +106,7 @@
       <Dialog.Title class="text-sm font-semibold text-text">Default icon</Dialog.Title>
       <div class="mt-3">
         {#key openLight}
-          <IconPicker bind:value={draft} />
+          <IconPicker bind:value={draft} bind:pairedValue={pairedDraft} variant="light" />
         {/key}
       </div>
       <div class="mt-4 flex justify-end gap-2">
@@ -120,7 +125,7 @@
       <Dialog.Title class="text-sm font-semibold text-text">Dark theme icon</Dialog.Title>
       <div class="mt-3">
         {#key openDark}
-          <IconPicker bind:value={draft} />
+          <IconPicker bind:value={draft} bind:pairedValue={pairedDraft} variant="dark" />
         {/key}
       </div>
       <div class="mt-4 flex justify-end gap-2">

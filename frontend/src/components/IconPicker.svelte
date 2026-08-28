@@ -1,31 +1,46 @@
 <script lang="ts">
-  import { api, iconSrc } from '../lib/api';
+  import { api, type IconSearchResult } from '../lib/api';
+  import {
+    applyIconSelection,
+    combineIconResults,
+    detectIconSourceTab,
+    iconForVariant,
+    iconPreviewClass,
+    iconSearchTitle,
+    type IconSourceTab,
+    type IconVariant,
+  } from '../lib/icon-helpers';
   import Icon from './Icon.svelte';
   import { toastError } from '../lib/toasts';
 
-  let { value = $bindable('') }: { value?: string } = $props();
+  let {
+    value = $bindable(''),
+    pairedValue = $bindable(''),
+    variant = 'light',
+  }: {
+    value?: string;
+    pairedValue?: string;
+    variant?: IconVariant;
+  } = $props();
 
-  type SourceTab = 'search' | 'url' | 'upload';
-
-  function detectSource(v: string): SourceTab {
-    if (!v) return 'search';
-    if (v.startsWith('local:')) return 'upload';
-    if (v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/')) return 'url';
-    return 'search';
-  }
-
-  let sourceTab = $state<SourceTab>('search');
+  let sourceTab = $state<IconSourceTab>('search');
   let query = $state('');
-  let results = $state<string[]>([]);
-  let searching = $state(false);
+  let iconifyResults = $state<IconSearchResult[]>([]);
+  let selfhstResults = $state<IconSearchResult[]>([]);
+  let searchingIconify = $state(false);
+  let searchingSelfhst = $state(false);
   let urlInput = $state('');
   let openDropdown = $state(false);
   let initialized = $state(false);
   let debounce: ReturnType<typeof setTimeout> | undefined;
+  let searchSequence = 0;
+
+  const results = $derived(combineIconResults(selfhstResults, iconifyResults));
+  const searching = $derived(searchingIconify || searchingSelfhst);
 
   $effect(() => {
     if (!initialized) {
-      sourceTab = detectSource(value);
+      sourceTab = detectIconSourceTab(value);
       if (sourceTab === 'url') urlInput = value;
       initialized = true;
     }
@@ -33,33 +48,43 @@
 
   $effect(() => {
     const q = query;
+    const sequence = ++searchSequence;
     clearTimeout(debounce);
     if (sourceTab !== 'search') {
       openDropdown = false;
       return;
     }
     if (!q.trim()) {
-      results = [];
-      searching = false;
+      iconifyResults = [];
+      selfhstResults = [];
+      searchingIconify = false;
+      searchingSelfhst = false;
       openDropdown = false;
       return;
     }
-    searching = true;
+    // Never show results produced for a shorter, previous query while the
+    // debounced requests for the current query are pending.
+    iconifyResults = [];
+    selfhstResults = [];
+    searchingIconify = true;
+    searchingSelfhst = true;
     openDropdown = true;
-    debounce = setTimeout(async () => {
-      try {
-        results = await api.searchIcons(q);
-      } catch (e: unknown) {
-        results = [];
-        toastError(e, 'Could not search icons');
-      } finally {
-        searching = false;
-      }
+    debounce = setTimeout(() => {
+      void api.searchIconifyIcons(q).then(
+        (found) => { if (sequence === searchSequence) iconifyResults = found; },
+        () => { if (sequence === searchSequence) iconifyResults = []; },
+      ).finally(() => { if (sequence === searchSequence) searchingIconify = false; });
+      void api.searchSelfhstIcons(q).then(
+        (found) => { if (sequence === searchSequence) selfhstResults = found; },
+        () => { if (sequence === searchSequence) selfhstResults = []; },
+      ).finally(() => { if (sequence === searchSequence) searchingSelfhst = false; });
     }, 280);
   });
 
-  function selectIcon(name: string) {
-    value = name;
+  function selectIcon(result: IconSearchResult) {
+    const selection = applyIconSelection(result, variant, pairedValue);
+    value = selection.value;
+    pairedValue = selection.pairedValue;
     openDropdown = false;
     query = '';
   }
@@ -82,7 +107,7 @@
 
 <div class="space-y-2">
   <div class="flex gap-1 rounded-lg bg-surface-2 p-1">
-    {#each ['search', 'url', 'upload'] as SourceTab[] as t}
+    {#each ['search', 'url', 'upload'] as IconSourceTab[] as t}
       <button
         type="button"
         class="flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition
@@ -100,9 +125,9 @@
   <div class="relative min-h-[2.5rem]">
     {#if sourceTab === 'search'}
       <div class="flex items-center gap-2">
-        <div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border-soft bg-bg-elevated">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border-soft {iconPreviewClass(variant)}">
           {#if value}
-            <Icon icon={value} size={22} />
+            <Icon icon={value} theme={variant} size={22} />
           {:else}
             <span class="text-[10px] text-text-subtle">—</span>
           {/if}
@@ -118,55 +143,63 @@
       </div>
       {#if openDropdown && (searching || results.length || query)}
         <div class="absolute left-0 right-0 top-full z-[60] mt-1 max-h-48 overflow-y-auto rounded-xl border border-border bg-surface p-2 shadow-xl">
-          {#if searching}
-            <p class="py-3 text-center text-xs text-text-subtle">Searching…</p>
-          {:else if results.length === 0}
-            <p class="py-3 text-center text-xs text-text-subtle">No results</p>
-          {:else}
+          {#if results.length > 0}
             <div class="grid grid-cols-6 gap-1 sm:grid-cols-8">
-              {#each results as name}
+              {#each results as result}
                 <button
                   type="button"
-                  title={name}
-                  class="flex aspect-square items-center justify-center rounded-lg border border-transparent p-1 hover:border-primary hover:bg-surface-2
-                    {value === name ? 'border-primary bg-surface-2' : ''}"
-                  onclick={() => selectIcon(name)}
+                  title={iconSearchTitle(result)}
+                  class="flex aspect-square items-center justify-center rounded-lg border border-transparent p-1 hover:border-primary
+                    {variant === 'dark' ? 'bg-[#181825] hover:bg-[#24243a]' : 'bg-white hover:bg-[#f2f2f5]'}
+                    {value === iconForVariant(result, variant) ? 'border-primary ring-1 ring-primary' : ''}"
+                  onclick={() => selectIcon(result)}
                 >
-                  <img src={iconSrc(name)} alt="" class="h-5 w-5 object-contain" loading="lazy" />
+                  <Icon icon={iconForVariant(result, variant)} theme={variant} size={20} />
+                  <span class="sr-only">{result.name} from {result.source}</span>
                 </button>
               {/each}
             </div>
+            <p class="mt-2 text-center text-[10px] text-text-subtle">
+              Icons by <a class="underline hover:text-text-muted" href="https://selfh.st/icons/" target="_blank" rel="noreferrer">selfh.st/icons</a> (CC BY 4.0) and Iconify
+            </p>
+            {#if searching}
+              <p class="mt-1 text-center text-[10px] text-text-subtle">Loading more results…</p>
+            {/if}
+          {:else if searching}
+            <p class="py-3 text-center text-xs text-text-subtle">Searching…</p>
+          {:else}
+            <p class="py-3 text-center text-xs text-text-subtle">No results</p>
           {/if}
         </div>
       {/if}
     {:else if sourceTab === 'url'}
-      <div class="flex h-9 items-center gap-2">
-        <div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border-soft bg-bg-elevated">
+      <div class="flex h-10 items-center gap-2">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border-soft {iconPreviewClass(variant)}">
           {#if value}
-            <Icon icon={value} size={22} />
+            <Icon icon={value} theme={variant} size={22} />
           {:else}
             <span class="text-[10px] text-text-subtle">—</span>
           {/if}
         </div>
         <input
-          class="min-w-0 flex-1 rounded-btn border border-border bg-bg-elevated px-3 text-sm outline-none focus:border-primary"
+          class="h-10 min-w-0 flex-1 rounded-btn border border-border bg-bg-elevated px-3 text-sm outline-none focus:border-primary"
           placeholder="https://…"
           bind:value={urlInput}
           onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), applyUrl())}
         />
-        <button type="button" class="h-9 shrink-0 rounded-btn bg-primary px-3 text-xs font-medium text-white hover:bg-primary-hover" onclick={applyUrl}> Apply </button>
+        <button type="button" class="h-10 shrink-0 rounded-btn bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover" onclick={applyUrl}>Load</button>
       </div>
     {:else}
       <div class="flex items-center gap-2">
-        <div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border-soft bg-bg-elevated">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border-soft {iconPreviewClass(variant)}">
           {#if value}
-            <Icon icon={value} size={22} />
+            <Icon icon={value} theme={variant} size={22} />
           {:else}
             <span class="text-[10px] text-text-subtle">—</span>
           {/if}
         </div>
         <label
-          class="flex h-9 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-btn border border-dashed border-border bg-bg-elevated px-3 text-xs text-text-muted hover:border-primary"
+          class="flex h-10 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-btn border border-dashed border-border bg-bg-elevated px-3 text-xs text-text-muted hover:border-primary"
         >
           <span>Upload PNG / SVG / WebP</span>
           <input type="file" accept="image/png,image/svg+xml,image/jpeg,image/webp,image/x-icon" class="hidden" onchange={onFile} />
