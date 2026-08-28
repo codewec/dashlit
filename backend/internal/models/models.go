@@ -91,6 +91,7 @@ type Dashboard struct {
 	Privacy     Privacy         `bun:"privacy,notnull,default:'private'" json:"privacy"`
 	CleanMode   bool            `bun:"clean_mode,notnull,default:false" json:"cleanMode"`
 	IsMain      bool            `bun:"is_main,notnull,default:false" json:"isMain"`
+	IsDefault   bool            `bun:"is_default,notnull,default:false" json:"isDefault"`
 	Theme       *DashboardTheme `bun:"theme,type:json" json:"theme,omitempty"`
 	CreatedAt   time.Time       `bun:"created_at,nullzero,notnull,default:current_timestamp" json:"createdAt"`
 	UpdatedAt   time.Time       `bun:"updated_at,nullzero,notnull,default:current_timestamp" json:"updatedAt"`

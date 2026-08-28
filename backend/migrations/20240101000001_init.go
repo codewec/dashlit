@@ -37,12 +37,14 @@ CREATE TABLE IF NOT EXISTS dashboards (
   privacy TEXT NOT NULL DEFAULT 'private',
   clean_mode INTEGER NOT NULL DEFAULT 0,
   is_main INTEGER NOT NULL DEFAULT 0,
+  is_default INTEGER NOT NULL DEFAULT 0,
   theme JSON,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_dashboards_one_main ON dashboards(is_main) WHERE is_main = 1;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_dashboards_owner_default ON dashboards(owner_id) WHERE is_default = 1;
 
 CREATE TABLE IF NOT EXISTS groups (
   id TEXT PRIMARY KEY,

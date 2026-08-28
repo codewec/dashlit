@@ -27,7 +27,7 @@ func NewDashboardHandler(db *bun.DB) *DashboardHandler {
 func (h *DashboardHandler) List(w http.ResponseWriter, r *http.Request) {
 	user := auth.UserFromContext(r.Context())
 	ctx := r.Context()
-	var list []*models.Dashboard
+	list := make([]*models.Dashboard, 0)
 	q := h.db.NewSelect().Model(&list).Relation("Owner").Order("name ASC")
 	if user == nil {
 		q = q.Where("privacy = ?", models.PrivacyPublic)
@@ -263,6 +263,73 @@ func (h *DashboardHandler) SetMain(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	res, err := tx.NewUpdate().Model((*models.Dashboard)(nil)).Set("is_main = ?", true).Set("updated_at = ?", time.Now()).Where("id = ?", id).Exec(ctx)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		writeError(w, http.StatusNotFound, "not found")
+		return
+	}
+	if err := tx.Commit(); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+// SetDefault selects a dashboard as the current user's personal default.
+// Personal defaults are restricted to owned dashboards and are independent
+// from the administrator-managed system main dashboard.
+func (h *DashboardHandler) SetDefault(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	if user == nil {
+		writeError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	id := chi.URLParam(r, "id")
+	d := new(models.Dashboard)
+	if err := h.db.NewSelect().Model(d).Where("id = ?", id).Scan(r.Context()); err != nil {
+		writeError(w, http.StatusNotFound, "not found")
+		return
+	}
+	if d.OwnerID != user.ID {
+		writeError(w, http.StatusForbidden, "only an owned dashboard can be the personal default")
+		return
+	}
+
+	var req struct {
+		IsDefault bool `json:"isDefault"`
+	}
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid body")
+		return
+	}
+
+	ctx := r.Context()
+	tx, err := h.db.BeginTx(ctx, nil)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer tx.Rollback()
+
+	if req.IsDefault {
+		if _, err := tx.NewUpdate().Model((*models.Dashboard)(nil)).
+			Set("is_default = ?", false).
+			Where("owner_id = ? AND is_default = ?", user.ID, true).
+			Exec(ctx); err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+	res, err := tx.NewUpdate().Model((*models.Dashboard)(nil)).
+		Set("is_default = ?", req.IsDefault).
+		Set("updated_at = ?", time.Now()).
+		Where("id = ? AND owner_id = ?", id, user.ID).
+		Exec(ctx)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return

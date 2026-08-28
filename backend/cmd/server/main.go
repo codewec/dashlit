@@ -74,6 +74,7 @@ func main() {
 		r.With(auth.RequireAuth).Put("/dashboards/{id}", dashH.Update)
 		r.With(auth.RequireAuth).Delete("/dashboards/{id}", dashH.Delete)
 		r.With(auth.RequireAuth).Post("/dashboards/{id}/set-main", dashH.SetMain)
+		r.With(auth.RequireAuth).Post("/dashboards/{id}/set-default", dashH.SetDefault)
 		r.With(auth.RequireAuth).Post("/dashboards/{id}/clone", dashH.Clone)
 		r.With(auth.RequireAuth).Get("/dashboards/{id}/export", dashH.Export)
 		r.With(auth.RequireAuth).Post("/dashboards/import", dashH.Import)
