@@ -122,6 +122,12 @@
       {/if}
 
       {#if $user}
+        {#if $user.role === 'admin'}
+          <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => push('/admin')}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.3 8 9 4.6-.7 8-4 8-9V7l-8-4Z" /><path d="M9 12l2 2 4-4" /></svg>
+            <span>Administration</span>
+          </DropdownMenu.Item>
+        {/if}
         <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => push('/profile')}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
           <span>Profile</span>

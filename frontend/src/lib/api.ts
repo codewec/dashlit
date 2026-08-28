@@ -48,6 +48,15 @@ export type Dashboard = {
   layout: Layout; width: Width; privacy: 'public' | 'private' | 'users';
   cleanMode: boolean; isMain: boolean; isDefault: boolean; groups?: Group[]; owner?: User;
 };
+export type AdminUser = {
+  id: string; username: string; role: 'admin' | 'user';
+  hasPassword: boolean; hasOIDC: boolean; dashboardCount: number;
+};
+export type AdminOverview = {
+  users: AdminUser[];
+  dashboards: Dashboard[];
+  flags: Record<string, boolean>;
+};
 
 export const api = {
   authConfig: () => request<AuthConfig>('/auth/config'),
@@ -112,6 +121,10 @@ export const api = {
     const data = await res.json();
     return (data.icons || []) as string[];
   },
+  adminOverview: () => request<AdminOverview>('/admin/overview'),
+  adminUpdateUser: (id: string, data: { username: string; newPassword?: string; resetOIDC?: boolean }) =>
+    request(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  adminDeleteUser: (id: string) => request(`/admin/users/${id}`, { method: 'DELETE' }),
 };
 
 export function iconSrc(icon: string): string {

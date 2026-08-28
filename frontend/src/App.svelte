@@ -6,12 +6,14 @@
   import Login from './pages/Login.svelte';
   import DashboardView from './pages/DashboardView.svelte';
   import Profile from './pages/Profile.svelte';
+  import Admin from './pages/Admin.svelte';
   import { Toaster } from 'svelte-french-toast';
   import { normalizeTheme } from './lib/themes';
 
   const routes = {
     '/login': Login,
     '/profile': Profile,
+    '/admin': Admin,
     '/': DashboardView,
     '/:slug': DashboardView,
   };
