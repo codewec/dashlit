@@ -67,15 +67,29 @@ docker compose up --build -d
 
 Application state, uploaded icons, and the SQLite database are stored under `/data` in the container.
 
+## Migrate from legacy DashLit
+
+Legacy releases stored dashboard data in `dashboard.json`. To migrate, place that file beside the new SQLite database before creating any users. With the standard container paths, the files are:
+
+```text
+/data/dashboard.json
+/data/bookmarks.db
+```
+
+Start DashLit with an empty database. When the login page reports that legacy data was found, enable the import switch and create the first user with a password or OIDC. DashLit converts the legacy groups and links into a private dashboard owned by that first user and selects it as their personal default.
+
+Detection is intentionally performed only at server startup while the users table is empty. If the option does not appear, verify the paths and file permissions, then check the container logs for JSON parsing errors. Back up the legacy directory before migrating and keep the original file until the imported dashboard has been verified.
+
+See the [complete migration guide](https://codewec.github.io/dashlit/guide/migration) for supported fields and troubleshooting.
+
 ## Configuration
 
 DashLit reads both process environment variables and a `.env` file. Process environment variables take precedence.
 
+Most container installations only need to set `JWT_SECRET` and, when required, the OIDC options.
+
 | Variable                        | Default                  | Description                                            |
 | ------------------------------- | ------------------------ | ------------------------------------------------------ |
-| `ADDR`                          | `:8080`                  | HTTP listen address                                    |
-| `DATA_DIR`                      | `./data`                 | Database, uploaded icons, and cache directory          |
-| `DATABASE_PATH`                 | `$DATA_DIR/bookmarks.db` | SQLite database path                                   |
 | `JWT_SECRET`                    | Development value        | Signing secret; always replace in production           |
 | `DEV_MODE`                      | `false`                  | Enable development diagnostics                         |
 | `OIDC_ISSUER`                   | Empty                    | OIDC issuer URL; leave empty to disable OIDC           |
@@ -87,6 +101,16 @@ DashLit reads both process environment variables and a `.env` file. Process envi
 | `DISABLE_OIDC_REGISTRATION`     | `false`                  | Prevent OIDC from creating new users                   |
 | `DISABLE_OIDC_USER_MERGE`       | `false`                  | Prevent OIDC identities from linking to existing users |
 | `DISABLE_PASSWORD_LOGIN`        | `false`                  | Disable password login once OIDC is configured         |
+
+### Advanced runtime settings
+
+The container image already provides appropriate values for these internal settings. Override them only for a custom runtime, filesystem layout, or source installation.
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `ADDR` | `:8080` | Internal HTTP listen address |
+| `DATA_DIR` | `./data` | Database, uploaded icons, and cache directory; the image uses `/data` |
+| `DATABASE_PATH` | `$DATA_DIR/bookmarks.db` | Custom SQLite database path |
 
 When DashLit is behind a reverse proxy, use the external HTTPS address for the callback:
 
@@ -116,6 +140,14 @@ make dev-frontend
 ```
 
 The frontend runs at `http://localhost:5173` and proxies API requests to the Go server at `http://localhost:8080`.
+
+The user documentation is a separate VitePress project under `docs/` and does not add Node dependencies to the repository root:
+
+```bash
+cd docs
+npm install
+npm run dev
+```
 
 Build the embedded production binary with:
 

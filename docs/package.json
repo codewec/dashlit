@@ -1,0 +1,16 @@
+{
+  "name": "dashlit-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync:changelog": "node scripts/sync-changelog.mjs",
+    "predev": "npm run sync:changelog",
+    "dev": "vitepress dev",
+    "prebuild": "npm run sync:changelog",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.4"
+  }
+}
