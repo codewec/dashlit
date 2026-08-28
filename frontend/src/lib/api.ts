@@ -30,15 +30,6 @@ export type AuthConfig = {
   oidcEnabled: boolean;
   oidcButtonTitle: string;
 };
-export type ThemeColors = {
-  background?: string; surface?: string; surfaceHover?: string;
-  primary?: string; primaryForeground?: string; accent?: string;
-  text?: string; textMuted?: string; border?: string;
-};
-export type DashboardTheme = {
-  mode?: 'inherit' | 'light' | 'dark';
-  colors?: { light?: ThemeColors; dark?: ThemeColors };
-};
 export type ItemSize = '1x1' | '1x2';
 export type Layout = 'rows' | 'columns' | 'masonry';
 export type Width = 'default' | 'wide';
@@ -49,13 +40,13 @@ export type Item = {
 };
 export type Group = {
   id: string; dashboardId: string; title: string; description: string;
-  icon: string; iconDark: string; itemSize: ItemSize; position: number; collapsed: boolean; items?: Item[];
+  icon: string; iconDark: string; itemSize: ItemSize; position: number; items?: Item[];
 };
 export type Dashboard = {
   id: string; ownerId: string; name: string; slug: string;
   description: string; icon: string; iconDark: string;
   layout: Layout; width: Width; privacy: 'public' | 'private' | 'users';
-  cleanMode: boolean; isMain: boolean; isDefault: boolean; theme?: DashboardTheme; groups?: Group[]; owner?: User;
+  cleanMode: boolean; isMain: boolean; isDefault: boolean; groups?: Group[]; owner?: User;
 };
 
 export const api = {
