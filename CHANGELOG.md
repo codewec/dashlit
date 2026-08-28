@@ -1,5 +1,67 @@
 # Changelog
 
+All notable changes to DashLit are documented in this file.
+
+## [1.0.0] - 2026-08-28
+
+### Features
+
+- Custom CSS ([feddf5b](https://github.com/codewec/dashlit/commit/feddf5b3d91611145316a57b00b7524094146273))
+- **back:** Export / import ([c7cdf6d](https://github.com/codewec/dashlit/commit/c7cdf6d2c525f9bf6c05bc68a3ed7d180346ec34))
+- **front:** Import, export, clone ([dc378af](https://github.com/codewec/dashlit/commit/dc378af3afc8fe70b71c9b7dc83cbcbaaac832eb))
+- **front:** Scroll to cloned group ([483a448](https://github.com/codewec/dashlit/commit/483a4488d8e3f8ed93314f8badf38c0b70aaba26))
+- **back:** OIDC ([47e67ee](https://github.com/codewec/dashlit/commit/47e67ee1e50c1da232a618713605a0b1b8d48adc))
+- **front:** OIDC ([4fffc59](https://github.com/codewec/dashlit/commit/4fffc591b80fde971dd3c8d46884eb6cca460241))
+- **front:** List of other dashboards ([c705f39](https://github.com/codewec/dashlit/commit/c705f390ddcc35d885f603ba89248dc45ea68e91))
+- **back:** Set default dashboard ([118bc94](https://github.com/codewec/dashlit/commit/118bc949c53add55235de83572c3dffae5ff1605))
+- **front:** Set default dashboard ([bff7caf](https://github.com/codewec/dashlit/commit/bff7caf18dc4d587105e06ce703b0ae5cbc7d82b))
+- **back:** Merge oidc users ([93431db](https://github.com/codewec/dashlit/commit/93431dba856785b31581721ebabc6dcb33b0533d))
+- **front:** Toast ([1827c3e](https://github.com/codewec/dashlit/commit/1827c3e1717e2079686646fd253af9db558bdc8b))
+- **front:** Catppuccin themes ([6294306](https://github.com/codewec/dashlit/commit/6294306b251e5ed600f68476727dc2ccc114efdd))
+- **back:** Profile ([0cb36f9](https://github.com/codewec/dashlit/commit/0cb36f94b3462bd4467fb005b9ed9184aa561b0c))
+- **front:** Profile ([f368881](https://github.com/codewec/dashlit/commit/f368881a2a01374125393cbbd4ea629a21f5710c))
+- **back:** Admin handlers ([89c91ac](https://github.com/codewec/dashlit/commit/89c91ac4c542b7cdb9badd1991a0166bbd11f92d))
+- **front:** Admin page ([c4f782b](https://github.com/codewec/dashlit/commit/c4f782b439453f69fc9cba1b21482f87abe1d9b8))
+- **front:** Height modals and action context menu ([a187615](https://github.com/codewec/dashlit/commit/a1876154f3ac21250c8f489724afabb8477581c0))
+- **back:** Ping ([3dff50b](https://github.com/codewec/dashlit/commit/3dff50b9bc76f13c197efb86f57094d833c1882b))
+- **front:** Ping ([9bbcc03](https://github.com/codewec/dashlit/commit/9bbcc031e20b5d72722d2f9b1cc0bc0932356819))
+- **back:** Import legacy dashboard ([abf500b](https://github.com/codewec/dashlit/commit/abf500bd4a56ce9184087a082b574c77605df536))
+- **back:** Import legacy dashboard ([d8904c4](https://github.com/codewec/dashlit/commit/d8904c48049efd10679627e000a3381e7490c54a))
+- **back:** Selfh.st icons ([be41da7](https://github.com/codewec/dashlit/commit/be41da71427dae747abefe982edc131daf9495eb))
+- **front:** Selfh.st icons ([707f631](https://github.com/codewec/dashlit/commit/707f631f5bc25d51548c22f71ef3e5bf29fa5907))
+
+### Fixes
+
+- **front:** Dialogs ([d9cdb99](https://github.com/codewec/dashlit/commit/d9cdb9926ea5f4fc4c0d1a2726975787ec1577c0))
+- **front:** Fabs ([8fc8e78](https://github.com/codewec/dashlit/commit/8fc8e7829551f130543afe86d678e3514db57c86))
+- **front:** Mobile dnd ([78c07ee](https://github.com/codewec/dashlit/commit/78c07ee7d6945a3c2cc87997a685e164d46fa3ea))
+- **front:** Fabs ([a066752](https://github.com/codewec/dashlit/commit/a0667527ac77a454957ab9e8e6ff07265acc6668))
+- **front:** Fabs ([a63ec82](https://github.com/codewec/dashlit/commit/a63ec820923e9ea2941a28e62edb17ba86e401d3))
+- **back:** Check roles ([91bed39](https://github.com/codewec/dashlit/commit/91bed395df258d7f4cc5c809bc27e22fd29329d7))
+- **back:** Consistency of registration flags ([8264295](https://github.com/codewec/dashlit/commit/82642953d47868e2aedec24995f1280cb149eb69))
+- **front:** Mansonry layout ([59c475a](https://github.com/codewec/dashlit/commit/59c475a4c5e288252c4a4d652fcf90c96c7fe35a))
+- **infra:** Docker compose ([4e8778b](https://github.com/codewec/dashlit/commit/4e8778b09547077fa3978a889f17ad8b72597330))
+- **infra:** Build docs ([8a53a84](https://github.com/codewec/dashlit/commit/8a53a841ddb098166610850fc146e7026c89c600))
+
+### Documentation
+
+- Vite press ([0f3bfb6](https://github.com/codewec/dashlit/commit/0f3bfb6a8104613286c8a8a33ec20cb74ebb7b95))
+- Selfh.st and update ([b5a1304](https://github.com/codewec/dashlit/commit/b5a130486ac84757e4cb9a31de667c729380935a))
+- Screenshots ([18e1bfb](https://github.com/codewec/dashlit/commit/18e1bfb29a077eaff28a6d09a12c6ae88195b170))
+
+### Infrastructure
+
+- Init ([b1d438c](https://github.com/codewec/dashlit/commit/b1d438c774e1d4adeb2b03484c4ddf647b0d2744))
+
+### Chores
+
+- **back:** Remove unused fields ([7908afa](https://github.com/codewec/dashlit/commit/7908afaebdb6f95b5b4fc654497a85478a97107b))
+- **front:** Remove unused fields ([814f294](https://github.com/codewec/dashlit/commit/814f2948db9f418644b2826efb1f189dd77f79f1))
+- **back:** Seed data ([dda66c0](https://github.com/codewec/dashlit/commit/dda66c0de4efb636eea7281bdf25c6c8e8c04225))
+- **front:** Visual ([d6a8989](https://github.com/codewec/dashlit/commit/d6a898943c76f0ea9bb293f012648cf81953e524))
+- **front:** Logo ([21651e4](https://github.com/codewec/dashlit/commit/21651e4491114ee7e7f05b8a579846ca87a1328a))
+- Release ([a6067bb](https://github.com/codewec/dashlit/commit/a6067bbf695ca03a42cd8e8df7c17266818d4459))
+
 ## v0.0.6
 
 [compare changes](https://github.com/codewec/dashlit/compare/v0.0.5...v0.0.6)
