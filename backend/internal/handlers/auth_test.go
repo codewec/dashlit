@@ -1,6 +1,11 @@
 package handlers
 
-import "testing"
+import (
+	"encoding/base64"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
 
 func TestValidOIDCReturnURL(t *testing.T) {
 	tests := []struct {
@@ -20,5 +25,25 @@ func TestValidOIDCReturnURL(t *testing.T) {
 				t.Fatalf("got %q, want %q", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestOIDCFailureRedirectsToFrontendReturnURL(t *testing.T) {
+	h := &AuthHandler{}
+	req := httptest.NewRequest(http.MethodGet, "http://localhost:8080/api/auth/oidc/callback", nil)
+	returnCookie := &http.Cookie{
+		Name:  oidcReturnCookie,
+		Value: base64.RawURLEncoding.EncodeToString([]byte("http://localhost:5173/")),
+	}
+	recorder := httptest.NewRecorder()
+
+	h.oidcFailure(recorder, req, returnCookie, "Registration through OIDC is disabled")
+
+	if recorder.Code != http.StatusFound {
+		t.Fatalf("got status %d, want %d", recorder.Code, http.StatusFound)
+	}
+	want := "http://localhost:5173/#/login?oidc_error=Registration+through+OIDC+is+disabled"
+	if got := recorder.Header().Get("Location"); got != want {
+		t.Fatalf("got redirect %q, want %q", got, want)
 	}
 }

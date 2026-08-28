@@ -27,4 +27,7 @@ seed:
 	cd backend && go run ./cmd/seed
 
 clean:
-	rm -rf frontend/dist backend/cmd/server/static app data/*.db
+	rm -rf frontend/dist app data/*.db
+	mkdir -p backend/cmd/server/static
+	find backend/cmd/server/static -mindepth 1 ! -path backend/cmd/server/static/.gitkeep -delete
+	touch backend/cmd/server/static/.gitkeep

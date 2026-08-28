@@ -55,3 +55,11 @@ func TestPasswordLoginCanOnlyBeDisabledWithOIDC(t *testing.T) {
 		t.Fatal("password login should be disabled when OIDC is configured")
 	}
 }
+
+func TestOIDCUserMergeIsEnabledByDefault(t *testing.T) {
+	t.Setenv("DISABLE_OIDC_USER_MERGE", "")
+	t.Chdir(t.TempDir())
+	if cfg := Load(); cfg.DisableOIDCUserMerge {
+		t.Fatal("OIDC user merge must be enabled by default")
+	}
+}

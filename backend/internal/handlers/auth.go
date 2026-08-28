@@ -179,8 +179,19 @@ func validOIDCReturnURL(raw, requestHost string) string {
 	return u.Scheme + "://" + u.Host + "/"
 }
 
-func (h *AuthHandler) oidcFailure(w http.ResponseWriter, r *http.Request, message string) {
-	target := "/#/login?oidc_error=" + url.QueryEscape(message)
+func oidcReturnURL(returnCookie *http.Cookie, requestHost string) string {
+	if returnCookie != nil {
+		if decoded, err := base64.RawURLEncoding.DecodeString(returnCookie.Value); err == nil {
+			if validated := validOIDCReturnURL(string(decoded), requestHost); validated != "" {
+				return validated
+			}
+		}
+	}
+	return "/"
+}
+
+func (h *AuthHandler) oidcFailure(w http.ResponseWriter, r *http.Request, returnCookie *http.Cookie, message string) {
+	target := oidcReturnURL(returnCookie, r.Host) + "#/login?oidc_error=" + url.QueryEscape(message)
 	http.Redirect(w, r, target, http.StatusFound)
 }
 
@@ -198,35 +209,35 @@ func (h *AuthHandler) OIDCCallback(w http.ResponseWriter, r *http.Request) {
 	}
 	state := r.URL.Query().Get("state")
 	if stateErr != nil || nonceErr != nil || verifierErr != nil || state == "" || subtle.ConstantTimeCompare([]byte(state), []byte(stateCookie.Value)) != 1 {
-		h.oidcFailure(w, r, "OIDC session expired or is invalid")
+		h.oidcFailure(w, r, returnCookie, "OIDC session expired or is invalid")
 		return
 	}
 	if providerError := r.URL.Query().Get("error"); providerError != "" {
-		h.oidcFailure(w, r, "OIDC provider rejected the login")
+		h.oidcFailure(w, r, returnCookie, "OIDC provider rejected the login")
 		return
 	}
 	code := r.URL.Query().Get("code")
 	if code == "" {
-		h.oidcFailure(w, r, "OIDC response did not include a code")
+		h.oidcFailure(w, r, returnCookie, "OIDC response did not include a code")
 		return
 	}
 	identity, err := h.oidc.Authenticate(r.Context(), code, nonceCookie.Value, verifierCookie.Value)
 	if err != nil {
-		h.oidcFailure(w, r, "OIDC token validation failed")
+		h.oidcFailure(w, r, returnCookie, "OIDC token validation failed")
 		return
 	}
 	user, err := h.svc.FindOrCreateOIDCUser(r.Context(), identity, !h.cfg.DisableOIDCRegistration)
 	if errors.Is(err, auth.ErrOIDCRegistrationDisabled) {
-		h.oidcFailure(w, r, "No linked account exists and OIDC registration is disabled")
+		h.oidcFailure(w, r, returnCookie, "Registration through OIDC is disabled")
 		return
 	}
 	if err != nil {
-		h.oidcFailure(w, r, "Could not load the OIDC account")
+		h.oidcFailure(w, r, returnCookie, "Could not load the OIDC account")
 		return
 	}
 	token, err := h.svc.CreateToken(user)
 	if err != nil {
-		h.oidcFailure(w, r, "Could not create an application session")
+		h.oidcFailure(w, r, returnCookie, "Could not create an application session")
 		return
 	}
 	http.SetCookie(w, &http.Cookie{
@@ -234,14 +245,7 @@ func (h *AuthHandler) OIDCCallback(w http.ResponseWriter, r *http.Request) {
 		Secure:   strings.HasPrefix(strings.ToLower(h.cfg.OIDCRedirectURL), "https://"),
 		SameSite: http.SameSiteLaxMode, MaxAge: 7 * 24 * 3600,
 	})
-	returnTo := "/"
-	if returnCookie != nil {
-		if decoded, err := base64.RawURLEncoding.DecodeString(returnCookie.Value); err == nil {
-			if validated := validOIDCReturnURL(string(decoded), r.Host); validated != "" {
-				returnTo = validated
-			}
-		}
-	}
+	returnTo := oidcReturnURL(returnCookie, r.Host)
 	separator := "?"
 	if strings.Contains(returnTo, "?") {
 		separator = "&"

@@ -51,6 +51,7 @@ make dev-frontend   # :5173 UI with proxy to API
 | OIDC_BUTTON_TITLE  | `Sign in with OIDC`                            | Login button label       |
 | DISABLE_PASSWORD_REGISTRATION | `false`                             | Disable local sign-up    |
 | DISABLE_OIDC_REGISTRATION | `false`                                 | Do not auto-create OIDC users |
+| DISABLE_OIDC_USER_MERGE | `false`                                  | Do not link OIDC login to an existing password user with the same username |
 | DISABLE_PASSWORD_LOGIN | `false`                                    | Disable passwords once OIDC is configured |
 | DEV_MODE           | `false`                                        | Verbose SQL              |
 

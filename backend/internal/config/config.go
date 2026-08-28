@@ -23,6 +23,7 @@ type Config struct {
 	OIDCButtonTitle             string
 	DisablePasswordRegistration bool
 	DisableOIDCRegistration     bool
+	DisableOIDCUserMerge        bool
 	DisablePasswordLogin        bool
 	DevMode                     bool
 }
@@ -52,6 +53,7 @@ func Load() *Config {
 		OIDCButtonTitle:             env("OIDC_BUTTON_TITLE", "Sign in with OIDC"),
 		DisablePasswordRegistration: envBool("DISABLE_PASSWORD_REGISTRATION", false),
 		DisableOIDCRegistration:     envBool("DISABLE_OIDC_REGISTRATION", false),
+		DisableOIDCUserMerge:        envBool("DISABLE_OIDC_USER_MERGE", false),
 		DisablePasswordLogin:        envBool("DISABLE_PASSWORD_LOGIN", false),
 		DevMode:                     envBool("DEV_MODE", false),
 	}

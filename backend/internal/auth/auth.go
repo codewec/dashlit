@@ -138,11 +138,37 @@ func (s *Service) FindOrCreateOIDCUser(ctx context.Context, identity *OIDCIdenti
 	if !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
+	base := oidcUsername(identity)
+	if !s.cfg.DisableOIDCUserMerge {
+		existing := new(models.User)
+		err := s.db.NewSelect().Model(existing).Where("username = ?", base).Scan(ctx)
+		if err == nil && existing.OIDCIssuer == nil && existing.OIDCSubject == nil {
+			now := time.Now()
+			res, err := s.db.NewUpdate().Model(existing).
+				Set("oidc_issuer = ?", identity.Issuer).
+				Set("oidc_subject = ?", identity.Subject).
+				Set("updated_at = ?", now).
+				WherePK().
+				Where("oidc_issuer IS NULL AND oidc_subject IS NULL").
+				Exec(ctx)
+			if err != nil {
+				return nil, err
+			}
+			if affected, _ := res.RowsAffected(); affected == 1 {
+				existing.OIDCIssuer = &identity.Issuer
+				existing.OIDCSubject = &identity.Subject
+				existing.UpdatedAt = now
+				return existing, nil
+			}
+		} else if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return nil, err
+		}
+	}
+
 	if !allowCreate {
 		return nil, ErrOIDCRegistrationDisabled
 	}
 
-	base := oidcUsername(identity)
 	username := base
 	for suffix := 2; ; suffix++ {
 		count, err := s.db.NewSelect().Model((*models.User)(nil)).Where("username = ?", username).Count(ctx)
