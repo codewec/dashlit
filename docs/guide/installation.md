@@ -4,7 +4,7 @@ The published container supports `linux/amd64` and `linux/arm64`. Docker Compose
 
 ## Docker Compose
 
-Create a directory for the deployment and save the following as `compose.yml`:
+Create a directory for the deployment and save the following as `docker-compose.yml`:
 
 ```yaml
 services:

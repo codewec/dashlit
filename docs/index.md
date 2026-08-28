@@ -32,9 +32,15 @@ features:
   - icon: 🎨
     title: Made to feel at home
     details: Choose light and dark themes, compact clean mode, custom icons, and wide layouts.
+  - icon: ✨
+    title: Two icon libraries
+    details: Search selfh.st/icons and Iconify together, with fast independent results and thousands of service and general-purpose icons.
+  - icon: 🌓
+    title: Theme-aware icons
+    details: DashLit pairs light and dark selfh.st variants automatically and keeps monochrome Iconify icons visible on dark backgrounds.
   - icon: 📦
     title: Simple to operate
-    details: Run one multi-architecture container with SQLite-backed data in a single persistent volume.
+    details: A compact standalone binary with no runtime dependencies, also shipped as one container with SQLite-backed persistent storage.
   - icon: 🔁
     title: Easy to move
     details: Import, export, and clone dashboards — including assisted migration from legacy DashLit releases.
@@ -48,16 +54,29 @@ DashLit gives teams, homelabs, and individuals a focused place to reach the serv
   <div><strong>Hero screenshot placeholder</strong><br>Add a wide dashboard screenshot here later.</div>
 </div>
 
-## Ready in a few minutes
+## Ready in a few seconds
+
+Create `docker-compose.yml`:
+
+```yaml
+services:
+  dashlit:
+    image: ghcr.io/codewec/dashlit:beta
+    ports:
+      - '3000:8080'
+    environment:
+      JWT_SECRET: replace-with-a-long-random-secret
+    volumes:
+      - dashlit-data:/data
+
+volumes:
+  dashlit-data:
+```
+
+Start it:
 
 ```bash
-docker run -d \
-  --name dashlit \
-  --restart unless-stopped \
-  -p 3000:8080 \
-  -e JWT_SECRET='replace-with-a-long-random-secret' \
-  -v dashlit-data:/data \
-  ghcr.io/codewec/dashlit:beta
+docker compose up -d
 ```
 
 Open `http://localhost:3000`, create the first account, and begin building your dashboard. The first account is granted administrator access automatically.

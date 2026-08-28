@@ -32,9 +32,15 @@ features:
   - icon: 🎨
     title: Настройка внешнего вида
     details: Светлые и тёмные темы, чистый режим, собственные иконки и широкая раскладка.
+  - icon: ✨
+    title: Две библиотеки иконок
+    details: Ищите одновременно в selfh.st/icons и Iconify — тысячи иконок сервисов и универсальных наборов в независимой быстрой выдаче.
+  - icon: 🌓
+    title: Иконки с учётом темы
+    details: DashLit автоматически подбирает светлую и тёмную версии selfh.st и сохраняет читаемость монохромных Iconify-иконок.
   - icon: 📦
     title: Простая эксплуатация
-    details: Один контейнер для amd64 и arm64, SQLite и единый постоянный том с данными.
+    details: Компактный автономный бинарник без runtime-зависимостей, один готовый контейнер и постоянное хранилище на SQLite.
   - icon: 🔁
     title: Удобный перенос
     details: Импортируйте, экспортируйте и клонируйте дашборды, включая миграцию со старых версий DashLit.
@@ -48,16 +54,29 @@ DashLit даёт командам, владельцам домашних сер�
   <div><strong>Место для главного скриншота</strong><br>Позже добавьте сюда широкий скриншот заполненного дашборда.</div>
 </div>
 
-## Запуск за несколько минут
+## Запуск за несколько секунд
+
+Создайте `docker-compose.yml`:
+
+```yaml
+services:
+  dashlit:
+    image: ghcr.io/codewec/dashlit:beta
+    ports:
+      - '3000:8080'
+    environment:
+      JWT_SECRET: replace-with-a-long-random-secret
+    volumes:
+      - dashlit-data:/data
+
+volumes:
+  dashlit-data:
+```
+
+Запустите сервис:
 
 ```bash
-docker run -d \
-  --name dashlit \
-  --restart unless-stopped \
-  -p 3000:8080 \
-  -e JWT_SECRET='replace-with-a-long-random-secret' \
-  -v dashlit-data:/data \
-  ghcr.io/codewec/dashlit:beta
+docker compose up -d
 ```
 
 Откройте `http://localhost:3000`, создайте первую учётную запись и настройте дашборд. Первый пользователь автоматически получает права администратора.

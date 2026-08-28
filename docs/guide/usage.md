@@ -32,7 +32,22 @@ An individual user can mark one of their own dashboards as their personal defaul
 - **Wide mode** uses more of the browser width.
 - **Clean mode** reduces surrounding navigation for a focused display.
 
-Icons may use Iconify names, uploaded files, or remote image URLs. Separate dark-mode icons can be supplied where needed.
+## Icon search and theme variants
+
+The icon picker searches two sources independently:
+
+- **selfh.st/icons** focuses on software and services commonly used in self-hosted environments.
+- **Iconify** provides a much broader collection of general-purpose icon sets.
+
+Iconify results are displayed as soon as they arrive. The selfh.st search continues independently and adds its results without blocking or replacing Iconify results.
+
+For selfh.st icons, DashLit prefers SVG and falls back to PNG when SVG is unavailable. Selecting a selfh.st icon for the Default field automatically fills the empty Dark field with the corresponding theme variant. An existing manually selected Dark icon is never overwritten.
+
+The selfh.st convention uses a dark-colored asset on light backgrounds and a light-colored asset on dark backgrounds. When no separate theme asset exists, DashLit uses the standard icon for both fields. Downloaded selfh.st assets are served through the DashLit API and cached on disk.
+
+Many monochrome Iconify assets are black by default. DashLit renders Iconify icons in a light color on dark application themes so they remain visible. This adjustment applies only to Iconify; branded selfh.st icons retain their supplied colors and theme variants.
+
+The picker shows Default icons on a light preview background and Dark icons on a dark preview background. You can still override either field manually, upload a file, or enter a remote image URL.
 
 ## Availability checks
 

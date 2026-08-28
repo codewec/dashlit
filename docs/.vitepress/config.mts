@@ -11,7 +11,7 @@ export default defineConfig({
       label: 'English',
       lang: 'en-US',
       title: 'DashLit',
-      description: 'Documentation for the modern, self-hosted dashboard for links and services.'
+      description: 'Documentation for the modern, self-hosted dashboard for links and services.',
     },
     ru: {
       label: 'Русский',
@@ -19,19 +19,6 @@ export default defineConfig({
       link: '/ru/',
       title: 'DashLit',
       description: 'Документация современного самостоятельно размещаемого дашборда для ссылок и сервисов.',
-      markdown: {
-        container: {
-          tipLabel: 'СОВЕТ',
-          warningLabel: 'ВНИМАНИЕ',
-          dangerLabel: 'ОПАСНО',
-          infoLabel: 'ИНФОРМАЦИЯ',
-          detailsLabel: 'Подробности'
-        },
-        codeCopyButton: {
-          tooltipText: 'Копировать',
-          copiedText: 'Скопировано'
-        }
-      },
       themeConfig: {
         nav: [
           { text: 'Руководство', link: '/ru/guide/getting-started' },
@@ -42,9 +29,9 @@ export default defineConfig({
             text: 'Сообщество',
             items: [
               { text: 'Обсуждения', link: 'https://github.com/codewec/dashlit/discussions' },
-              { text: 'Предложения и ошибки', link: 'https://github.com/codewec/dashlit/issues' }
-            ]
-          }
+              { text: 'Предложения и ошибки', link: 'https://github.com/codewec/dashlit/issues' },
+            ],
+          },
         ],
         sidebar: {
           '/ru/guide/': [
@@ -53,8 +40,8 @@ export default defineConfig({
               items: [
                 { text: 'Знакомство', link: '/ru/guide/getting-started' },
                 { text: 'Установка', link: '/ru/guide/installation' },
-                { text: 'Настройка', link: '/ru/guide/configuration' }
-              ]
+                { text: 'Настройка', link: '/ru/guide/configuration' },
+              ],
             },
             {
               text: 'Работа с DashLit',
@@ -62,21 +49,21 @@ export default defineConfig({
                 { text: 'Дашборды и доступ', link: '/ru/guide/usage' },
                 { text: 'OIDC-аутентификация', link: '/ru/guide/oidc' },
                 { text: 'Миграция со старой версии', link: '/ru/guide/migration' },
-                { text: 'Резервные копии и обновления', link: '/ru/guide/backups' }
-              ]
+                { text: 'Резервные копии и обновления', link: '/ru/guide/backups' },
+              ],
             },
             {
               text: 'Проект',
               items: [
                 { text: 'Галерея скриншотов', link: '/ru/guide/screenshots' },
-                { text: 'История изменений', link: '/ru/changelog' }
-              ]
-            }
-          ]
+                { text: 'История изменений', link: '/ru/changelog' },
+              ],
+            },
+          ],
         },
         editLink: {
           pattern: 'https://github.com/codewec/dashlit/edit/beta/docs/:path',
-          text: 'Изменить страницу на GitHub'
+          text: 'Изменить страницу на GitHub',
         },
         outline: { level: [2, 3], label: 'На этой странице' },
         lastUpdated: { text: 'Обновлено' },
@@ -90,17 +77,25 @@ export default defineConfig({
         skipToContentLabel: 'Перейти к содержимому',
         footer: {
           message: 'Распространяется по лицензии MIT.',
-          copyright: 'Copyright © участники проекта DashLit'
-        }
-      }
-    }
+          copyright: 'Copyright © участники проекта DashLit',
+        },
+      },
+    },
   },
   head: [
     ['link', { rel: 'icon', href: '/dashlit/logo.svg' }],
     ['meta', { name: 'theme-color', content: '#8839ef' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:title', content: 'DashLit' }],
-    ['meta', { property: 'og:description', content: 'A modern, fast, and self-hosted dashboard for your links and services.' }]
+    ['meta', { property: 'og:description', content: 'A modern, fast, and self-hosted dashboard for your links and services.' }],
+    [
+      'script',
+      {
+        defer: '',
+        src: 'https://umami.0x2d.dev/script.js',
+        'data-website-id': '0df202c2-a5ed-4c92-a2b3-979d7246ce5f',
+      },
+    ],
   ],
   themeConfig: {
     logo: '/logo.svg',
@@ -114,9 +109,9 @@ export default defineConfig({
         text: 'Community',
         items: [
           { text: 'Discussions', link: 'https://github.com/codewec/dashlit/discussions' },
-          { text: 'Ideas and bug reports', link: 'https://github.com/codewec/dashlit/issues' }
-        ]
-      }
+          { text: 'Ideas and bug reports', link: 'https://github.com/codewec/dashlit/issues' },
+        ],
+      },
     ],
     sidebar: {
       '/guide/': [
@@ -125,8 +120,8 @@ export default defineConfig({
           items: [
             { text: 'Introduction', link: '/guide/getting-started' },
             { text: 'Installation', link: '/guide/installation' },
-            { text: 'Configuration', link: '/guide/configuration' }
-          ]
+            { text: 'Configuration', link: '/guide/configuration' },
+          ],
         },
         {
           text: 'Use DashLit',
@@ -134,26 +129,26 @@ export default defineConfig({
             { text: 'Dashboards and access', link: '/guide/usage' },
             { text: 'OIDC authentication', link: '/guide/oidc' },
             { text: 'Migrate from legacy', link: '/guide/migration' },
-            { text: 'Backups and upgrades', link: '/guide/backups' }
-          ]
+            { text: 'Backups and upgrades', link: '/guide/backups' },
+          ],
         },
         {
           text: 'Project',
           items: [
             { text: 'Screenshot gallery', link: '/guide/screenshots' },
-            { text: 'Changelog', link: '/changelog' }
-          ]
-        }
-      ]
+            { text: 'Changelog', link: '/changelog' },
+          ],
+        },
+      ],
     },
     socialLinks: [{ icon: 'github', link: 'https://github.com/codewec/dashlit' }],
     editLink: {
       pattern: 'https://github.com/codewec/dashlit/edit/beta/docs/:path',
-      text: 'Edit this page on GitHub'
+      text: 'Edit this page on GitHub',
     },
     footer: {
       message: 'Released under the MIT License.',
-      copyright: 'Copyright © DashLit contributors'
+      copyright: 'Copyright © DashLit contributors',
     },
     search: {
       provider: 'local',
@@ -174,17 +169,17 @@ export default defineConfig({
                   navigateUpKeyAriaLabel: 'Стрелка вверх',
                   navigateDownKeyAriaLabel: 'Стрелка вниз',
                   closeText: 'закрыть',
-                  closeKeyAriaLabel: 'Escape'
-                }
-              }
-            }
-          }
-        }
-      }
+                  closeKeyAriaLabel: 'Escape',
+                },
+              },
+            },
+          },
+        },
+      },
     },
     i18nRouting: true,
     outline: { level: [2, 3], label: 'On this page' },
     lastUpdated: { text: 'Last updated' },
-    docFooter: { prev: 'Previous page', next: 'Next page' }
-  }
+    docFooter: { prev: 'Previous page', next: 'Next page' },
+  },
 });
