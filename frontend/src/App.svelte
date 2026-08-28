@@ -5,6 +5,7 @@
   import { user, theme, applyTheme } from './lib/stores';
   import Login from './pages/Login.svelte';
   import DashboardView from './pages/DashboardView.svelte';
+  import { Toaster } from 'svelte-french-toast';
 
   const routes = {
     '/login': Login,
@@ -39,3 +40,11 @@
 {#if ready}
   <Router {routes} />
 {/if}
+
+<Toaster
+  position="top-right"
+  toastOptions={{
+    duration: 4000,
+    style: 'background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border);',
+  }}
+/>

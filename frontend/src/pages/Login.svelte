@@ -6,6 +6,7 @@
   import AuthLayout from '../layouts/AuthLayout.svelte';
   import ThemeFab from '../components/ThemeFab.svelte';
   import logoUrl from '../assets/vite.svg';
+  import { toastError } from '../lib/toasts';
 
   let username = $state('');
   let password = $state('');
@@ -51,8 +52,8 @@
       setToken(res.token);
       user.set(res.user);
       push('/');
-    } catch (err: any) {
-      error = err.message || 'Failed';
+    } catch (err: unknown) {
+      toastError(err, mode === 'login' ? 'Sign in failed' : 'Registration failed');
     } finally {
       loading = false;
     }

@@ -9,6 +9,7 @@
   import NavMenu from '../components/NavMenu.svelte';
   import logoUrl from '../assets/vite.svg';
   import type { DashListItem } from '../lib/dashboard-helpers';
+  import { toastError } from '../lib/toasts';
 
   let {
     children,
@@ -39,7 +40,9 @@
   async function logout() {
     try {
       await api.logout();
-    } catch {}
+    } catch (error: unknown) {
+      toastError(error, 'Could not sign out on the server');
+    }
     setToken(null);
     user.set(null);
     editMode.set(false);

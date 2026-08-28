@@ -1,5 +1,6 @@
 <script lang="ts">
   import { AlertDialog } from 'bits-ui';
+  import { toastError } from '../lib/toasts';
 
   let {
     open = $bindable(false),
@@ -24,6 +25,8 @@
     try {
       await onConfirm?.();
       open = false;
+    } catch (e: unknown) {
+      toastError(e, 'Action failed');
     } finally {
       loading = false;
     }

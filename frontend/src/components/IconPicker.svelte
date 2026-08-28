@@ -1,6 +1,7 @@
 <script lang="ts">
   import { api, iconSrc } from '../lib/api';
   import Icon from './Icon.svelte';
+  import { toastError } from '../lib/toasts';
 
   let { value = $bindable('') }: { value?: string } = $props();
 
@@ -46,8 +47,14 @@
     searching = true;
     openDropdown = true;
     debounce = setTimeout(async () => {
-      results = await api.searchIcons(q);
-      searching = false;
+      try {
+        results = await api.searchIcons(q);
+      } catch (e: unknown) {
+        results = [];
+        toastError(e, 'Could not search icons');
+      } finally {
+        searching = false;
+      }
     }, 280);
   });
 
@@ -64,8 +71,12 @@
   async function onFile(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
-    const res = await api.uploadIcon(file);
-    value = res.icon;
+    try {
+      const res = await api.uploadIcon(file);
+      value = res.icon;
+    } catch (error: unknown) {
+      toastError(error, 'Could not upload icon');
+    }
   }
 </script>
 

@@ -25,6 +25,7 @@
     "@dnd-kit/helpers": "^0.1.6",
     "bits-ui": "^1.8.0",
     "clsx": "^2.1.1",
+    "svelte-french-toast": "2.0.0-alpha.0",
     "svelte-spa-router": "^4.0.1",
     "tailwind-merge": "^2.6.0"
   }

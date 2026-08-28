@@ -26,6 +26,7 @@
   import ItemFormModal from '../components/ItemFormModal.svelte';
   import DashboardFormModal from '../components/DashboardFormModal.svelte';
   import ConfirmModal from '../components/ConfirmModal.svelte';
+  import { toast, toastError } from '../lib/toasts';
 
   let { params = { slug: '' } } = $props<{ params?: { slug?: string } }>();
 
@@ -166,10 +167,14 @@
       iconDark: groupForm.iconDark,
       itemSize: groupForm.itemSize,
     };
-    if (editingGroup) await api.updateGroup(editingGroup.id, payload);
-    else await api.createGroup(dashboard.id, { ...payload, position: groups.length });
-    groupOpen = false;
-    await load();
+    try {
+      if (editingGroup) await api.updateGroup(editingGroup.id, payload);
+      else await api.createGroup(dashboard.id, { ...payload, position: groups.length });
+      groupOpen = false;
+      await load();
+    } catch (e: unknown) {
+      toastError(e, editingGroup ? 'Could not update group' : 'Could not create group');
+    }
   }
 
   /* —— item —— */
@@ -191,13 +196,17 @@
       icon: itemForm.icon || 'mdi:link',
       iconDark: itemForm.iconDark,
     };
-    if (editingItem) await api.updateItem(editingItem.id, payload);
-    else {
-      const pos = groups.find((g) => g.id === itemForm.groupId)?.items?.length ?? 0;
-      await api.createItem(itemForm.groupId, { ...payload, position: pos });
+    try {
+      if (editingItem) await api.updateItem(editingItem.id, payload);
+      else {
+        const pos = groups.find((g) => g.id === itemForm.groupId)?.items?.length ?? 0;
+        await api.createItem(itemForm.groupId, { ...payload, position: pos });
+      }
+      itemOpen = false;
+      await load();
+    } catch (e: unknown) {
+      toastError(e, editingItem ? 'Could not update item' : 'Could not create item');
     }
-    itemOpen = false;
-    await load();
   }
 
   /* —— dashboard —— */
@@ -222,23 +231,28 @@
       width: dashForm.width,
       cleanMode: dashForm.cleanMode,
     };
-    if (dashForm.creating || !dashboard) {
-      if (!$user) return;
-      const d = await api.createDashboard(body);
-      if (dashForm.isDefault) await api.setDefault(d.id, true);
+    try {
+      if (dashForm.creating || !dashboard) {
+        if (!$user) return;
+        const d = await api.createDashboard(body);
+        if (dashForm.isDefault) await api.setDefault(d.id, true);
+        dashOpen = false;
+        toast.success('Dashboard created');
+        push('/' + d.slug);
+        return;
+      }
+      const prevSlug = dashboard.slug;
+      const wasDefault = dashboard.isDefault;
+      await api.updateDashboard(dashboard.id, body);
+      if (dashboard.ownerId === $user?.id && dashForm.isDefault !== wasDefault) {
+        await api.setDefault(dashboard.id, dashForm.isDefault);
+      }
       dashOpen = false;
-      push('/' + d.slug);
-      return;
+      if (dashForm.slug !== prevSlug) push('/' + dashForm.slug);
+      else await load();
+    } catch (e: unknown) {
+      toastError(e, dashForm.creating ? 'Could not create dashboard' : 'Could not update dashboard');
     }
-    const prevSlug = dashboard.slug;
-    const wasDefault = dashboard.isDefault;
-    await api.updateDashboard(dashboard.id, body);
-    if (dashboard.ownerId === $user?.id && dashForm.isDefault !== wasDefault) {
-      await api.setDefault(dashboard.id, dashForm.isDefault);
-    }
-    dashOpen = false;
-    if (dashForm.slug !== prevSlug) push('/' + dashForm.slug);
-    else await load();
   }
 
   async function deleteDashboard() {
@@ -258,19 +272,29 @@
 
   async function cloneDashboard() {
     if (!dashboard) return;
-    const d = await api.cloneDashboard(dashboard.id);
-    push('/' + d.slug);
+    try {
+      const d = await api.cloneDashboard(dashboard.id);
+      toast.success('Dashboard cloned');
+      push('/' + d.slug);
+    } catch (e: unknown) {
+      toastError(e, 'Could not clone dashboard');
+    }
   }
 
   async function exportDashboard() {
     if (!dashboard) return;
-    const blob = await api.exportDashboard(dashboard.id);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${dashboard.slug}.dashlit.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const blob = await api.exportDashboard(dashboard.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${dashboard.slug}.dashlit.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Dashboard exported');
+    } catch (e: unknown) {
+      toastError(e, 'Could not export dashboard');
+    }
   }
 
   function importDashboard() {
@@ -284,44 +308,54 @@
         const text = await file.text();
         const data = JSON.parse(text);
         const d = await api.importDashboard(data);
+        toast.success('Dashboard imported');
         push('/' + d.slug);
       } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : 'Import failed';
-        alert(msg);
+        toastError(e, 'Could not import dashboard');
       }
     };
     input.click();
   }
 
   async function cloneGroup(g: Group) {
-    const created = await api.cloneGroup(g.id);
-    groups = [...groups, created];
-    await tick();
+    try {
+      const created = await api.cloneGroup(g.id);
+      groups = [...groups, created];
+      await tick();
 
-    const element = document.querySelector<HTMLElement>(
-      `[data-dashboard-group="${CSS.escape(created.id)}"]`,
-    );
-    if (!element) return;
+      const element = document.querySelector<HTMLElement>(
+        `[data-dashboard-group="${CSS.escape(created.id)}"]`,
+      );
+      if (element) {
+        const bounds = element.getBoundingClientRect();
+        if (bounds.top < 0 || bounds.bottom > window.innerHeight) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
 
-    const bounds = element.getBoundingClientRect();
-    if (bounds.top < 0 || bounds.bottom > window.innerHeight) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      toast.success('Group cloned');
+    } catch (e: unknown) {
+      toastError(e, 'Could not clone group');
     }
   }
 
   async function cloneItem(item: Item) {
-    const created = await api.cloneItem(item.id);
-    groups = groups.map((x) =>
-      x.id === created.groupId ? { ...x, items: [...(x.items ?? []), created] } : x,
-    );
+    try {
+      const created = await api.cloneItem(item.id);
+      groups = groups.map((x) =>
+        x.id === created.groupId ? { ...x, items: [...(x.items ?? []), created] } : x,
+      );
+    } catch (e: unknown) {
+      toastError(e, 'Could not clone item');
+    }
   }
 
   async function persistLayout() {
     if (!dashboard) return;
     try {
       await api.updateLayout(dashboard.id, buildLayoutPayload(groups));
-    } catch {
-      /* ignore transient DnD errors */
+    } catch (e: unknown) {
+      toastError(e, 'Could not save dashboard layout');
     }
   }
 </script>
