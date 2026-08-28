@@ -1,12 +1,17 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -18,12 +23,159 @@ import (
 )
 
 type IconHandler struct {
-	db  *bun.DB
-	cfg *config.Config
+	db              *bun.DB
+	cfg             *config.Config
+	client          *http.Client
+	selfhstMu       sync.RWMutex
+	selfhstIcons    []selfhstIcon
+	selfhstLoadedAt time.Time
 }
 
 func NewIconHandler(db *bun.DB, cfg *config.Config) *IconHandler {
-	return &IconHandler{db: db, cfg: cfg}
+	return &IconHandler{db: db, cfg: cfg, client: &http.Client{Timeout: 12 * time.Second}}
+}
+
+const (
+	selfhstIndexURL = "https://cdn.jsdelivr.net/gh/selfhst/icons@main/index.json"
+	selfhstCDNURL   = "https://cdn.jsdelivr.net/gh/selfhst/icons@main"
+)
+
+var iconNamePattern = regexp.MustCompile(`^[A-Za-z0-9_.-]+$`)
+
+type selfhstIcon struct {
+	Name      string `json:"Name"`
+	Reference string `json:"Reference"`
+	SVG       string `json:"SVG"`
+	PNG       string `json:"PNG"`
+	Light     string `json:"Light"`
+	Dark      string `json:"Dark"`
+	Tags      string `json:"Tags"`
+}
+
+type iconSearchResult struct {
+	Name     string `json:"name"`
+	Icon     string `json:"icon"`
+	IconDark string `json:"iconDark,omitempty"`
+	Source   string `json:"source"`
+}
+
+func yes(value string) bool { return strings.EqualFold(value, "yes") }
+
+func selfhstResult(icon selfhstIcon) iconSearchResult {
+	ext := ".png"
+	if yes(icon.SVG) {
+		ext = ".svg"
+	}
+	lightReference := icon.Reference
+	darkReference := icon.Reference
+	// selfh.st's dark-colored asset is intended for a light background and
+	// its light-colored asset for a dark background.
+	if yes(icon.Dark) {
+		lightReference += "-dark"
+	}
+	if yes(icon.Light) {
+		darkReference += "-light"
+	}
+	result := iconSearchResult{
+		Name: icon.Name, Icon: "selfhst-icon:" + lightReference + ext,
+		IconDark: "selfhst-icon:" + darkReference + ext, Source: "selfh.st",
+	}
+	return result
+}
+
+func (h *IconHandler) loadSelfhstIcons() ([]selfhstIcon, error) {
+	h.selfhstMu.RLock()
+	if len(h.selfhstIcons) > 0 && time.Since(h.selfhstLoadedAt) < 24*time.Hour {
+		icons := h.selfhstIcons
+		h.selfhstMu.RUnlock()
+		return icons, nil
+	}
+	h.selfhstMu.RUnlock()
+
+	h.selfhstMu.Lock()
+	defer h.selfhstMu.Unlock()
+	if len(h.selfhstIcons) > 0 && time.Since(h.selfhstLoadedAt) < 24*time.Hour {
+		return h.selfhstIcons, nil
+	}
+	resp, err := h.client.Get(selfhstIndexURL)
+	if err != nil {
+		return h.selfhstIcons, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return h.selfhstIcons, fmt.Errorf("selfh.st index returned %s", resp.Status)
+	}
+	var icons []selfhstIcon
+	if err := json.NewDecoder(io.LimitReader(resp.Body, 8<<20)).Decode(&icons); err != nil {
+		return h.selfhstIcons, err
+	}
+	h.selfhstIcons = icons
+	h.selfhstLoadedAt = time.Now()
+	return icons, nil
+}
+
+func searchSelfhst(icons []selfhstIcon, query string, limit int) []iconSearchResult {
+	query = strings.ToLower(strings.TrimSpace(query))
+	results := make([]iconSearchResult, 0, limit)
+	for _, icon := range icons {
+		haystack := strings.ToLower(icon.Name + " " + icon.Reference + " " + icon.Tags)
+		if !strings.Contains(haystack, query) {
+			continue
+		}
+		results = append(results, selfhstResult(icon))
+		if len(results) == limit {
+			break
+		}
+	}
+	return results
+}
+
+func (h *IconHandler) SearchSelfhst(w http.ResponseWriter, r *http.Request) {
+	query := strings.TrimSpace(r.URL.Query().Get("q"))
+	if query == "" {
+		writeJSON(w, http.StatusOK, []iconSearchResult{})
+		return
+	}
+
+	results := make([]iconSearchResult, 0, 32)
+	if icons, err := h.loadSelfhstIcons(); err == nil || len(icons) > 0 {
+		results = append(results, searchSelfhst(icons, query, 32)...)
+	}
+	writeJSON(w, http.StatusOK, results)
+}
+
+func (h *IconHandler) SearchIconify(w http.ResponseWriter, r *http.Request) {
+	query := strings.TrimSpace(r.URL.Query().Get("q"))
+	if query == "" {
+		writeJSON(w, http.StatusOK, []iconSearchResult{})
+		return
+	}
+	results := make([]iconSearchResult, 0, 32)
+	iconifyURL := "https://api.iconify.design/search?query=" + url.QueryEscape(query) + "&limit=32"
+	if resp, err := h.client.Get(iconifyURL); err == nil {
+		defer resp.Body.Close()
+		if resp.StatusCode == http.StatusOK {
+			var payload struct {
+				Icons []string `json:"icons"`
+			}
+			if json.NewDecoder(io.LimitReader(resp.Body, 1<<20)).Decode(&payload) == nil {
+				for _, icon := range payload.Icons {
+					// Iconify republishes a selfhst collection under the same prefix
+					// used by selfh.st. Direct results above have theme pairs and are
+					// preferred, so omit these confusing duplicates.
+					if strings.HasPrefix(icon, "selfhst:") {
+						continue
+					}
+					name := icon
+					if _, after, found := strings.Cut(icon, ":"); found {
+						name = after
+					}
+					results = append(results, iconSearchResult{Name: name, Icon: icon, Source: "Iconify"})
+				}
+			}
+		}
+	}
+	writeJSON(w, http.StatusOK, results)
 }
 
 func (h *IconHandler) Upload(w http.ResponseWriter, r *http.Request) {
@@ -102,7 +254,7 @@ func (h *IconHandler) Serve(w http.ResponseWriter, r *http.Request) {
 func (h *IconHandler) ProxyIconify(w http.ResponseWriter, r *http.Request) {
 	prefix := chi.URLParam(r, "prefix")
 	name := chi.URLParam(r, "name")
-	if prefix == "" || name == "" {
+	if !iconNamePattern.MatchString(prefix) || !iconNamePattern.MatchString(name) {
 		writeError(w, http.StatusBadRequest, "prefix and name required")
 		return
 	}
@@ -114,7 +266,7 @@ func (h *IconHandler) ProxyIconify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	url := fmt.Sprintf("https://api.iconify.design/%s/%s.svg", prefix, name)
-	resp, err := http.Get(url)
+	resp, err := h.client.Get(url)
 	if err != nil || resp.StatusCode != 200 {
 		http.NotFound(w, r)
 		return
@@ -128,6 +280,44 @@ func (h *IconHandler) ProxyIconify(w http.ResponseWriter, r *http.Request) {
 	_ = os.MkdirAll(filepath.Dir(cachePath), 0755)
 	_ = os.WriteFile(cachePath, data, 0644)
 	w.Header().Set("Content-Type", "image/svg+xml")
+	w.Header().Set("Cache-Control", "public, max-age=86400")
+	_, _ = w.Write(data)
+}
+
+func (h *IconHandler) ProxySelfhst(w http.ResponseWriter, r *http.Request) {
+	filename := strings.Trim(strings.TrimSpace(chi.URLParam(r, "*")), "/")
+	ext := strings.ToLower(filepath.Ext(filename))
+	name := strings.TrimSuffix(filename, ext)
+	if filepath.Base(filename) != filename || !iconNamePattern.MatchString(name) || (ext != ".svg" && ext != ".png" && ext != ".webp") {
+		writeError(w, http.StatusBadRequest, "invalid selfh.st icon name")
+		return
+	}
+	cachePath := filepath.Join(h.cfg.IconCacheDir, "selfhst", filename)
+	contentType := map[string]string{".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp"}[ext]
+	if data, err := os.ReadFile(cachePath); err == nil {
+		w.Header().Set("Content-Type", contentType)
+		w.Header().Set("Cache-Control", "public, max-age=86400")
+		_, _ = w.Write(data)
+		return
+	}
+	remoteURL := selfhstCDNURL + "/" + strings.TrimPrefix(ext, ".") + "/" + url.PathEscape(filename)
+	resp, err := h.client.Get(remoteURL)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		if resp != nil {
+			resp.Body.Close()
+		}
+		http.NotFound(w, r)
+		return
+	}
+	defer resp.Body.Close()
+	data, err := io.ReadAll(io.LimitReader(resp.Body, 5<<20))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	_ = os.MkdirAll(filepath.Dir(cachePath), 0755)
+	_ = os.WriteFile(cachePath, data, 0644)
+	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Cache-Control", "public, max-age=86400")
 	_, _ = w.Write(data)
 }

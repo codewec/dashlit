@@ -100,7 +100,10 @@ func main() {
 
 		r.With(auth.RequireAuth).Post("/icons/upload", iconH.Upload)
 		r.Get("/icons/{id}", iconH.Serve)
+		r.Get("/icons/search/iconify", iconH.SearchIconify)
+		r.Get("/icons/search/selfhst", iconH.SearchSelfhst)
 		r.Get("/icons/iconify/{prefix}/{name}", iconH.ProxyIconify)
+		r.Get("/icons/selfhst/*", iconH.ProxySelfhst)
 
 		r.Route("/admin", func(r chi.Router) {
 			r.Use(auth.RequireAdmin)

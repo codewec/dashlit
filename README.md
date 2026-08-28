@@ -8,12 +8,15 @@
 
 <p align="center">
   <a href="https://github.com/codewec/dashlit/actions/workflows/docker.yml"><img alt="Container build" src="https://github.com/codewec/dashlit/actions/workflows/docker.yml/badge.svg?branch=beta"></a>
-  <a href="https://github.com/codewec/dashlit/pkgs/container/dashlit"><img alt="GHCR" src="https://img.shields.io/badge/GHCR-beta-blue?logo=docker"></a>
+  <a href="https://github.com/codewec/dashlit/releases">
+  <img alt="GitHub Release" src="https://img.shields.io/github/v/release/codewec/dashlit"></a>
+  <a href="https://codewec.github.io/dashlit/"><img alt="Documentation" src="https://img.shields.io/badge/docs-read-brightgreen?logo=readthedocs"></a>
+  <a href="https://github.com/codewec/dashlit/discussions"><img alt="GitHub Discussions" src="https://img.shields.io/github/discussions/all/codewec/dashlit"></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/codewec/dashlit"></a>
 </p>
 
-> [!IMPORTANT]
-> DashLit is currently in beta. Back up the data volume before upgrading and review release notes for breaking changes.
+> [!TIP]
+> **Visit the [DashLit documentation](https://codewec.github.io/dashlit/)** for complete installation and configuration guides, detailed feature descriptions, migration instructions and screenshots.
 
 ## Highlights
 
@@ -25,6 +28,8 @@
 - Local password authentication and OIDC, including Pocket ID
 - User profile and administration pages
 - Import, export, and cloning for dashboards, groups, and items
+- Built-in icon search across selfh.st/icons and Iconify
+- Automatic light/dark icon pairing from selfh.st and light rendering of monochrome Iconify icons on dark themes
 - Multiple light and dark Catppuccin-inspired themes
 - A single Go binary with the Svelte frontend embedded
 
@@ -88,29 +93,29 @@ DashLit reads both process environment variables and a `.env` file. Process envi
 
 Most container installations only need to set `JWT_SECRET` and, when required, the OIDC options.
 
-| Variable                        | Default                  | Description                                            |
-| ------------------------------- | ------------------------ | ------------------------------------------------------ |
-| `JWT_SECRET`                    | Development value        | Signing secret; always replace in production           |
-| `DEV_MODE`                      | `false`                  | Enable development diagnostics                         |
-| `OIDC_ISSUER`                   | Empty                    | OIDC issuer URL; leave empty to disable OIDC           |
-| `OIDC_CLIENT_ID`                | Empty                    | OIDC client ID                                         |
-| `OIDC_CLIENT_SECRET`            | Empty                    | OIDC client secret                                     |
-| `OIDC_REDIRECT_URL`             | Local callback           | Public callback URL                                    |
-| `OIDC_BUTTON_TITLE`             | `Sign in with OIDC`      | OIDC button label                                      |
-| `DISABLE_PASSWORD_REGISTRATION` | `false`                  | Disable password registration                          |
-| `DISABLE_OIDC_REGISTRATION`     | `false`                  | Prevent OIDC from creating new users                   |
-| `DISABLE_OIDC_USER_MERGE`       | `false`                  | Prevent OIDC identities from linking to existing users |
-| `DISABLE_PASSWORD_LOGIN`        | `false`                  | Disable password login once OIDC is configured         |
+| Variable                        | Default             | Description                                            |
+| ------------------------------- | ------------------- | ------------------------------------------------------ |
+| `JWT_SECRET`                    | Development value   | Signing secret; always replace in production           |
+| `DEV_MODE`                      | `false`             | Enable development diagnostics                         |
+| `OIDC_ISSUER`                   | Empty               | OIDC issuer URL; leave empty to disable OIDC           |
+| `OIDC_CLIENT_ID`                | Empty               | OIDC client ID                                         |
+| `OIDC_CLIENT_SECRET`            | Empty               | OIDC client secret                                     |
+| `OIDC_REDIRECT_URL`             | Local callback      | Public callback URL                                    |
+| `OIDC_BUTTON_TITLE`             | `Sign in with OIDC` | OIDC button label                                      |
+| `DISABLE_PASSWORD_REGISTRATION` | `false`             | Disable password registration                          |
+| `DISABLE_OIDC_REGISTRATION`     | `false`             | Prevent OIDC from creating new users                   |
+| `DISABLE_OIDC_USER_MERGE`       | `false`             | Prevent OIDC identities from linking to existing users |
+| `DISABLE_PASSWORD_LOGIN`        | `false`             | Disable password login once OIDC is configured         |
 
 ### Advanced runtime settings
 
 The container image already provides appropriate values for these internal settings. Override them only for a custom runtime, filesystem layout, or source installation.
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `ADDR` | `:8080` | Internal HTTP listen address |
-| `DATA_DIR` | `./data` | Database, uploaded icons, and cache directory; the image uses `/data` |
-| `DATABASE_PATH` | `$DATA_DIR/bookmarks.db` | Custom SQLite database path |
+| Variable        | Default                  | Description                                                           |
+| --------------- | ------------------------ | --------------------------------------------------------------------- |
+| `ADDR`          | `:8080`                  | Internal HTTP listen address                                          |
+| `DATA_DIR`      | `./data`                 | Database, uploaded icons, and cache directory; the image uses `/data` |
+| `DATABASE_PATH` | `$DATA_DIR/bookmarks.db` | Custom SQLite database path                                           |
 
 When DashLit is behind a reverse proxy, use the external HTTPS address for the callback:
 
