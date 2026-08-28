@@ -119,7 +119,7 @@ export type DashboardForm = {
 };
 
 export function emptyGroupForm(): GroupForm {
-  return { title: '', description: '', icon: '', iconDark: '', itemSize: '1x1' };
+  return { title: '', description: '', icon: '', iconDark: '', itemSize: '1x2' };
 }
 
 export function groupToForm(g: Group): GroupForm {

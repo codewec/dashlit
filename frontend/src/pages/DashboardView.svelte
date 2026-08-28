@@ -396,6 +396,7 @@
       />
       {#if $user}
         <EditFabs
+          hideEditButton
           canModify={canModifyDashboard}
           onCreateDashboard={openCreateDashboard}
           onCloneDashboard={cloneDashboard}

@@ -40,13 +40,19 @@
       <span class="mb-1 block text-xs text-text-muted">Icon</span>
       <IconField bind:value={form.icon} bind:valueDark={form.iconDark} />
     </div>
-    <label class="block">
+    <div>
       <span class="mb-1 block text-xs text-text-muted">Item size in this group</span>
-      <select class="w-full rounded-btn border border-border bg-bg-elevated px-3 py-2 text-sm" bind:value={form.itemSize}>
-        <option value="1x1">1×1 — icon only</option>
-        <option value="1x2">1×2 — icon, title, description</option>
-      </select>
-    </label>
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" class="flex min-h-20 items-center justify-center gap-3 rounded-btn border px-3 py-2 text-sm transition {form.itemSize === '1x1' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-bg-elevated text-text-muted hover:bg-surface-2'}" onclick={() => (form.itemSize = '1x1')}>
+          <span class="h-8 w-8 rounded-md border-2 border-current" aria-hidden="true"></span>
+          <span>1×1</span>
+        </button>
+        <button type="button" class="flex min-h-20 items-center justify-center gap-3 rounded-btn border px-3 py-2 text-sm transition {form.itemSize === '1x2' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-bg-elevated text-text-muted hover:bg-surface-2'}" onclick={() => (form.itemSize = '1x2')}>
+          <span class="h-8 w-14 rounded-md border-2 border-current" aria-hidden="true"></span>
+          <span>1×2</span>
+        </button>
+      </div>
+    </div>
     <div class="flex justify-end gap-2 pt-2">
       <button type="button" class="rounded-btn px-3 py-2 text-sm text-text-muted" onclick={() => (open = false)}>Cancel</button>
       <button type="submit" class="rounded-btn bg-primary px-3 py-2 text-sm font-medium text-white">Save</button>

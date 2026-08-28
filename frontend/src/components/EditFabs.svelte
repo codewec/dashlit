@@ -5,6 +5,7 @@
 
   let {
     raised = false,
+    hideEditButton = false,
     canModify = true,
     onCreateDashboard,
     onCloneDashboard,
@@ -16,6 +17,7 @@
     onSave,
   }: {
     raised?: boolean;
+    hideEditButton?: boolean;
     canModify?: boolean;
     onCreateDashboard: () => void;
     onCloneDashboard: () => void;
@@ -111,7 +113,7 @@
       <span class="hidden sm:inline">Delete</span>
     </button>
   </div>
-{:else}
+{:else if !hideEditButton}
   <div class="fixed left-1/2 z-30 flex h-11 w-28 -translate-x-1/2 items-center justify-center" style:bottom="{bottomOffset}px">
     <button
       type="button"

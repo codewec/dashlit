@@ -12,9 +12,11 @@
   let {
     dashboards = [],
     currentSlug = '',
+    showEdit = false,
   }: {
     dashboards?: DashListItem[];
     currentSlug?: string;
+    showEdit?: boolean;
   } = $props();
 
   const ownDashboards = $derived(dashboards.filter((d) => d.ownerId === $user?.id));
@@ -122,6 +124,12 @@
       {/if}
 
       {#if $user}
+        {#if showEdit && !$editMode}
+          <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => editMode.set(true)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+            <span>Edit</span>
+          </DropdownMenu.Item>
+        {/if}
         {#if $user.role === 'admin'}
           <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => push('/admin')}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.3 8 9 4.6-.7 8-4 8-9V7l-8-4Z" /><path d="M9 12l2 2 4-4" /></svg>

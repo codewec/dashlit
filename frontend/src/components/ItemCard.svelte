@@ -1,5 +1,6 @@
 <script lang="ts">
   import { useSortable } from '@dnd-kit-svelte/svelte/sortable';
+  import { DropdownMenu } from 'bits-ui';
   import Icon from './Icon.svelte';
   import type { Item, ItemSize } from '../lib/api';
   import { editMode } from '../lib/stores';
@@ -80,48 +81,23 @@
     {#if $editMode}
       <div
         class={cn(
-          'absolute z-10 flex gap-0.5 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100',
-          itemSize === '1x1' ? 'bottom-1 left-1/2 -translate-x-1/2' : 'bottom-1.5 right-1.5',
+          'absolute z-10 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100',
+          itemSize === '1x1' ? 'bottom-1 right-1' : 'bottom-1.5 right-1.5',
         )}
       >
-        <button
-          type="button"
-          disabled={!canModify}
-          class="rounded-md bg-surface/95 p-1 text-text-muted shadow-sm ring-1 ring-border hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
-          onclick={(e) => {
-            e.preventDefault();
-            onEdit?.(item);
-          }}
-          aria-label="Edit"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
-        </button>
-        <button
-          type="button"
-          disabled={!canModify}
-          class="rounded-md bg-surface/95 p-1 text-text-muted shadow-sm ring-1 ring-border hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
-          onclick={(e) => {
-            e.preventDefault();
-            onClone?.(item);
-          }}
-          aria-label="Clone"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            ><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg
-          >
-        </button>
-        <button
-          type="button"
-          disabled={!canModify}
-          class="rounded-md bg-surface/95 p-1 text-text-muted shadow-sm ring-1 ring-border hover:text-danger disabled:cursor-not-allowed disabled:opacity-40"
-          onclick={(e) => {
-            e.preventDefault();
-            onDelete?.(item);
-          }}
-          aria-label="Delete"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /></svg>
-        </button>
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger disabled={!canModify} class="rounded-md bg-surface/95 p-1 text-text-muted shadow-sm ring-1 ring-border hover:text-text disabled:cursor-not-allowed disabled:opacity-40" aria-label="Item actions" onclick={(e) => e.preventDefault()}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.75" /><circle cx="12" cy="12" r="1.75" /><circle cx="19" cy="12" r="1.75" /></svg>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content class="z-50 min-w-36 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl outline-none" sideOffset={6} align="end">
+              <DropdownMenu.Item class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => onEdit?.(item)}>Edit</DropdownMenu.Item>
+              <DropdownMenu.Item class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => onClone?.(item)}>Clone</DropdownMenu.Item>
+              <DropdownMenu.Separator class="my-1 h-px bg-border-soft" />
+              <DropdownMenu.Item class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-danger outline-none data-[highlighted]:bg-danger-soft" onSelect={() => onDelete?.(item)}>Delete</DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
       </div>
     {/if}
   </a>
