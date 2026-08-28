@@ -62,7 +62,7 @@ export default defineConfig({
           ],
         },
         editLink: {
-          pattern: 'https://github.com/codewec/dashlit/edit/beta/docs/:path',
+          pattern: 'https://github.com/codewec/dashlit/edit/main/docs/:path',
           text: 'Изменить страницу на GitHub',
         },
         outline: { level: [2, 3], label: 'На этой странице' },
@@ -143,7 +143,7 @@ export default defineConfig({
     },
     socialLinks: [{ icon: 'github', link: 'https://github.com/codewec/dashlit' }],
     editLink: {
-      pattern: 'https://github.com/codewec/dashlit/edit/beta/docs/:path',
+      pattern: 'https://github.com/codewec/dashlit/edit/main/docs/:path',
       text: 'Edit this page on GitHub',
     },
     footer: {

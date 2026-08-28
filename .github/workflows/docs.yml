@@ -2,7 +2,7 @@ name: Deploy documentation to Pages
 
 on:
   push:
-    branches: [beta]
+    branches: [main]
     paths:
       - 'docs/**'
       - 'CHANGELOG.md'
