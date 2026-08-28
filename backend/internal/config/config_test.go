@@ -56,6 +56,27 @@ func TestPasswordLoginCanOnlyBeDisabledWithOIDC(t *testing.T) {
 	}
 }
 
+func TestPasswordRegistrationRequiresPasswordLogin(t *testing.T) {
+	cfg := &Config{
+		DisablePasswordLogin: true,
+		OIDCIssuer:           "https://id.example.com",
+		OIDCClientID:         "dashlit",
+	}
+	if cfg.PasswordRegistrationEnabled() {
+		t.Fatal("password registration must be disabled when password login is disabled")
+	}
+
+	cfg.DisablePasswordLogin = false
+	if !cfg.PasswordRegistrationEnabled() {
+		t.Fatal("password registration should be enabled when neither policy disables it")
+	}
+
+	cfg.DisablePasswordRegistration = true
+	if cfg.PasswordRegistrationEnabled() {
+		t.Fatal("explicit password registration policy must still be respected")
+	}
+}
+
 func TestOIDCUserMergeIsEnabledByDefault(t *testing.T) {
 	t.Setenv("DISABLE_OIDC_USER_MERGE", "")
 	t.Chdir(t.TempDir())

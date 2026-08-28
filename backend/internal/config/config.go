@@ -69,6 +69,10 @@ func (c *Config) PasswordLoginEnabled() bool {
 	return !c.DisablePasswordLogin || !c.OIDCEnabled()
 }
 
+func (c *Config) PasswordRegistrationEnabled() bool {
+	return !c.DisablePasswordRegistration && c.PasswordLoginEnabled()
+}
+
 func env(key, fallback string) string {
 	if v := os.Getenv(key); v != "" {
 		return v

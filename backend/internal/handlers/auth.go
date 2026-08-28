@@ -37,7 +37,7 @@ func (h *AuthHandler) Configuration(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	writeJSON(w, http.StatusOK, authConfigResponse{
 		PasswordLoginEnabled:        h.cfg.PasswordLoginEnabled(),
-		PasswordRegistrationEnabled: !h.cfg.DisablePasswordRegistration,
+		PasswordRegistrationEnabled: h.cfg.PasswordRegistrationEnabled(),
 		OIDCEnabled:                 h.oidc != nil,
 		OIDCButtonTitle:             h.cfg.OIDCButtonTitle,
 	})
@@ -82,7 +82,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
-	if h.cfg.DisablePasswordRegistration {
+	if !h.cfg.PasswordRegistrationEnabled() {
 		writeError(w, http.StatusForbidden, "password registration is disabled")
 		return
 	}
