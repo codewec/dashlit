@@ -37,20 +37,20 @@ docker pull ghcr.io/codewec/dashlit:beta
 docker run -d \
   --name dashlit \
   --restart unless-stopped \
-  -p 8080:8080 \
+  -p 3000:8080 \
   -e JWT_SECRET='replace-with-a-long-random-secret' \
   -v dashlit-data:/data \
   ghcr.io/codewec/dashlit:beta
 ```
 
-Open [http://localhost:8080](http://localhost:8080). The first account created with password authentication becomes an administrator.
+Open [http://localhost:3000](http://localhost:3000). The first account created with password authentication becomes an administrator.
 
 ### Docker Compose
 
 For production, copy [`.env.example`](.env.example) to `.env`, set at least `JWT_SECRET`, and run:
 
 ```bash
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.yml up -d
 ```
 
 The production compose file pulls `ghcr.io/codewec/dashlit:beta`. Pin a prerelease by setting `DASHLIT_TAG`, for example:
@@ -148,5 +148,3 @@ Stop the container before copying the data volume, or use SQLite's online backup
 ## License
 
 DashLit is available under the [MIT License](LICENSE).
-
-<img src="https://umami.0x2d.dev/p/laer6FLsW" width="1" height="1">
