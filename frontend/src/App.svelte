@@ -6,6 +6,7 @@
   import Login from './pages/Login.svelte';
   import DashboardView from './pages/DashboardView.svelte';
   import { Toaster } from 'svelte-french-toast';
+  import { normalizeTheme } from './lib/themes';
 
   const routes = {
     '/login': Login,
@@ -16,7 +17,7 @@
   let ready = $state(false);
 
   onMount(async () => {
-    const saved = (localStorage.getItem('bd_theme') as 'light' | 'dark' | 'system') || 'dark';
+    const saved = normalizeTheme(localStorage.getItem('bd_theme'));
     theme.set(saved);
     applyTheme(saved);
 

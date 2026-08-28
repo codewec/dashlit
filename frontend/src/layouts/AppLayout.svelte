@@ -1,15 +1,17 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { push } from 'svelte-spa-router';
-  import { Select } from 'bits-ui';
+  import { DropdownMenu, Select } from 'bits-ui';
   import { api, setToken } from '../lib/api';
-  import { user, editMode, theme, searchQuery, applyTheme } from '../lib/stores';
+  import { user, editMode, theme, searchQuery } from '../lib/stores';
   import { cn } from '../lib/cn';
   import Icon from '../components/Icon.svelte';
   import NavMenu from '../components/NavMenu.svelte';
   import logoUrl from '../assets/vite.svg';
   import type { DashListItem } from '../lib/dashboard-helpers';
   import { toastError } from '../lib/toasts';
+  import { themeLabel } from '../lib/themes';
+  import ThemeItems from '../components/ThemeItems.svelte';
 
   let {
     children,
@@ -29,13 +31,6 @@
   const ownDashboards = $derived(dashboards.filter((d) => d.ownerId === $user?.id));
   const otherDashboards = $derived(dashboards.filter((d) => d.ownerId !== $user?.id));
   const year = new Date().getFullYear();
-
-  function toggleTheme() {
-    const order: Array<'light' | 'dark' | 'system'> = ['dark', 'light', 'system'];
-    const next = order[(order.indexOf($theme) + 1) % order.length];
-    theme.set(next);
-    applyTheme(next);
-  }
 
   async function logout() {
     try {
@@ -144,9 +139,20 @@
       </div>
 
       <div class="ml-auto hidden items-center gap-1 sm:flex">
-        <button type="button" class="flex h-8 w-8 items-center justify-center rounded-btn text-text-muted hover:bg-surface-2 hover:text-text" onclick={toggleTheme} title="Theme: {$theme}">
-          {$theme === 'dark' ? '☾' : $theme === 'light' ? '☀' : '◐'}
-        </button>
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger
+            class="flex h-8 w-8 items-center justify-center rounded-btn text-text-muted hover:bg-surface-2 hover:text-text"
+            title="Theme: {themeLabel($theme)}"
+            aria-label="Choose theme"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18c-2.2-2.5-2.2-15.5 0-18Z" /></svg>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content class="z-50 min-w-44 rounded-xl border border-border bg-surface p-1 shadow-xl outline-none" sideOffset={6} align="end">
+              <ThemeItems />
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
         {#if $user}
           <button type="button" class="flex h-8 w-8 items-center justify-center rounded-btn text-text-muted hover:bg-surface-2 hover:text-text" onclick={logout} title="Logout" aria-label="Logout">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"

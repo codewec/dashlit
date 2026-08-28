@@ -1,10 +1,10 @@
 <script lang="ts">
   import { iconSrc, resolveIcon } from '../lib/api';
-  import { theme } from '../lib/stores';
+  import { resolvedTheme } from '../lib/stores';
 
   let { icon = '', iconDark = '', size = 24, alt = '', class: className = '' }: { icon?: string; iconDark?: string; size?: number; alt?: string; class?: string } = $props();
 
-  const isDark = $derived($theme === 'dark' || ($theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches));
+  const isDark = $derived(!['crema', 'latte'].includes($resolvedTheme));
   const resolved = $derived(resolveIcon(icon, iconDark, isDark));
   const src = $derived(iconSrc(resolved));
 </script>

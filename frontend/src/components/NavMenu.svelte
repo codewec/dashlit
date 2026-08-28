@@ -2,11 +2,12 @@
   import { DropdownMenu } from 'bits-ui';
   import { push } from 'svelte-spa-router';
   import { api, setToken } from '../lib/api';
-  import { user, editMode, theme, applyTheme } from '../lib/stores';
+  import { user, editMode, theme, setTheme } from '../lib/stores';
   import Icon from './Icon.svelte';
   import logoUrl from '../assets/vite.svg';
   import type { DashListItem } from '../lib/dashboard-helpers';
   import { toastError } from '../lib/toasts';
+  import { themeOptions } from '../lib/themes';
 
   let {
     dashboards = [],
@@ -18,13 +19,12 @@
 
   const ownDashboards = $derived(dashboards.filter((d) => d.ownerId === $user?.id));
   const otherDashboards = $derived(dashboards.filter((d) => d.ownerId !== $user?.id));
+  let menuOpen = $state(false);
+  let themeExpanded = $state(false);
 
-  function toggleTheme() {
-    const order: Array<'light' | 'dark' | 'system'> = ['dark', 'light', 'system'];
-    const next = order[(order.indexOf($theme) + 1) % order.length];
-    theme.set(next);
-    applyTheme(next);
-  }
+  $effect(() => {
+    if (!menuOpen) themeExpanded = false;
+  });
 
   async function logout() {
     try {
@@ -39,7 +39,7 @@
   }
 </script>
 
-<DropdownMenu.Root>
+<DropdownMenu.Root bind:open={menuOpen}>
   <DropdownMenu.Trigger class="inline-flex h-9 w-9 items-center justify-center rounded-btn border border-border text-text hover:bg-surface-2" aria-label="Menu">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M4 6h16M4 12h16M4 18h16" />
@@ -91,14 +91,35 @@
 
       <DropdownMenu.Item
         class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2"
-        onSelect={(e) => {
-          e.preventDefault();
-          toggleTheme();
+        aria-expanded={themeExpanded}
+        onSelect={(event) => {
+          event.preventDefault();
+          themeExpanded = !themeExpanded;
         }}
       >
-        <span class="w-4 text-center">{$theme === 'dark' ? '☾' : $theme === 'light' ? '☀' : '◐'}</span>
-        <span>Theme: {$theme}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18c-2.2-2.5-2.2-15.5 0-18Z" /></svg>
+          <span class="flex-1">Theme</span>
+          <span class="transition-transform {themeExpanded ? 'rotate-90' : ''}" aria-hidden="true">›</span>
       </DropdownMenu.Item>
+      {#if themeExpanded}
+        <div class="ml-3 border-l border-border-soft pl-1">
+          {#each themeOptions as option, index}
+            {#if index === 1 || index === 3}
+              <div class="px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-text-subtle">
+                {index === 1 ? 'Light' : 'Dark'}
+              </div>
+            {/if}
+            <DropdownMenu.Item
+              class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2"
+              onSelect={() => setTheme(option.value)}
+            >
+              <span class="h-3.5 w-3.5 shrink-0 rounded-full border border-border" style:background={option.swatch}></span>
+              <span class="flex-1">{option.label}</span>
+              {#if $theme === option.value}<span class="text-primary">✓</span>{/if}
+            </DropdownMenu.Item>
+          {/each}
+        </div>
+      {/if}
 
       {#if $user}
         <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={logout}>
