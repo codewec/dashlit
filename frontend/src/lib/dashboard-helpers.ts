@@ -48,14 +48,17 @@ export function groupsOuterClass(layout: Layout, wide: boolean): string {
     return wide ? 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid grid-cols-1 gap-4 md:grid-cols-2';
   }
   if (layout === 'masonry') {
-    return wide ? 'columns-1 gap-4 space-y-4 sm:columns-2 lg:columns-3 xl:columns-4 [&>*]:mb-4 [&>*]:break-inside-avoid' : 'columns-1 gap-4 space-y-4 md:columns-2 [&>*]:mb-4 [&>*]:break-inside-avoid';
+    return wide ? 'columns-1 gap-4 sm:columns-2 lg:columns-3 xl:columns-4' : 'columns-1 gap-4 md:columns-2';
   }
   return 'flex flex-col gap-4';
 }
 
 export function groupCellClass(layout: Layout): string {
   if (layout === 'columns') return 'min-w-0';
-  if (layout === 'masonry') return 'break-inside-avoid';
+  // An inline-block is treated as one atomic box by the multi-column layout.
+  // This is more reliable than break-inside on a regular block in Chromium,
+  // especially when the sortable action updates element transforms.
+  if (layout === 'masonry') return 'mb-4 inline-block w-full break-inside-avoid align-top';
   return '';
 }
 
