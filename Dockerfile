@@ -4,7 +4,7 @@ WORKDIR /app
 COPY . .
 
 RUN mv .env.example .env
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 RUN pnpm install --frozen-lockfile --force
 RUN npm run build
 
