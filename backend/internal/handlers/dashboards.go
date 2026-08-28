@@ -381,12 +381,14 @@ type exportGroup struct {
 }
 
 type exportItem struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	URL         string `json:"url"`
-	Icon        string `json:"icon"`
-	IconDark    string `json:"iconDark"`
-	Position    int    `json:"position"`
+	Title        string `json:"title"`
+	Description  string `json:"description"`
+	URL          string `json:"url"`
+	Icon         string `json:"icon"`
+	IconDark     string `json:"iconDark"`
+	PingEnabled  bool   `json:"pingEnabled"`
+	PingOnlyDown bool   `json:"pingOnlyDown"`
+	Position     int    `json:"position"`
 }
 
 func (h *DashboardHandler) loadFull(ctx context.Context, idOrSlug string) (*models.Dashboard, error) {
@@ -410,7 +412,8 @@ func dashboardToExport(d *models.Dashboard) exportPayload {
 		for _, it := range g.Items {
 			ei = append(ei, exportItem{
 				Title: it.Title, Description: it.Description, URL: it.URL,
-				Icon: it.Icon, IconDark: it.IconDark, Position: it.Position,
+				Icon: it.Icon, IconDark: it.IconDark, PingEnabled: it.PingEnabled,
+				PingOnlyDown: it.PingOnlyDown, Position: it.Position,
 			})
 		}
 		eg = append(eg, exportGroup{
@@ -518,7 +521,8 @@ func (h *DashboardHandler) importPayload(ctx context.Context, user *models.User,
 			it := &models.Item{
 				ID: uuid.NewString(), GroupID: g.ID,
 				Title: is.Title, Description: is.Description, URL: is.URL,
-				Icon: is.Icon, IconDark: is.IconDark, Position: is.Position,
+				Icon: is.Icon, IconDark: is.IconDark, PingEnabled: is.PingEnabled,
+				PingOnlyDown: is.PingOnlyDown, Position: is.Position,
 			}
 			if it.Icon == "" {
 				it.Icon = "mdi:link"

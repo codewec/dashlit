@@ -96,14 +96,16 @@ type Group struct {
 type Item struct {
 	bun.BaseModel `bun:"table:items,alias:i"`
 
-	ID          string `bun:"id,pk,type:text" json:"id"`
-	GroupID     string `bun:"group_id,notnull" json:"groupId"`
-	Title       string `bun:"title,notnull" json:"title"`
-	Description string `bun:"description" json:"description"`
-	URL         string `bun:"url,notnull" json:"url"`
-	Icon        string `bun:"icon,notnull" json:"icon"`
-	IconDark    string `bun:"icon_dark,notnull,default:''" json:"iconDark"`
-	Position    int    `bun:"position,notnull,default:0" json:"position"`
+	ID           string `bun:"id,pk,type:text" json:"id"`
+	GroupID      string `bun:"group_id,notnull" json:"groupId"`
+	Title        string `bun:"title,notnull" json:"title"`
+	Description  string `bun:"description" json:"description"`
+	URL          string `bun:"url,notnull" json:"url"`
+	Icon         string `bun:"icon,notnull" json:"icon"`
+	IconDark     string `bun:"icon_dark,notnull,default:''" json:"iconDark"`
+	PingEnabled  bool   `bun:"ping_enabled,notnull,default:false" json:"pingEnabled"`
+	PingOnlyDown bool   `bun:"ping_only_down,notnull,default:false" json:"pingOnlyDown"`
+	Position     int    `bun:"position,notnull,default:0" json:"position"`
 }
 
 type UploadedIcon struct {

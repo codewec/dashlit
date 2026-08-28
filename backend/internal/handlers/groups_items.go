@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -12,11 +14,17 @@ import (
 )
 
 type GroupItemHandler struct {
-	db *bun.DB
+	db         *bun.DB
+	httpClient *http.Client
 }
 
 func NewGroupItemHandler(db *bun.DB) *GroupItemHandler {
-	return &GroupItemHandler{db: db}
+	return &GroupItemHandler{
+		db: db,
+		httpClient: &http.Client{
+			Timeout: 5 * time.Second,
+		},
+	}
 }
 
 func (h *GroupItemHandler) canEditDashboard(r *http.Request, dashboardID string) (*models.Dashboard, bool) {
@@ -141,12 +149,14 @@ func (h *GroupItemHandler) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 type createItemReq struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	URL         string `json:"url"`
-	Icon        string `json:"icon"`
-	IconDark    string `json:"iconDark"`
-	Position    int    `json:"position"`
+	Title        string `json:"title"`
+	Description  string `json:"description"`
+	URL          string `json:"url"`
+	Icon         string `json:"icon"`
+	IconDark     string `json:"iconDark"`
+	PingEnabled  bool   `json:"pingEnabled"`
+	PingOnlyDown bool   `json:"pingOnlyDown"`
+	Position     int    `json:"position"`
 }
 
 func (h *GroupItemHandler) CreateItem(w http.ResponseWriter, r *http.Request) {
@@ -169,14 +179,16 @@ func (h *GroupItemHandler) CreateItem(w http.ResponseWriter, r *http.Request) {
 		req.Icon = "mdi:link"
 	}
 	item := &models.Item{
-		ID:          uuid.NewString(),
-		GroupID:     groupID,
-		Title:       req.Title,
-		Description: req.Description,
-		URL:         req.URL,
-		Icon:        req.Icon,
-		IconDark:    req.IconDark,
-		Position:    req.Position,
+		ID:           uuid.NewString(),
+		GroupID:      groupID,
+		Title:        req.Title,
+		Description:  req.Description,
+		URL:          req.URL,
+		Icon:         req.Icon,
+		IconDark:     req.IconDark,
+		PingEnabled:  req.PingEnabled,
+		PingOnlyDown: req.PingOnlyDown,
+		Position:     req.Position,
 	}
 	if _, err := h.db.NewInsert().Model(item).Exec(r.Context()); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
@@ -202,13 +214,15 @@ func (h *GroupItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req struct {
-		Title       *string `json:"title"`
-		Description *string `json:"description"`
-		URL         *string `json:"url"`
-		Icon        *string `json:"icon"`
-		IconDark    *string `json:"iconDark"`
-		Position    *int    `json:"position"`
-		GroupID     *string `json:"groupId"`
+		Title        *string `json:"title"`
+		Description  *string `json:"description"`
+		URL          *string `json:"url"`
+		Icon         *string `json:"icon"`
+		IconDark     *string `json:"iconDark"`
+		PingEnabled  *bool   `json:"pingEnabled"`
+		PingOnlyDown *bool   `json:"pingOnlyDown"`
+		Position     *int    `json:"position"`
+		GroupID      *string `json:"groupId"`
 	}
 	if err := decodeJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid body")
@@ -228,6 +242,12 @@ func (h *GroupItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 	if req.IconDark != nil {
 		item.IconDark = *req.IconDark
+	}
+	if req.PingEnabled != nil {
+		item.PingEnabled = *req.PingEnabled
+	}
+	if req.PingOnlyDown != nil {
+		item.PingOnlyDown = *req.PingOnlyDown
 	}
 	if req.Position != nil {
 		item.Position = *req.Position
@@ -349,7 +369,8 @@ func (h *GroupItemHandler) CloneGroup(w http.ResponseWriter, r *http.Request) {
 		ni := &models.Item{
 			ID: uuid.NewString(), GroupID: ng.ID,
 			Title: it.Title, Description: it.Description, URL: it.URL,
-			Icon: it.Icon, IconDark: it.IconDark, Position: i,
+			Icon: it.Icon, IconDark: it.IconDark, PingEnabled: it.PingEnabled,
+			PingOnlyDown: it.PingOnlyDown, Position: i,
 		}
 		if _, err := h.db.NewInsert().Model(ni).Exec(r.Context()); err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())
@@ -380,11 +401,66 @@ func (h *GroupItemHandler) CloneItem(w http.ResponseWriter, r *http.Request) {
 	ni := &models.Item{
 		ID: uuid.NewString(), GroupID: item.GroupID,
 		Title: item.Title + " (copy)", Description: item.Description, URL: item.URL,
-		Icon: item.Icon, IconDark: item.IconDark, Position: maxPos + 1,
+		Icon: item.Icon, IconDark: item.IconDark, PingEnabled: item.PingEnabled,
+		PingOnlyDown: item.PingOnlyDown, Position: maxPos + 1,
 	}
 	if _, err := h.db.NewInsert().Model(ni).Exec(r.Context()); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	writeJSON(w, http.StatusCreated, ni)
+}
+
+func (h *GroupItemHandler) PingItem(w http.ResponseWriter, r *http.Request) {
+	item := new(models.Item)
+	if err := h.db.NewSelect().Model(item).Where("id = ?", chi.URLParam(r, "id")).Scan(r.Context()); err != nil {
+		writeError(w, http.StatusNotFound, "item not found")
+		return
+	}
+	group := new(models.Group)
+	if err := h.db.NewSelect().Model(group).Where("id = ?", item.GroupID).Scan(r.Context()); err != nil {
+		writeError(w, http.StatusNotFound, "group not found")
+		return
+	}
+	dashboard := new(models.Dashboard)
+	if err := h.db.NewSelect().Model(dashboard).Where("id = ?", group.DashboardID).Scan(r.Context()); err != nil {
+		writeError(w, http.StatusNotFound, "dashboard not found")
+		return
+	}
+	if !canView(auth.UserFromContext(r.Context()), dashboard) {
+		writeError(w, http.StatusForbidden, "forbidden")
+		return
+	}
+	if !item.PingEnabled {
+		writeError(w, http.StatusBadRequest, "ping is disabled for this item")
+		return
+	}
+	parsed, err := url.ParseRequestURI(item.URL)
+	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
+		writeJSON(w, http.StatusOK, map[string]bool{"reachable": false})
+		return
+	}
+
+	reachable := false
+	req, err := http.NewRequestWithContext(r.Context(), http.MethodHead, parsed.String(), nil)
+	if err == nil {
+		resp, requestErr := h.httpClient.Do(req)
+		if requestErr == nil {
+			resp.Body.Close()
+			if resp.StatusCode == http.StatusMethodNotAllowed || resp.StatusCode == http.StatusNotImplemented {
+				getReq, getErr := http.NewRequestWithContext(r.Context(), http.MethodGet, parsed.String(), nil)
+				if getErr == nil {
+					getReq.Header.Set("Range", "bytes=0-0")
+					getResp, getRequestErr := h.httpClient.Do(getReq)
+					if getRequestErr == nil {
+						getResp.Body.Close()
+						reachable = getResp.StatusCode >= 200 && getResp.StatusCode < 400
+					}
+				}
+			} else {
+				reachable = resp.StatusCode >= 200 && resp.StatusCode < 400
+			}
+		}
+	}
+	writeJSON(w, http.StatusOK, map[string]bool{"reachable": reachable})
 }

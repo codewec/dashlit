@@ -89,6 +89,7 @@ func main() {
 		r.With(auth.RequireAuth).Put("/items/{id}", giH.UpdateItem)
 		r.With(auth.RequireAuth).Delete("/items/{id}", giH.DeleteItem)
 		r.With(auth.RequireAuth).Post("/items/{id}/clone", giH.CloneItem)
+		r.Get("/items/{id}/ping", giH.PingItem)
 		r.With(auth.RequireAuth).Put("/dashboards/{dashboardID}/layout", giH.UpdateLayout)
 
 		r.With(auth.RequireAuth).Post("/icons/upload", iconH.Upload)

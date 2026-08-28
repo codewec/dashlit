@@ -63,6 +63,8 @@ CREATE TABLE IF NOT EXISTS items (
   url TEXT NOT NULL,
   icon TEXT NOT NULL,
   icon_dark TEXT NOT NULL DEFAULT '',
+  ping_enabled INTEGER NOT NULL DEFAULT 0,
+  ping_only_down INTEGER NOT NULL DEFAULT 0,
   position INTEGER NOT NULL DEFAULT 0
 );
 
