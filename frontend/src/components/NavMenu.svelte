@@ -4,7 +4,7 @@
   import { api, setToken } from '../lib/api';
   import { user, editMode, theme, setTheme } from '../lib/stores';
   import Icon from './Icon.svelte';
-  import logoUrl from '../assets/vite.svg';
+  import logoUrl from '../assets/dashlit.svg';
   import type { DashListItem } from '../lib/dashboard-helpers';
   import { toastError } from '../lib/toasts';
   import { themeOptions } from '../lib/themes';

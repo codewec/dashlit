@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc" color="#111827">
+  <title id="title">DashLit monochrome</title>
+  <desc id="desc">A monochrome dashboard mark with four rounded panels</desc>
+  <defs>
+    <mask id="panel-cutouts">
+      <rect x="34" y="10" width="20" height="30" rx="6" fill="#fff"/>
+      <path d="M40 19h8M40 25h8M40 31h5" fill="none" stroke="#000" stroke-linecap="round" stroke-width="2.5"/>
+    </mask>
+  </defs>
+
+  <rect x="10" y="10" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="3"/>
+  <rect x="34" y="10" width="20" height="30" rx="6" fill="currentColor" mask="url(#panel-cutouts)"/>
+  <rect x="10" y="34" width="18" height="20" rx="5" fill="currentColor" fill-opacity=".12" stroke="currentColor" stroke-width="3"/>
+  <rect x="34" y="46" width="20" height="8" rx="4" fill="none" stroke="currentColor" stroke-width="3"/>
+
+  <path d="m56 4 1.15 2.85L60 8l-2.85 1.15L56 12l-1.15-2.85L52 8l2.85-1.15L56 4Z" fill="currentColor"/>
+</svg>

@@ -7,7 +7,7 @@
   import { cn } from '../lib/cn';
   import Icon from '../components/Icon.svelte';
   import NavMenu from '../components/NavMenu.svelte';
-  import logoUrl from '../assets/vite.svg';
+  import logoUrl from '../assets/dashlit.svg';
   import type { DashListItem } from '../lib/dashboard-helpers';
   import { toastError } from '../lib/toasts';
   import { themeLabel } from '../lib/themes';

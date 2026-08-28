@@ -5,7 +5,7 @@
   import { push } from 'svelte-spa-router';
   import AuthLayout from '../layouts/AuthLayout.svelte';
   import ThemeFab from '../components/ThemeFab.svelte';
-  import logoUrl from '../assets/vite.svg';
+  import logoUrl from '../assets/dashlit.svg';
   import { toastError } from '../lib/toasts';
 
   let username = $state('');
