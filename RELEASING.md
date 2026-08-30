@@ -116,7 +116,7 @@ git push origin v1.0.0
 
 Pushing the tag starts two workflows:
 
-1. The container workflow publishes `linux/amd64` and `linux/arm64` images:
+1. The container workflow publishes `linux/amd64`, `linux/arm64`, and `linux/arm/v7` images:
 
    ```text
    ghcr.io/codewec/dashlit:v1.0.0

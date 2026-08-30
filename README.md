@@ -14,7 +14,7 @@
   <img alt="GitHub Release" src="https://img.shields.io/github/v/release/codewec/dashlit"></a>
   <a href="https://codewec.github.io/dashlit/"><img alt="Documentation" src="https://img.shields.io/badge/docs-read-brightgreen?logo=readthedocs"></a>
   <a href="https://github.com/codewec/dashlit/discussions"><img alt="GitHub Discussions" src="https://img.shields.io/github/discussions/all/codewec/dashlit"></a>
-   <a href="https://catppuccin.com/">
+  <a href="https://catppuccin.com/">
     <img alt="Catppuccin themes" src="https://img.shields.io/badge/themes-Catppuccin-cba6f7?logo=catppuccin&logoColor=1e1e2e">
   </a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/codewec/dashlit"></a>
@@ -47,7 +47,7 @@
 
 ## Run with Docker
 
-The current image is published for `linux/amd64` and `linux/arm64` under the `main` tag.
+The current image is published for `linux/amd64`, `linux/arm64`, and `linux/arm/v7` (armhf) under the `main` tag.
 
 ```bash
 docker pull ghcr.io/codewec/dashlit:main

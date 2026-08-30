@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM node:22-alpine AS frontend
+FROM --platform=$BUILDPLATFORM node:22-alpine AS frontend
 WORKDIR /src/frontend
 RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
 COPY frontend/package.json frontend/pnpm-lock.yaml frontend/pnpm-workspace.yaml ./
@@ -8,8 +8,11 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store pnpm install
 COPY frontend/ ./
 RUN pnpm run build
 
-FROM golang:1.25-alpine AS backend
+FROM --platform=$BUILDPLATFORM golang:1.25-alpine AS backend
 WORKDIR /src/backend
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
 COPY backend/go.mod backend/go.sum ./
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY backend/ ./
@@ -17,7 +20,9 @@ COPY --from=frontend /src/frontend/dist/ ./cmd/server/static/
 ARG VERSION=dev
 ARG COMMIT=unknown
 RUN --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=0 GOOS=linux go build -trimpath \
+    target_variant="${TARGETVARIANT#v}"; \
+    if [ "$TARGETARCH" = "arm" ] && [ -n "$target_variant" ]; then export GOARM="$target_variant"; fi; \
+    CGO_ENABLED=0 GOOS="$TARGETOS" GOARCH="$TARGETARCH" go build -trimpath \
     -ldflags="-s -w -X main.version=${VERSION} -X main.commit=${COMMIT}" \
     -o /out/dashlit ./cmd/server
 

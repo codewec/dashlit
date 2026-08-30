@@ -1,6 +1,6 @@
 # Installation
 
-The published container supports `linux/amd64` and `linux/arm64`. Docker Compose is recommended because it keeps configuration and volume declarations reproducible.
+The published container supports `linux/amd64`, `linux/arm64`, and `linux/arm/v7` (armhf). Docker Compose is recommended because it keeps configuration and volume declarations reproducible.
 
 ## Docker Compose
 
