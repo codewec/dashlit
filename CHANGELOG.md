@@ -1,6 +1,7 @@
 # Changelog
 
 All notable changes to DashLit are documented in this file.
+## [1.0.3] - 2026-08-30
 ## [1.0.2] - 2026-08-30
 
 ### Features
