@@ -13,9 +13,9 @@
   } = $props();
 </script>
 
-<div class="mb-6 flex items-start gap-3">
+<div class={`mb-6 flex gap-3 ${dashboard.description ? 'items-start' : 'items-center'}`}>
   {#if dashboard.icon}
-    <Icon icon={dashboard.icon} iconDark={dashboard.iconDark} size={40} class="mt-0.5 shrink-0 rounded-xl" />
+    <Icon icon={dashboard.icon} iconDark={dashboard.iconDark} size={40} class={`shrink-0 rounded-xl ${dashboard.description ? 'mt-0.5' : ''}`} />
   {/if}
   <div class="min-w-0 flex-1">
     <h1 class="text-xl font-semibold tracking-tight text-text">{dashboard.name}</h1>

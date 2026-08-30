@@ -85,9 +85,9 @@
       </button>
     {/if}
 
-    <header class="mb-3 flex items-start gap-2">
+    <header class={cn('mb-3 flex gap-2', group.description ? 'items-start' : 'items-center')}>
       {#if group.icon}
-        <Icon icon={group.icon} iconDark={group.iconDark} size={22} class="mt-0.5 shrink-0 rounded-md" />
+        <Icon icon={group.icon} iconDark={group.iconDark} size={22} class={cn('shrink-0 rounded-md', group.description && 'mt-0.5')} />
       {/if}
       <div class="min-w-0 flex-1">
         <h3 class="truncate text-sm font-semibold tracking-tight text-text">{group.title}</h3>
