@@ -85,7 +85,7 @@
       </button>
     {/if}
 
-    <header class={cn('mb-3 flex gap-2', group.description ? 'items-start' : 'items-center')}>
+    <header class={cn('mb-3 flex gap-2', group.description ? 'items-start' : 'items-center', $editMode && 'pr-14')}>
       {#if group.icon}
         <Icon icon={group.icon} iconDark={group.iconDark} size={22} class={cn('shrink-0 rounded-md', group.description && 'mt-0.5')} />
       {/if}
@@ -96,7 +96,7 @@
         {/if}
       </div>
       {#if $editMode}
-        <div class="flex shrink-0 items-center gap-0.5">
+        <div class="absolute right-3 top-4 flex items-center gap-0.5">
           <button type="button" disabled={!canModify} class="rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-text disabled:cursor-not-allowed disabled:opacity-40" onclick={() => onAddItem?.(group)} title="Add item">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" /></svg>
           </button>
