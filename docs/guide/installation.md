@@ -50,6 +50,109 @@ docker run -d \
   ghcr.io/codewec/dashlit:main
 ```
 
+## Existing Linux system
+
+DashLit can be installed as a standalone service on a systemd-based Linux distribution. The installer supports `amd64`, `arm64`, and `armv7`, downloads the matching binary from the latest GitHub Release, and verifies it against the published SHA-256 checksums.
+
+Run it as root:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/codewec/dashlit/main/scripts/install.sh | sudo bash
+```
+
+### Dependencies installed by the script
+
+The installer checks for `curl`, `tar`, `sha256sum`, and `openssl`. If any are missing, it uses the available system package manager to install the following packages:
+
+- Debian and Ubuntu: `ca-certificates`, `curl`, `tar`, `coreutils`, `openssl`;
+- Fedora and other systems using DNF: `ca-certificates`, `curl`, `tar`, `coreutils`, `openssl`;
+- RHEL-compatible systems using YUM: `ca-certificates`, `curl`, `tar`, `coreutils`, `openssl`;
+- Alpine: `ca-certificates`, `curl`, `tar`, `coreutils`, `openssl`.
+
+The target system must already use systemd and provide standard account-management commands such as `useradd`, `usermod`, and `groupadd`. No Go compiler, Node.js, npm, pnpm, database server, or Docker runtime is installed. DashLit itself remains a standalone binary with SQLite embedded through its Go driver.
+
+The installation uses these paths:
+
+| Purpose | Path |
+| --- | --- |
+| Binary and installed version | `/opt/dashlit` |
+| Configuration | `/etc/dashlit/dashlit.env` |
+| Database and icons | `/var/lib/dashlit` |
+| systemd unit | `/etc/systemd/system/dashlit.service` |
+
+DashLit runs as a dedicated system user and listens on port `8080`. Edit `/etc/dashlit/dashlit.env` for OIDC or other settings, then apply changes with:
+
+```bash
+sudo systemctl restart dashlit
+```
+
+### Updates
+
+The installer adds a `dashlit-update` command. Run it to install the newest release:
+
+```bash
+sudo dashlit-update
+```
+
+The updater verifies the release checksum, preserves configuration and data, and restores the previous executable if the updated service cannot start. Back up `/var/lib/dashlit` and `/etc/dashlit/dashlit.env` before significant upgrades.
+
+### Uninstall
+
+Remove the systemd service, executable, and update command while preserving configuration and data:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/codewec/dashlit/main/scripts/uninstall.sh | sudo bash
+```
+
+This leaves `/etc/dashlit` and `/var/lib/dashlit` in place so DashLit can be reinstalled later. To permanently delete those directories and the `dashlit` system account, use `--purge`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/codewec/dashlit/main/scripts/uninstall.sh | sudo bash -s -- --purge
+```
+
+The purge operation cannot be undone. Back up the data directory first if its contents may still be needed.
+
+## Proxmox VE LXC
+
+Run the following command as root in the Proxmox VE host shell:
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/codewec/dashlit/main/scripts/proxmox-lxc.sh)"
+```
+
+The script creates an unprivileged Debian 13 container with 1 CPU, 512 MB RAM, a 4 GB disk, DHCP networking on `vmbr0`, and automatic startup. It then invokes the regular Linux installer inside the container. DashLit listens on port `80` there and is available at `http://CONTAINER_IP` without a port suffix.
+
+On the Proxmox host, the script only uses tools already supplied by Proxmox VE: `pct`, `pvesh`, `pvesm`, and `pveam`. Inside the new container it initially installs `ca-certificates` and `curl`; the regular installer then checks and installs any missing archive, checksum, or OpenSSL tools listed above.
+
+The following environment variables override the defaults:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `DASHLIT_CTID` | Next available ID | Container ID |
+| `DASHLIT_HOSTNAME` | `dashlit` | Container hostname |
+| `DASHLIT_STORAGE` | First active `rootdir` storage | Root filesystem storage |
+| `DASHLIT_TEMPLATE_STORAGE` | First active `vztmpl` storage | Debian template storage |
+| `DASHLIT_BRIDGE` | `vmbr0` | Network bridge |
+| `DASHLIT_IP_CONFIG` | `dhcp` | Proxmox `ip=` value |
+| `DASHLIT_CORES` | `1` | CPU cores |
+| `DASHLIT_MEMORY` | `512` | Memory in MB |
+| `DASHLIT_DISK` | `4` | Disk size in GB |
+
+For example:
+
+```bash
+DASHLIT_CTID=120 DASHLIT_STORAGE=local-lvm DASHLIT_MEMORY=1024 \
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/codewec/dashlit/main/scripts/proxmox-lxc.sh)"
+```
+
+Enter the container with `pct enter CTID`. Updates are installed from inside it with `dashlit-update`.
+
+The uninstall command removes DashLit inside the LXC but does not delete the container itself. If the entire container is no longer needed, back it up and remove it through Proxmox VE instead.
+
+### Why a project-owned installer?
+
+The Community Scripts new-application form currently requires at least 1,000 GitHub stars or a comparable public adoption signal. DashLit does not yet meet that requirement. Rather than depend on a permanently modified fork of ProxmoxVE, DashLit publishes a small installer maintained and released with the application itself. The requirement can be reviewed in the [Community Scripts contribution repository](https://github.com/community-scripts/ProxmoxVED/blob/main/.github/ISSUE_TEMPLATE/script_request.yml).
+
 ## Reverse proxy
 
 Expose DashLit through an HTTPS reverse proxy for internet or shared-network use. Proxy requests to port `8080` in the container and preserve the original host and protocol headers. WebSocket-specific configuration is not required.

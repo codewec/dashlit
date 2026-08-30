@@ -84,6 +84,44 @@ docker compose up --build -d
 
 Application state, uploaded icons, and the SQLite database are stored under `/data` in the container.
 
+## Install on Linux or Proxmox
+
+DashLit can run directly on an existing systemd-based Linux installation without Docker. Run the installer as root:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/codewec/dashlit/main/scripts/install.sh | sudo bash
+```
+
+The installer downloads the matching `amd64`, `arm64`, or `armv7` binary from the latest GitHub Release, verifies its SHA-256 checksum, creates a dedicated `dashlit` user, and starts a hardened systemd service on port `8080`. Configuration is stored in `/etc/dashlit/dashlit.env` and persistent data in `/var/lib/dashlit`.
+
+Install future releases with:
+
+```bash
+sudo dashlit-update
+```
+
+Remove the service and binary while keeping configuration and data for a later reinstall:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/codewec/dashlit/main/scripts/uninstall.sh | sudo bash
+```
+
+To permanently remove configuration and application data as well, pass `--purge`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/codewec/dashlit/main/scripts/uninstall.sh | sudo bash -s -- --purge
+```
+
+To create a dedicated unprivileged Debian LXC on a Proxmox VE host, run this command in the Proxmox shell:
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/codewec/dashlit/main/scripts/proxmox-lxc.sh)"
+```
+
+The container receives its own address over DHCP and serves DashLit on port `80`, so it opens directly at `http://CONTAINER_IP`. The script automatically chooses the next container ID and suitable storage. Its defaults can be overridden with `DASHLIT_CTID`, `DASHLIT_HOSTNAME`, `DASHLIT_STORAGE`, `DASHLIT_TEMPLATE_STORAGE`, `DASHLIT_BRIDGE`, `DASHLIT_IP_CONFIG`, `DASHLIT_CORES`, `DASHLIT_MEMORY`, and `DASHLIT_DISK`.
+
+Community Scripts currently requires new application requests to demonstrate at least 1,000 GitHub stars or comparable public adoption. DashLit does not yet meet that threshold, so the project provides and maintains its own installer instead of publishing an unofficial dependency on a fork of ProxmoxVE. See the [complete installation guide](https://codewec.github.io/dashlit/guide/installation) for configuration, updates, and troubleshooting.
+
 ## Migrate from legacy DashLit
 
 Legacy releases stored dashboard data in `dashboard.json`. To migrate, place that file beside the new SQLite database before creating any users. With the standard container paths, the files are:
