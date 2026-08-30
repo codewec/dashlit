@@ -123,7 +123,14 @@ Pushing the tag starts two workflows:
    ghcr.io/codewec/dashlit:v1.0.0
    ```
 
-2. The release workflow uses git-cliff to generate notes and creates a GitHub Release.
+2. The release workflow uses git-cliff to generate notes, builds standalone Linux binaries, and creates a GitHub Release with these assets:
+
+   ```text
+   dashlit_1.0.0_linux_amd64.tar.gz
+   dashlit_1.0.0_linux_arm64.tar.gz
+   dashlit_1.0.0_linux_armv7.tar.gz
+   checksums.txt
+   ```
 
 The tag workflow promotes the release commit to `main` and publishes its immutable version tag. It does not publish or change `latest`.
 
@@ -135,6 +142,8 @@ docker pull ghcr.io/codewec/dashlit:main
 ```
 
 Confirm that both images report the expected version and architecture, the GitHub Release contains the expected notes, and the documentation shows the new changelog entry.
+
+Download a standalone archive and verify it against `checksums.txt`. Each archive contains the `dashlit` binary and `LICENSE`.
 
 ## Next release
 

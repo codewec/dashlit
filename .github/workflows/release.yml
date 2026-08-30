@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository history
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Validate release tag
@@ -22,6 +22,62 @@ jobs:
             echo "Expected a release tag such as v1.0.0"
             exit 1
           fi
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Build embedded frontend
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.15.0 --activate
+          pnpm --dir frontend install --frozen-lockfile
+          pnpm --dir frontend run build
+          rm -rf backend/cmd/server/static
+          mkdir -p backend/cmd/server/static
+          cp -R frontend/dist/. backend/cmd/server/static/
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - name: Build Linux release assets
+        working-directory: backend
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          release_dir="../release"
+          mkdir -p "${release_dir}"
+
+          build_asset() {
+            arch="$1"
+            variant="$2"
+            asset_arch="$3"
+            asset_name="dashlit_${version}_linux_${asset_arch}"
+            staging_dir="${release_dir}/${asset_name}"
+
+            mkdir -p "${staging_dir}"
+            if [[ -n "${variant}" ]]; then
+              CGO_ENABLED=0 GOOS=linux GOARCH="${arch}" GOARM="${variant}" go build -trimpath \
+                -ldflags="-s -w -X main.version=${GITHUB_REF_NAME} -X main.commit=${GITHUB_SHA}" \
+                -o "${staging_dir}/dashlit" ./cmd/server
+            else
+              CGO_ENABLED=0 GOOS=linux GOARCH="${arch}" go build -trimpath \
+                -ldflags="-s -w -X main.version=${GITHUB_REF_NAME} -X main.commit=${GITHUB_SHA}" \
+                -o "${staging_dir}/dashlit" ./cmd/server
+            fi
+
+            cp ../LICENSE "${staging_dir}/LICENSE"
+            tar -C "${staging_dir}" -czf "${release_dir}/${asset_name}.tar.gz" dashlit LICENSE
+            rm -rf "${staging_dir}"
+          }
+
+          build_asset amd64 "" amd64
+          build_asset arm64 "" arm64
+          build_asset arm 7 armv7
+
+          cd "${release_dir}"
+          sha256sum ./*.tar.gz > checksums.txt
       - name: Generate release notes
         id: git-cliff
         uses: orhun/git-cliff-action@v4
@@ -36,4 +92,10 @@ jobs:
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --notes-file "${{ steps.git-cliff.outputs.changelog }}"
+        run: >-
+          gh release create "${GITHUB_REF_NAME}"
+          --verify-tag
+          --title "${GITHUB_REF_NAME}"
+          --notes-file "${{ steps.git-cliff.outputs.changelog }}"
+          release/*.tar.gz
+          release/checksums.txt
