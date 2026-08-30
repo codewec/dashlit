@@ -47,10 +47,29 @@ if ! ip link show "$bridge" >/dev/null 2>&1; then
   fail "network bridge ${bridge} does not exist"
 fi
 
-template="$(pveam available --section system | awk '$2 ~ /^debian-13-standard_/ { print $2 }' | sort -V | tail -n 1)"
-[[ -n "$template" ]] || fail "a Debian 13 LXC template was not found"
+case "$(uname -m)" in
+  x86_64 | amd64) template_architecture="amd64" ;;
+  aarch64 | arm64) template_architecture="arm64" ;;
+  *) fail "unsupported Proxmox host architecture: $(uname -m)" ;;
+esac
 
-if ! pveam list "$template_storage" | awk '{ print $1 }' | grep -q "/${template}$"; then
+template="$(
+  pveam list "$template_storage" |
+    awk -v architecture="$template_architecture" '$1 ~ ("/debian-13-standard_.*_" architecture "\\.tar\\.(zst|gz)$") { sub(".*/", "", $1); print $1 }' |
+    sort -V |
+    tail -n 1
+)"
+
+if [[ -n "$template" ]]; then
+  log "Using existing template ${template_storage}:vztmpl/${template}"
+else
+  template="$(
+    pveam available --section system |
+      awk -v architecture="$template_architecture" '$2 ~ ("^debian-13-standard_.*_" architecture "\\.tar\\.(zst|gz)$") { print $2 }' |
+      sort -V |
+      tail -n 1
+  )"
+  [[ -n "$template" ]] || fail "a Debian 13 ${template_architecture} LXC template was not found"
   log "Downloading ${template}"
   pveam download "$template_storage" "$template"
 fi
