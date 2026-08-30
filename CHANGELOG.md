@@ -1,6 +1,30 @@
 # Changelog
 
 All notable changes to DashLit are documented in this file.
+## [1.0.2] - 2026-08-30
+
+### Features
+
+- Check file permission ([ac862a1](https://github.com/codewec/dashlit/commit/ac862a1e34e126a24e8c941131ec9b54b880857b))
+- **front:** Move edit button ([379d3bb](https://github.com/codewec/dashlit/commit/379d3bb2de064f36482b0e1e59df991911bd3143))
+- **front:** Toast styles ([6bd454c](https://github.com/codewec/dashlit/commit/6bd454c808bb95cfb05826d435d466f13f52b087))
+
+
+### Fixes
+
+- **infra:** Lxc script check template ([84cfb16](https://github.com/codewec/dashlit/commit/84cfb169085cbaa2dec668b4b381bffd0977f103))
+- **front:** Title alignment #28 ([09e05b8](https://github.com/codewec/dashlit/commit/09e05b8e23ac288b74d232ed781966942f7c6d89))
+- **front:** Group actions position ([ac9e95a](https://github.com/codewec/dashlit/commit/ac9e95aec256d616db330440583b9a65e51c9d2e))
+- **front:** Dashboard selector icons ([4f5cb4d](https://github.com/codewec/dashlit/commit/4f5cb4d5c3396d390ce49e697bb85a57720cb7b0))
+- **front:** Center fab ([d269fae](https://github.com/codewec/dashlit/commit/d269faeb64b3074b11fb4cd4f8ffdf99c706913d))
+
+
+### Infrastructure
+
+- Update docs gh actions ([bb43742](https://github.com/codewec/dashlit/commit/bb4374258e356b3ee4efac55f6aa6b07995c96d2))
+- Install sripts ([ad1baf1](https://github.com/codewec/dashlit/commit/ad1baf1a581a26febb9eece2f539937ece583a98))
+- Lxc nesting ([7db049b](https://github.com/codewec/dashlit/commit/7db049b123667e6ad14efc5c2355b741963843b3))
+
 ## [1.0.1] - 2026-08-30
 
 ### Infrastructure
