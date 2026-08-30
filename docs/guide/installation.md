@@ -186,7 +186,7 @@ DASHLIT_CTID=120 DASHLIT_STORAGE=local-lvm DASHLIT_MEMORY=1024 \
   bash -c "$(curl -fsSL https://raw.githubusercontent.com/codewec/dashlit/main/scripts/proxmox-lxc.sh)"
 ```
 
-Enter the container with `pct enter CTID`. Updates are installed from inside it with `dashlit-update`.
+The Proxmox console automatically opens a local root session without asking for a password. You can also enter the container from the host with `pct enter CTID`. This console-only autologin does not enable passwordless root access over SSH. Updates are installed from inside the container with `dashlit-update`.
 
 The uninstall command removes DashLit inside the LXC but does not delete the container itself. If the entire container is no longer needed, back it up and remove it through Proxmox VE instead.
 

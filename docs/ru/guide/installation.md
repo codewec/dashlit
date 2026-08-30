@@ -186,7 +186,7 @@ DASHLIT_CTID=120 DASHLIT_STORAGE=local-lvm DASHLIT_MEMORY=1024 \
   bash -c "$(curl -fsSL https://raw.githubusercontent.com/codewec/dashlit/main/scripts/proxmox-lxc.sh)"
 ```
 
-Войти в контейнер можно командой `pct enter CTID`. Для обновления выполните внутри него `dashlit-update`.
+Консоль Proxmox автоматически открывает локальную root-сессию без запроса пароля. Также в контейнер можно войти с хоста командой `pct enter CTID`. Автоматический вход действует только для консоли и не разрешает беспарольный вход root по SSH. Для обновления выполните внутри контейнера `dashlit-update`.
 
 Команда удаления удаляет DashLit внутри LXC, но не сам контейнер. Если контейнер больше не нужен, создайте его резервную копию и удалите средствами Proxmox VE.
 

@@ -105,7 +105,11 @@ pct exec "$ctid" -- bash -c 'apt-get update && DEBIAN_FRONTEND=noninteractive ap
 log "Installing DashLit"
 pct exec "$ctid" -- env DASHLIT_ADDR=:80 bash -c "curl -fsSL '${INSTALL_SCRIPT_URL}' | bash"
 
+log "Enabling passwordless root login on the Proxmox console"
+pct exec "$ctid" -- bash -c "install -d -m 0755 /etc/systemd/system/container-getty@1.service.d && printf '%s\n' '[Service]' 'ExecStart=' 'ExecStart=-/sbin/agetty --autologin root --noclear --keep-baud 115200,38400,9600 \$TERM' > /etc/systemd/system/container-getty@1.service.d/autologin.conf && systemctl daemon-reload && systemctl restart container-getty@1.service"
+
 log "Installation complete"
 printf 'DashLit: http://%s\n' "$container_ip"
 printf 'Container: %s\n' "$ctid"
+printf 'Console: open it in Proxmox or run pct enter %s (no password required)\n' "$ctid"
 printf 'Update inside the container: dashlit-update\n'
