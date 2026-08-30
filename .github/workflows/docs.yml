@@ -2,12 +2,7 @@ name: Deploy documentation to Pages
 
 on:
   push:
-    branches: [main]
-    paths:
-      - 'docs/**'
-      - 'CHANGELOG.md'
-      - '.github/workflows/docs.yml'
-  workflow_dispatch:
+    tags: ['v*']
 
 permissions:
   contents: read
