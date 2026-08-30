@@ -3,11 +3,12 @@
   import { push } from 'svelte-spa-router';
   import { DropdownMenu, Select } from 'bits-ui';
   import { api, setToken } from '../lib/api';
-  import { user, editMode, theme, searchQuery } from '../lib/stores';
+  import { user, editMode, theme, resolvedTheme, searchQuery } from '../lib/stores';
   import { cn } from '../lib/cn';
   import Icon from '../components/Icon.svelte';
   import NavMenu from '../components/NavMenu.svelte';
   import logoUrl from '../assets/dashlit.svg';
+  import logoUrlMono from '../assets/dashlit-mono.svg';
   import type { DashListItem } from '../lib/dashboard-helpers';
   import { toastError } from '../lib/toasts';
   import { themeLabel } from '../lib/themes';
@@ -32,6 +33,7 @@
   const selected = $derived(dashboards.find((d) => d.slug === currentSlug) ?? null);
   const ownDashboards = $derived(dashboards.filter((d) => d.ownerId === $user?.id));
   const otherDashboards = $derived(dashboards.filter((d) => d.ownerId !== $user?.id));
+  const isDarkTheme = $derived(!['crema', 'latte'].includes($resolvedTheme));
 
   async function logout() {
     try {
@@ -70,7 +72,7 @@
                 {#if selected.icon}
                   <Icon icon={selected.icon} iconDark={selected.iconDark} size={16} />
                 {:else}
-                  <img src={logoUrl} alt="" class="h-4 w-4" width="16" height="16" />
+                  <img src={logoUrlMono} alt="" class={cn('h-4 w-4', isDarkTheme && 'brightness-0 invert')} width="16" height="16" />
                 {/if}
                 <span class="truncate">{selected.name}</span>
               </span>
@@ -88,13 +90,13 @@
                     class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs outline-none data-highlighted:bg-surface-2 data-selected:text-primary"
                   >
                     {#snippet children({ selected: isSelected })}
-                      <span class="w-3 shrink-0 text-primary">{isSelected ? '✓' : ''}</span>
                       {#if d.icon}
                         <Icon icon={d.icon} iconDark={d.iconDark} size={16} />
                       {:else}
-                        <img src={logoUrl} alt="" class="h-4 w-4" width="16" height="16" />
+                        <img src={logoUrlMono} alt="" class={cn('h-4 w-4', isDarkTheme && 'brightness-0 invert')} width="16" height="16" />
                       {/if}
-                      <span class="truncate">{d.name}</span>
+                      <span class="min-w-0 flex-1 truncate">{d.name}</span>
+                      <span class="w-3 shrink-0 text-right text-primary">{isSelected ? '✓' : ''}</span>
                     {/snippet}
                   </Select.Item>
                 {/each}
@@ -111,16 +113,16 @@
                     class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs outline-none data-highlighted:bg-surface-2 data-selected:text-primary"
                   >
                     {#snippet children({ selected: isSelected })}
-                      <span class="w-3 shrink-0 text-primary">{isSelected ? '✓' : ''}</span>
                       {#if d.icon}
                         <Icon icon={d.icon} iconDark={d.iconDark} size={16} />
                       {:else}
-                        <img src={logoUrl} alt="" class="h-4 w-4" width="16" height="16" />
+                        <img src={logoUrlMono} alt="" class={cn('h-4 w-4', isDarkTheme && 'brightness-0 invert')} width="16" height="16" />
                       {/if}
-                      <span class="min-w-0">
+                      <span class="min-w-0 flex-1">
                         <span class="block truncate">{d.name}</span>
                         <span class="block truncate text-[10px] text-text-subtle">{d.ownerUsername}</span>
                       </span>
+                      <span class="w-3 shrink-0 text-right text-primary">{isSelected ? '✓' : ''}</span>
                     {/snippet}
                   </Select.Item>
                 {/each}
@@ -202,7 +204,9 @@
         title="GitHub"
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M12 .7A11.5 11.5 0 0 0 8.36 23.1c.58.1.79-.25.79-.56v-2.24c-3.23.7-3.91-1.37-3.91-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.71.08-.71 1.16.08 1.78 1.2 1.78 1.2 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.58-.29-5.29-1.29-5.29-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.47.11-3.05 0 0 .97-.31 3.16 1.18A10.96 10.96 0 0 1 12 6.09c.98 0 1.95.13 2.86.39 2.2-1.49 3.16-1.18 3.16-1.18.63 1.58.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.72 5.39-5.3 5.68.42.36.79 1.07.79 2.16v3.26c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .7Z" />
+          <path
+            d="M12 .7A11.5 11.5 0 0 0 8.36 23.1c.58.1.79-.25.79-.56v-2.24c-3.23.7-3.91-1.37-3.91-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.71.08-.71 1.16.08 1.78 1.2 1.78 1.2 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.58-.29-5.29-1.29-5.29-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.47.11-3.05 0 0 .97-.31 3.16 1.18A10.96 10.96 0 0 1 12 6.09c.98 0 1.95.13 2.86.39 2.2-1.49 3.16-1.18 3.16-1.18.63 1.58.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.72 5.39-5.3 5.68.42.36.79 1.07.79 2.16v3.26c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .7Z"
+          />
         </svg>
       </a>
     </div>

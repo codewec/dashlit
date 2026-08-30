@@ -99,9 +99,11 @@
           themeExpanded = !themeExpanded;
         }}
       >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18c-2.2-2.5-2.2-15.5 0-18Z" /></svg>
-          <span class="flex-1">Theme</span>
-          <span class="transition-transform {themeExpanded ? 'rotate-90' : ''}" aria-hidden="true">›</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"
+          ><circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 0 0 18c-2.2-2.5-2.2-15.5 0-18Z" /></svg
+        >
+        <span class="flex-1">Theme</span>
+        <span class="transition-transform {themeExpanded ? 'rotate-90' : ''}" aria-hidden="true">›</span>
       </DropdownMenu.Item>
       {#if themeExpanded}
         <div class="ml-3 border-l border-border-soft pl-1">
@@ -132,7 +134,9 @@
         {/if}
         {#if $user.role === 'admin'}
           <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => push('/admin')}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.3 8 9 4.6-.7 8-4 8-9V7l-8-4Z" /><path d="M9 12l2 2 4-4" /></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              ><path d="M12 3 4 7v5c0 5 3.4 8.3 8 9 4.6-.7 8-4 8-9V7l-8-4Z" /><path d="M9 12l2 2 4-4" /></svg
+            >
             <span>Administration</span>
           </DropdownMenu.Item>
         {/if}
