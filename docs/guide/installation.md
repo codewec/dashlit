@@ -120,7 +120,7 @@ Run the following command as root in the Proxmox VE host shell:
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/codewec/dashlit/main/scripts/proxmox-lxc.sh)"
 ```
 
-The script creates an unprivileged Debian 13 container with 1 CPU, 512 MB RAM, a 4 GB disk, DHCP networking on `vmbr0`, and automatic startup. It reuses the newest Debian 13 template of the host architecture already present in the selected template storage. A template is downloaded only when no matching local Debian 13 template exists. It then invokes the regular Linux installer inside the container. DashLit listens on port `80` there and is available at `http://CONTAINER_IP` without a port suffix.
+The script creates an unprivileged Debian 13 container with 1 CPU, 512 MB RAM, a 4 GB disk, DHCP networking on `vmbr0`, automatic startup, and the `nesting=1` feature required by systemd 257 in current Debian 13 templates. It reuses the newest Debian 13 template of the host architecture already present in the selected template storage. A template is downloaded only when no matching local Debian 13 template exists. It then invokes the regular Linux installer inside the container. DashLit listens on port `80` there and is available at `http://CONTAINER_IP` without a port suffix.
 
 On the Proxmox host, the script only uses tools already supplied by Proxmox VE: `pct`, `pvesh`, `pvesm`, and `pveam`. Inside the new container it initially installs `ca-certificates` and `curl`; the regular installer then checks and installs any missing archive, checksum, or OpenSSL tools listed above.
 

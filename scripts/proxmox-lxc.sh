@@ -83,6 +83,7 @@ pct create "$ctid" "${template_storage}:vztmpl/${template}" \
   --rootfs "${storage}:${disk}" \
   --net0 "name=eth0,bridge=${bridge},ip=${ip_config}" \
   --unprivileged 1 \
+  --features nesting=1 \
   --onboot 1
 
 pct start "$ctid"
