@@ -62,11 +62,13 @@ OIDC_REDIRECT_URL=https://dash.example.com/api/auth/oidc/callback
 
 ## Pinning a release
 
-The `main` tag follows the newest build of the current DashLit generation. For predictable upgrades, replace it with a versioned release tag, for example:
+The `main` tag follows the newest release of the current DashLit generation. For predictable upgrades, replace it with a versioned release tag, for example:
 
 ```yaml
 image: ghcr.io/codewec/dashlit:v1.0.0
 ```
+
+The `dev` tag is rebuilt after every push to the `main` branch. It may contain changes that have not been included in a release yet and is intended for testing.
 
 The `latest` tag is intentionally not used for the current generation so existing legacy installations are not upgraded automatically.
 

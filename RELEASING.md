@@ -6,8 +6,8 @@ This document describes the release process for maintainers. DashLit uses Conven
 
 - Development happens on the `main` branch.
 - Stable versions use tags such as `v1.0.0`.
-- Every push to `main` updates `ghcr.io/codewec/dashlit:main`.
-- Every release tag publishes `ghcr.io/codewec/dashlit:<version>`.
+- Every push to `main` updates `ghcr.io/codewec/dashlit:dev`.
+- Every release tag publishes both `ghcr.io/codewec/dashlit:main` and `ghcr.io/codewec/dashlit:<version>`.
 - The `latest` image tag remains on the legacy generation and is intentionally not published by the current workflow.
 - Git tags are the source of truth for release versions.
 
@@ -100,7 +100,7 @@ git push origin main
 This starts the container workflow and updates:
 
 ```text
-ghcr.io/codewec/dashlit:main
+ghcr.io/codewec/dashlit:dev
 ```
 
 It also publishes the updated documentation when `CHANGELOG.md` changes. It does not create a GitHub Release yet.
@@ -119,12 +119,13 @@ Pushing the tag starts two workflows:
 1. The container workflow publishes `linux/amd64`, `linux/arm64`, and `linux/arm/v7` images:
 
    ```text
+   ghcr.io/codewec/dashlit:main
    ghcr.io/codewec/dashlit:v1.0.0
    ```
 
 2. The release workflow uses git-cliff to generate notes and creates a GitHub Release.
 
-The `main` image has already been built from the same release commit by the branch push. The tag workflow does not publish or change `latest`.
+The tag workflow promotes the release commit to `main` and publishes its immutable version tag. It does not publish or change `latest`.
 
 ### 7. Verify the release
 

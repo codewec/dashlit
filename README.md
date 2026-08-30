@@ -47,7 +47,7 @@
 
 ## Run with Docker
 
-The current image is published for `linux/amd64`, `linux/arm64`, and `linux/arm/v7` (armhf) under the `main` tag.
+The current release is published for `linux/amd64`, `linux/arm64`, and `linux/arm/v7` (armhf) under the `main` tag.
 
 ```bash
 docker pull ghcr.io/codewec/dashlit:main
@@ -182,7 +182,7 @@ make git-cliff-install
 make changelog-preview
 ```
 
-Releases use tags such as `v1.0.0`. Each release publishes a matching versioned container image and creates a GitHub Release. The `main` image tag follows the current generation, while `latest` remains on the legacy generation and is intentionally not published by these workflows.
+Releases use tags such as `v1.0.0`. Each release publishes both the matching versioned container image and the stable `main` image, then creates a GitHub Release. Pushes to the `main` branch publish the development image as `dev`. The `latest` tag remains on the legacy generation and is intentionally not published by these workflows.
 
 See [RELEASING.md](RELEASING.md) for the complete maintainer release procedure.
 
