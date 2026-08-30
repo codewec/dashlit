@@ -1,6 +1,15 @@
 # Changelog
 
 All notable changes to DashLit are documented in this file.
+## [1.0.1] - 2026-08-30
+
+### Infrastructure
+
+- Add platfrom arm/v7 ([b336779](https://github.com/codewec/dashlit/commit/b336779a9c266e258a88a64e7dcc7f3e368e3fcc))
+- Update gh actions ([a86fe16](https://github.com/codewec/dashlit/commit/a86fe16afe7d908e6a294442ad6d4909f6d0fb36))
+- Prevent build docs on push ([9e994d6](https://github.com/codewec/dashlit/commit/9e994d63d4475f41fefe92d5c3542b7e017e95df))
+- Build standalone binary ([ac02009](https://github.com/codewec/dashlit/commit/ac0200956b539cfc89c4bea44fd6b427b93cd2f5))
+
 
 ## [1.0.0] - 2026-08-28
 
