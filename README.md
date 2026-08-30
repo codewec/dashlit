@@ -64,10 +64,13 @@ Open [http://localhost:3000](http://localhost:3000). The first account created w
 
 ### Docker Compose
 
-For production, copy [`.env.example`](.env.example) to `.env`, set at least `JWT_SECRET`, and run:
+Download the production Compose file, generate a random `JWT_SECRET`, and start DashLit:
 
 ```bash
-docker compose -f docker-compose.yml up -d
+mkdir dashlit && cd dashlit
+curl -fsSLo docker-compose.yml https://raw.githubusercontent.com/codewec/dashlit/main/docker-compose.yml
+printf 'JWT_SECRET=%s\n' "$(openssl rand -hex 32)" > .env
+docker compose up -d
 ```
 
 The production compose file pulls `ghcr.io/codewec/dashlit:main`. Pin a release by setting `DASHLIT_TAG`, for example:
@@ -120,7 +123,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/codewec/dashlit/main/scr
 
 The container receives its own address over DHCP and serves DashLit on port `80`, so it opens directly at `http://CONTAINER_IP`. The script automatically chooses the next container ID and suitable storage. Its defaults can be overridden with `DASHLIT_CTID`, `DASHLIT_HOSTNAME`, `DASHLIT_STORAGE`, `DASHLIT_TEMPLATE_STORAGE`, `DASHLIT_BRIDGE`, `DASHLIT_IP_CONFIG`, `DASHLIT_CORES`, `DASHLIT_MEMORY`, and `DASHLIT_DISK`.
 
-Community Scripts currently requires new application requests to demonstrate at least 1,000 GitHub stars or comparable public adoption. DashLit does not yet meet that threshold, so the project provides and maintains its own installer instead of publishing an unofficial dependency on a fork of ProxmoxVE. See the [complete installation guide](https://codewec.github.io/dashlit/guide/installation) for configuration, updates, and troubleshooting.
+Community Scripts currently requires new application requests to demonstrate at least 1,000 GitHub stars or comparable public adoption. DashLit does not yet meet that threshold, so the project provides and maintains its own installer instead of publishing an unofficial dependency on a fork of ProxmoxVE.
 
 ## Migrate from legacy DashLit
 

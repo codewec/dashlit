@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"embed"
+	"html/template"
 	"io/fs"
 	"log"
 	"net/http"
@@ -25,6 +26,10 @@ var staticFS embed.FS
 
 func main() {
 	cfg := config.Load()
+	if err := cfg.ValidateStorage(); err != nil {
+		serveStorageError(cfg, err)
+		return
+	}
 	if (strings.TrimSpace(cfg.OIDCIssuer) == "") != (strings.TrimSpace(cfg.OIDCClientID) == "") {
 		log.Fatal("OIDC_ISSUER and OIDC_CLIENT_ID must either both be set or both be empty")
 	}
@@ -142,5 +147,64 @@ func main() {
 	if err := http.ListenAndServe(cfg.Addr, r); err != nil {
 		log.Fatal(err)
 		os.Exit(1)
+	}
+}
+
+func serveStorageError(cfg *config.Config, storageErr error) {
+	const docsURL = "https://codewec.github.io/dashlit/guide/installation#bind-mounts"
+	const page = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DashLit storage error</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #11111b; color: #cdd6f4; }
+    main { box-sizing: border-box; width: min(680px, calc(100% - 32px)); padding: 32px; border: 1px solid #45475a; border-radius: 16px; background: #1e1e2e; }
+    h1 { margin-top: 0; color: #f38ba8; font-size: 1.65rem; }
+    code { overflow-wrap: anywhere; color: #f9e2af; }
+    pre { overflow-x: auto; padding: 14px; border-radius: 8px; background: #11111b; }
+    a { color: #89b4fa; }
+  </style>
+</head>
+<body><main>
+  <h1>DashLit cannot write to its data directory</h1>
+  <p>The application is running as UID:GID <code>{{.UID}}:{{.GID}}</code> and cannot initialize its storage.</p>
+  <p><code>{{.Error}}</code></p>
+  <p>For a Docker bind mount such as <code>./data:/data</code>, the simplest fix is:</p>
+  <pre><code>sudo chmod -R 777 ./data</code></pre>
+  <p>For more restrictive ownership, use:</p>
+  <pre><code>sudo chown -R 10001:10001 ./data
+sudo chmod -R 750 ./data</code></pre>
+  <p>Fix the permissions and restart the container. See the <a href="{{.DocsURL}}">bind mount documentation</a> for details.</p>
+</main></body></html>`
+
+	log.Printf("STORAGE PERMISSION ERROR: %v", storageErr)
+	log.Printf("DashLit is running as UID:GID %d:%d and cannot write its required storage", os.Getuid(), os.Getgid())
+	log.Printf("data directory: %s", cfg.DataDir)
+	log.Printf("for a Docker ./data bind mount, run: sudo chmod -R 777 ./data")
+	log.Printf("documentation: %s", docsURL)
+
+	tmpl := template.Must(template.New("storage-error").Parse(page))
+	data := struct {
+		UID     int
+		GID     int
+		Error   string
+		DocsURL string
+	}{os.Getuid(), os.Getgid(), storageErr.Error(), docsURL}
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-store")
+		w.WriteHeader(http.StatusInternalServerError)
+		if err := tmpl.Execute(w, data); err != nil {
+			log.Printf("render storage error page: %v", err)
+		}
+	})
+
+	log.Printf("serving the storage error page on %s; fix the permissions and restart DashLit", cfg.Addr)
+	if err := http.ListenAndServe(cfg.Addr, handler); err != nil {
+		log.Printf("storage error page server: %v", err)
+		select {}
 	}
 }

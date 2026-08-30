@@ -59,11 +59,18 @@ Override them only for a custom runtime, filesystem layout, or source installati
 
 ## Container permissions
 
-The published image runs as the unprivileged user with UID and GID `10001`. Named Docker volumes are initialized automatically. For a bind mount, ensure that this identity can write to the mounted directory:
+The published image runs as the unprivileged user with UID and GID `10001`. Named Docker volumes are initialized automatically. For a bind mount, the simplest option is to allow writing for everyone:
 
 ```bash
 mkdir -p ./data
+sudo chmod -R 777 ./data
+```
+
+For more restrictive permissions, assign the directory to the container's numeric UID. Note that your regular host user may then lose write access:
+
+```bash
 sudo chown -R 10001:10001 ./data
+sudo chmod -R 750 ./data
 ```
 
 Do not enable `DEV_MODE` in production unless you are actively diagnosing a problem; it produces verbose database logging.

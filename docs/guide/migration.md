@@ -23,21 +23,11 @@ For the standard container configuration, both resolve under `/data`:
 └── bookmarks.db       # created by current DashLit
 ```
 
-Example Compose mount using an existing host directory:
-
-```yaml
-services:
-  dashlit:
-    image: ghcr.io/codewec/dashlit:main
-    volumes:
-      - ./data:/data
-```
-
 ## Replace the legacy Compose service
 
-You can update the old `docker-compose.yml` in place instead of creating a separate deployment. Keep the existing data mount that contains `dashboard.json`, replace the legacy image and obsolete settings with the current service definition, and add a persistent `JWT_SECRET`.
+You can update the old `docker-compose.yml` in place instead of creating a separate deployment. Back up the old file and data directory, keep the existing bind mount that contains `dashboard.json`, replace the legacy image and obsolete settings with the current service definition, and add a persistent `JWT_SECRET`.
 
-For example, if the old host directory is `./data`, the relevant service can be replaced with:
+For example, if the legacy data is stored in `./data`:
 
 ```yaml
 services:
@@ -53,7 +43,20 @@ services:
       - ./data:/data
 ```
 
-Create a `.env` file beside the Compose file with a long random `JWT_SECRET`. Before running `docker compose up -d`, save a copy of the original Compose file and the complete data directory. Do not replace the existing data mount with a new empty named volume, or the new container will not see `dashboard.json`.
+Create a `.env` file beside the Compose file with a long random `JWT_SECRET`. Before starting DashLit, verify that the existing directory is writable. The simplest permission setup is:
+
+```bash
+sudo chmod -R 777 ./data
+```
+
+For more restrictive permissions, use the container's numeric UID/GID. Your regular host user may then lose write access:
+
+```bash
+sudo chown -R 10001:10001 ./data
+sudo chmod -R 750 ./data
+```
+
+Then start the updated service with `docker compose up -d`. DashLit will find the existing `/data/dashboard.json` automatically.
 
 If `DATABASE_PATH` is customized, place the JSON beside that file rather than directly under `DATA_DIR`.
 
@@ -82,6 +85,7 @@ Legacy presentation fields that have no equivalent in the current data model, su
 
 - Confirm that `dashboard.json` and `bookmarks.db` have the same parent directory.
 - Confirm the file is readable by container UID/GID `10001`.
+- For a bind mount, confirm that the directory is writable; use `sudo chmod -R 777 ./data` or the more restrictive ownership commands above.
 - Check server logs for an invalid or unsupported legacy JSON message.
 - Confirm no account has already been created. Detection occurs only during server startup while the users table is empty.
 

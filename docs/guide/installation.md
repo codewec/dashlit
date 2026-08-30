@@ -4,7 +4,18 @@ The published container supports `linux/amd64`, `linux/arm64`, and `linux/arm/v7
 
 ## Docker Compose
 
-Create a directory for the deployment and save the following as `docker-compose.yml`:
+For the quickest installation, download the ready-to-use Compose file, generate a random `JWT_SECRET`, and start DashLit:
+
+```bash
+mkdir dashlit && cd dashlit
+curl -fsSLo docker-compose.yml https://raw.githubusercontent.com/codewec/dashlit/main/docker-compose.yml
+printf 'JWT_SECRET=%s\n' "$(openssl rand -hex 32)" > .env
+docker compose up -d
+```
+
+Open `http://localhost:3000`. Register the first account; it becomes the administrator. Keep the generated `.env` file private and do not commit it.
+
+Alternatively, create the deployment files manually. Save the following as `docker-compose.yml`:
 
 ```yaml
 services:
@@ -35,7 +46,37 @@ Use a randomly generated secret and do not commit it. Then start the service:
 docker compose up -d
 ```
 
-Open `http://localhost:3000`. Register the first account; it becomes the administrator.
+### Bind mounts
+
+The minimal example uses a named volume, which lets Docker initialize `/data` with the ownership stored in the image. If you prefer a host directory:
+
+```yaml
+volumes:
+  - ./data:/data
+```
+
+create it before starting the container and allow writing for everyone. This is the simplest option and keeps the directory accessible to your host user:
+
+```bash
+mkdir -p data
+sudo chmod -R 777 data
+docker compose up -d
+```
+
+Docker does not adjust ownership of bind-mounted host directories. If `./data` does not exist, Docker normally creates it as `root:root`, which prevents the non-root DashLit process from writing to it. On SELinux systems, use `./data:/data:Z` as well.
+
+For a more restrictive setup, make the container UID/GID `10001:10001` the owner and limit access. Your regular host user may then lose write access to the directory:
+
+```bash
+sudo chown -R 10001:10001 data
+sudo chmod -R 750 data
+```
+
+DashLit checks the data, database, uploaded-icon, and icon-cache paths before normal startup. If any path is not writable, it serves an error page at the regular DashLit address and also writes the details to its logs. The process stays alive instead of entering a restart loop, and the container becomes `unhealthy`. Fix the permissions and restart it:
+
+```bash
+docker compose restart dashlit
+```
 
 ## Docker CLI
 
