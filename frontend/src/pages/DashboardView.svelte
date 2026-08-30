@@ -373,7 +373,7 @@
 {:else if dashboard}
   {@const d = dashboard}
   {#if d.cleanMode}
-    <div class={pageContainerClass(d.width === 'wide', !!$user)}>
+    <div class={pageContainerClass(d.width === 'wide', !!$user && $editMode)}>
       <CleanHeader dashboard={d} dashboards={dashList} />
       <DashboardBoard
         dashboard={d}
@@ -412,7 +412,7 @@
       {/if}
     </div>
   {:else}
-    <AppLayout dashboards={dashList} currentSlug={d.slug} wide={d.width === 'wide'} reserveControls={!!$user}>
+    <AppLayout dashboards={dashList} currentSlug={d.slug} wide={d.width === 'wide'} reserveControls={!!$user} showEdit>
       <DashboardBoard
         dashboard={d}
         canModify={canModifyDashboard}
@@ -437,6 +437,7 @@
       {#if $user}
         <EditFabs
           raised
+          hideEditButton
           canModify={canModifyDashboard}
           onCreateDashboard={openCreateDashboard}
           onCloneDashboard={cloneDashboard}

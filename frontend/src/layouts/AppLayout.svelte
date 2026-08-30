@@ -21,6 +21,7 @@
     wide = false,
     reserveControls = false,
     showSearch = true,
+    showEdit = false,
   }: {
     children?: Snippet;
     dashboards?: DashListItem[];
@@ -28,6 +29,7 @@
     wide?: boolean;
     reserveControls?: boolean;
     showSearch?: boolean;
+    showEdit?: boolean;
   } = $props();
 
   const selected = $derived(dashboards.find((d) => d.slug === currentSlug) ?? null);
@@ -144,6 +146,17 @@
       </div>
 
       <div class="ml-auto hidden items-center gap-1 sm:flex">
+        {#if $user && showEdit && !$editMode}
+          <button
+            type="button"
+            class="flex h-8 items-center gap-1.5 rounded-btn px-2.5 text-xs font-medium text-text-muted hover:bg-surface-2 hover:text-text"
+            onclick={() => editMode.set(true)}
+            title="Edit dashboard"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+            <span>Edit</span>
+          </button>
+        {/if}
         <DropdownMenu.Root>
           <DropdownMenu.Trigger
             class="flex h-8 w-8 items-center justify-center rounded-btn text-text-muted hover:bg-surface-2 hover:text-text"
@@ -182,12 +195,12 @@
       </div>
 
       <div class="ml-auto sm:hidden">
-        <NavMenu {dashboards} {currentSlug} />
+        <NavMenu {dashboards} {currentSlug} {showEdit} />
       </div>
     </div>
   </header>
 
-  <main class={cn('mx-auto w-full flex-1 px-4', reserveControls ? 'pb-20 pt-6' : 'py-6', wide ? 'max-w-none' : 'max-w-6xl')}>
+  <main class={cn('mx-auto w-full flex-1 px-4', reserveControls && $editMode ? 'pb-20 pt-6' : 'py-6', wide ? 'max-w-none' : 'max-w-6xl')}>
     {@render children?.()}
   </main>
 

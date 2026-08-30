@@ -30,6 +30,13 @@
   } = $props();
 
   let bottomOffset = $state(20);
+  let updateBottomOffset = () => {};
+
+  $effect(() => {
+    if (!raised || !$editMode) return;
+    const frame = requestAnimationFrame(() => updateBottomOffset());
+    return () => cancelAnimationFrame(frame);
+  });
 
   onMount(() => {
     if (!raised) return;
@@ -37,7 +44,7 @@
     const footer = document.querySelector('footer');
     if (!footer) return;
 
-    const updateBottomOffset = () => {
+    updateBottomOffset = () => {
       const visibleFooterHeight = Math.max(0, window.innerHeight - footer.getBoundingClientRect().top);
       bottomOffset = 20 + visibleFooterHeight;
     };
