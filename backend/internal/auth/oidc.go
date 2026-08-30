@@ -4,9 +4,11 @@ import (
 	"context"
 	"crypto/sha256"
 	"crypto/subtle"
+	"crypto/tls"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -27,13 +29,18 @@ type OIDCIdentity struct {
 type OIDCAuthenticator struct {
 	oauth2Config oauth2.Config
 	verifier     *oidc.IDTokenVerifier
+	httpClient   *http.Client
 }
 
 func NewOIDCAuthenticator(ctx context.Context, cfg *config.Config) (*OIDCAuthenticator, error) {
 	if !cfg.OIDCEnabled() {
 		return nil, nil
 	}
-	provider, err := oidc.NewProvider(ctx, strings.TrimRight(cfg.OIDCIssuer, "/"))
+	httpClient := newOIDCHTTPClient(cfg.OIDCInsecureSkipTLSVerify)
+	if httpClient != nil {
+		ctx = oidc.ClientContext(ctx, httpClient)
+	}
+	provider, err := oidc.NewProvider(ctx, cfg.OIDCIssuer)
 	if err != nil {
 		return nil, fmt.Errorf("discover OIDC provider: %w", err)
 	}
@@ -45,8 +52,18 @@ func NewOIDCAuthenticator(ctx context.Context, cfg *config.Config) (*OIDCAuthent
 			Endpoint:     provider.Endpoint(),
 			Scopes:       []string{oidc.ScopeOpenID, oidc.ScopeProfile, oidc.ScopeEmail},
 		},
-		verifier: provider.Verifier(&oidc.Config{ClientID: cfg.OIDCClientID}),
+		verifier:   provider.Verifier(&oidc.Config{ClientID: cfg.OIDCClientID}),
+		httpClient: httpClient,
 	}, nil
+}
+
+func newOIDCHTTPClient(insecureSkipVerify bool) *http.Client {
+	if !insecureSkipVerify {
+		return nil
+	}
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true} //nolint:gosec -- explicit opt-in for private OIDC providers
+	return &http.Client{Transport: transport}
 }
 
 func (a *OIDCAuthenticator) AuthorizationURL(state, nonce, verifier string) string {
@@ -54,6 +71,9 @@ func (a *OIDCAuthenticator) AuthorizationURL(state, nonce, verifier string) stri
 }
 
 func (a *OIDCAuthenticator) Authenticate(ctx context.Context, code, expectedNonce, verifier string) (*OIDCIdentity, error) {
+	if a.httpClient != nil {
+		ctx = oidc.ClientContext(ctx, a.httpClient)
+	}
 	token, err := a.oauth2Config.Exchange(ctx, code, oauth2.VerifierOption(verifier))
 	if err != nil {
 		return nil, fmt.Errorf("exchange authorization code: %w", err)

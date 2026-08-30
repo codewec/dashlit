@@ -22,6 +22,16 @@ OIDC_BUTTON_TITLE=Sign in with Pocket ID
 
 Restart the container and verify OIDC login before disabling password access.
 
+### Self-signed certificates
+
+The preferred solution for a private OIDC provider is to use a certificate issued by a CA trusted by the DashLit host or container. If that is not practical, TLS certificate verification can be disabled explicitly:
+
+```dotenv
+OIDC_INSECURE_SKIP_TLS_VERIFY=true
+```
+
+This affects OIDC discovery, authorization-code exchange, and signing-key retrieval. It makes the connection vulnerable to impersonation, so keep the default `false` for public or untrusted networks. DashLit writes a warning to the log whenever this option is enabled.
+
 ## Account creation policy
 
 With `DISABLE_OIDC_REGISTRATION=false`, an unknown OIDC identity creates a DashLit user. If the database is empty, that user becomes the first administrator just like a password-registered account.
@@ -51,3 +61,4 @@ This setting is applied only while OIDC is fully configured. If the issuer or cl
 - Forward the original host and protocol through the reverse proxy.
 - Check that the server clock is synchronized; token validation depends on correct time.
 - Temporarily retain password login until the complete redirect flow succeeds.
+- With a self-signed certificate, prefer installing its CA; use `OIDC_INSECURE_SKIP_TLS_VERIFY=true` only for a trusted private network.

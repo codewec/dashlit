@@ -20,6 +20,7 @@ DashLit читает переменные окружения процесса и
 | `OIDC_CLIENT_SECRET` | Пусто | Client secret, если он требуется провайдером. |
 | `OIDC_REDIRECT_URL` | Локальный callback | Внешний URL с окончанием `/api/auth/oidc/callback`. |
 | `OIDC_BUTTON_TITLE` | `Sign in with OIDC` | Текст кнопки на странице входа. |
+| `OIDC_INSECURE_SKIP_TLS_VERIFY` | `false` | Отключает проверку TLS-сертификата для всех OIDC-запросов. Небезопасно; используйте только для доверенного локального провайдера. |
 | `DISABLE_PASSWORD_REGISTRATION` | `false` | Запрещает регистрацию новых парольных аккаунтов. |
 | `DISABLE_OIDC_REGISTRATION` | `false` | Запрещает неизвестным OIDC-профилям создавать аккаунты. |
 | `DISABLE_OIDC_USER_MERGE` | `false` | Не связывает совпадающие парольные и OIDC-профили. |
@@ -38,6 +39,7 @@ OIDC_CLIENT_ID=dashlit
 OIDC_CLIENT_SECRET=provider-issued-secret
 OIDC_REDIRECT_URL=https://dash.example.com/api/auth/oidc/callback
 OIDC_BUTTON_TITLE=Войти через Pocket ID
+OIDC_INSECURE_SKIP_TLS_VERIFY=false
 
 DISABLE_PASSWORD_REGISTRATION=true
 DISABLE_OIDC_REGISTRATION=false

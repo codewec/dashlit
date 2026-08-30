@@ -150,6 +150,7 @@ Most container installations only need to set `JWT_SECRET` and, when required, t
 | `OIDC_CLIENT_SECRET`            | Empty               | OIDC client secret                                     |
 | `OIDC_REDIRECT_URL`             | Local callback      | Public callback URL                                    |
 | `OIDC_BUTTON_TITLE`             | `Sign in with OIDC` | OIDC button label                                      |
+| `OIDC_INSECURE_SKIP_TLS_VERIFY` | `false`             | Disable OIDC TLS verification for local testing only   |
 | `DISABLE_PASSWORD_REGISTRATION` | `false`             | Disable password registration                          |
 | `DISABLE_OIDC_REGISTRATION`     | `false`             | Prevent OIDC from creating new users                   |
 | `DISABLE_OIDC_USER_MERGE`       | `false`             | Prevent OIDC identities from linking to existing users |

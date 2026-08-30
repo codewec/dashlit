@@ -1,6 +1,21 @@
 package auth
 
-import "testing"
+import (
+	"net/http"
+	"testing"
+)
+
+func TestNewOIDCHTTPClient(t *testing.T) {
+	if client := newOIDCHTTPClient(false); client != nil {
+		t.Fatal("secure OIDC configuration returned a custom HTTP client")
+	}
+
+	client := newOIDCHTTPClient(true)
+	transport, ok := client.Transport.(*http.Transport)
+	if !ok || transport.TLSClientConfig == nil || !transport.TLSClientConfig.InsecureSkipVerify {
+		t.Fatal("insecure OIDC HTTP client does not skip TLS verification")
+	}
+}
 
 func TestOIDCUsernameFallbacks(t *testing.T) {
 	tests := []struct {

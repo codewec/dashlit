@@ -21,6 +21,7 @@ type Config struct {
 	OIDCClientSecret            string
 	OIDCRedirectURL             string
 	OIDCButtonTitle             string
+	OIDCInsecureSkipTLSVerify   bool
 	DisablePasswordRegistration bool
 	DisableOIDCRegistration     bool
 	DisableOIDCUserMerge        bool
@@ -51,6 +52,7 @@ func Load() *Config {
 		OIDCClientSecret:            os.Getenv("OIDC_CLIENT_SECRET"),
 		OIDCRedirectURL:             env("OIDC_REDIRECT_URL", "http://localhost:8080/api/auth/oidc/callback"),
 		OIDCButtonTitle:             env("OIDC_BUTTON_TITLE", "Sign in with OIDC"),
+		OIDCInsecureSkipTLSVerify:   envBool("OIDC_INSECURE_SKIP_TLS_VERIFY", false),
 		DisablePasswordRegistration: envBool("DISABLE_PASSWORD_REGISTRATION", false),
 		DisableOIDCRegistration:     envBool("DISABLE_OIDC_REGISTRATION", false),
 		DisableOIDCUserMerge:        envBool("DISABLE_OIDC_USER_MERGE", false),

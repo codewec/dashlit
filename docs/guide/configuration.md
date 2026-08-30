@@ -20,6 +20,7 @@ Most container installations only need a secure `JWT_SECRET`. Docker already pro
 | `OIDC_CLIENT_SECRET` | Empty | Client secret, when required by the provider. |
 | `OIDC_REDIRECT_URL` | Local callback | Public URL ending in `/api/auth/oidc/callback`. |
 | `OIDC_BUTTON_TITLE` | `Sign in with OIDC` | Text shown on the login button. |
+| `OIDC_INSECURE_SKIP_TLS_VERIFY` | `false` | Disables TLS certificate verification for all OIDC requests. Unsafe; use only for a trusted private provider. |
 | `DISABLE_PASSWORD_REGISTRATION` | `false` | Stops the creation of new password accounts. |
 | `DISABLE_OIDC_REGISTRATION` | `false` | Stops unknown OIDC identities from creating accounts. |
 | `DISABLE_OIDC_USER_MERGE` | `false` | Keeps matching password and OIDC identities separate. |
@@ -38,6 +39,7 @@ OIDC_CLIENT_ID=dashlit
 OIDC_CLIENT_SECRET=provider-issued-secret
 OIDC_REDIRECT_URL=https://dash.example.com/api/auth/oidc/callback
 OIDC_BUTTON_TITLE=Sign in with Pocket ID
+OIDC_INSECURE_SKIP_TLS_VERIFY=false
 
 DISABLE_PASSWORD_REGISTRATION=true
 DISABLE_OIDC_REGISTRATION=false

@@ -26,6 +26,9 @@ var staticFS embed.FS
 
 func main() {
 	cfg := config.Load()
+	if cfg.OIDCEnabled() && cfg.OIDCInsecureSkipTLSVerify {
+		log.Printf("WARNING: OIDC TLS certificate verification is disabled")
+	}
 	if err := cfg.ValidateStorage(); err != nil {
 		serveStorageError(cfg, err)
 		return
