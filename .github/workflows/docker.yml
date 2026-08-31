@@ -47,6 +47,16 @@ jobs:
           labels: |
             org.opencontainers.image.title=DashLit
             org.opencontainers.image.description=A modern self-hosted dashboard for your links and services
+      - name: Resolve embedded version
+        id: build-info
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            version="${GITHUB_REF_NAME}"
+          else
+            version="dev-${GITHUB_SHA::7}"
+          fi
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
       - name: Build and push multi-architecture image
         uses: docker/build-push-action@v7
         with:
@@ -57,7 +67,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VERSION=${{ github.ref_name }}
+            VERSION=${{ steps.build-info.outputs.version }}
             COMMIT=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

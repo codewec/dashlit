@@ -155,6 +155,7 @@ Most container installations only need to set `JWT_SECRET` and, when required, t
 | `DISABLE_OIDC_REGISTRATION`     | `false`             | Prevent OIDC from creating new users                   |
 | `DISABLE_OIDC_USER_MERGE`       | `false`             | Prevent OIDC identities from linking to existing users |
 | `DISABLE_PASSWORD_LOGIN`        | `false`             | Disable password login once OIDC is configured         |
+| `UPDATE_CHECK_ENABLED`          | `true`              | Check GitHub Releases for a newer stable version       |
 
 ### Advanced runtime settings
 
@@ -165,6 +166,8 @@ The container image already provides appropriate values for these internal setti
 | `ADDR`          | `:8080`                  | Internal HTTP listen address                                          |
 | `DATA_DIR`      | `./data`                 | Database, uploaded icons, and cache directory; the image uses `/data` |
 | `DATABASE_PATH` | `$DATA_DIR/bookmarks.db` | Custom SQLite database path                                           |
+
+Release builds embed their Git tag and commit in the executable. Check a native installation with `dashlit --version`; the same version is shown in the application footer. Update checks are cached for 12 hours and failures never prevent DashLit from starting. Set `UPDATE_CHECK_ENABLED=false` to disable the outbound GitHub request.
 
 When DashLit is behind a reverse proxy, use the external HTTPS address for the callback:
 

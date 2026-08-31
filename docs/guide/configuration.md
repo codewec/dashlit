@@ -10,6 +10,9 @@ Most container installations only need a secure `JWT_SECRET`. Docker already pro
 | --- | --- | --- |
 | `JWT_SECRET` | Development value | Secret used to sign sessions. Always replace it in production. |
 | `DEV_MODE` | `false` | Enables verbose database diagnostics for development. |
+| `UPDATE_CHECK_ENABLED` | `true` | Checks GitHub Releases for a newer stable DashLit version. |
+
+Release builds contain their Git tag and commit. The installed version appears in the footer and can be inspected in a native installation with `dashlit --version`. DashLit caches the GitHub result for 12 hours; a failed check does not affect startup or normal operation. Set `UPDATE_CHECK_ENABLED=false` if the instance must not make this outbound request.
 
 ## Authentication settings
 
@@ -76,3 +79,15 @@ sudo chmod -R 750 ./data
 ```
 
 Do not enable `DEV_MODE` in production unless you are actively diagnosing a problem; it produces verbose database logging.
+
+## Testing the update notification locally
+
+The two override variables below are intended only for development and are not needed in production:
+
+```bash
+DASHLIT_VERSION_OVERRIDE=v1.0.0 \
+UPDATE_CHECK_LATEST_VERSION=v9.9.9 \
+docker compose -f docker-compose-local.yml up --build
+```
+
+This makes the local instance behave as version `v1.0.0` with `v9.9.9` available, without contacting GitHub. Open a regular dashboard to check the footer, then enable clean mode to check the burger-menu chip and release item.

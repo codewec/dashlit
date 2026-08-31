@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"embed"
+	"fmt"
 	"html/template"
 	"io/fs"
 	"log"
@@ -19,13 +20,27 @@ import (
 	"github.com/bookmarks-dashboard/backend/internal/db"
 	"github.com/bookmarks-dashboard/backend/internal/handlers"
 	"github.com/bookmarks-dashboard/backend/internal/legacy"
+	"github.com/bookmarks-dashboard/backend/internal/updatecheck"
+)
+
+var (
+	version = "dev"
+	commit  = "unknown"
 )
 
 //go:embed all:static
 var staticFS embed.FS
 
 func main() {
+	if len(os.Args) > 1 && (os.Args[1] == "--version" || os.Args[1] == "version") {
+		fmt.Printf("DashLit %s (%s)\n", version, commit)
+		return
+	}
 	cfg := config.Load()
+	if cfg.VersionOverride != "" {
+		version = cfg.VersionOverride
+	}
+	log.Printf("DashLit %s (%s)", version, commit)
 	if cfg.OIDCEnabled() && cfg.OIDCInsecureSkipTLSVerify {
 		log.Printf("WARNING: OIDC TLS certificate verification is disabled")
 	}
@@ -58,6 +73,7 @@ func main() {
 	dashH := handlers.NewDashboardHandler(database)
 	giH := handlers.NewGroupItemHandler(database)
 	iconH := handlers.NewIconHandler(database, cfg)
+	systemH := handlers.NewSystemHandler(updatecheck.New(version, commit, cfg.UpdateCheckEnabled, cfg.LatestVersionOverride))
 
 	r := chi.NewRouter()
 	r.Use(chimw.RequestID)
@@ -74,6 +90,7 @@ func main() {
 	r.Use(auth.Middleware(authSvc))
 
 	r.Route("/api", func(r chi.Router) {
+		r.Get("/system/version", systemH.Version)
 		r.Get("/auth/config", authH.Configuration)
 		r.Post("/auth/login", authH.Login)
 		r.Post("/auth/register", authH.Register)

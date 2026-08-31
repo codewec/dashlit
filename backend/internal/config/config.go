@@ -27,6 +27,9 @@ type Config struct {
 	DisableOIDCUserMerge        bool
 	DisablePasswordLogin        bool
 	DevMode                     bool
+	UpdateCheckEnabled          bool
+	VersionOverride             string
+	LatestVersionOverride       string
 }
 
 func Load() *Config {
@@ -58,6 +61,9 @@ func Load() *Config {
 		DisableOIDCUserMerge:        envBool("DISABLE_OIDC_USER_MERGE", false),
 		DisablePasswordLogin:        envBool("DISABLE_PASSWORD_LOGIN", false),
 		DevMode:                     envBool("DEV_MODE", false),
+		UpdateCheckEnabled:          envBool("UPDATE_CHECK_ENABLED", true),
+		VersionOverride:             strings.TrimSpace(os.Getenv("DASHLIT_VERSION_OVERRIDE")),
+		LatestVersionOverride:       strings.TrimSpace(os.Getenv("UPDATE_CHECK_LATEST_VERSION")),
 	}
 }
 

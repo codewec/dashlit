@@ -3,6 +3,9 @@
 DATA_DIR ?= ./data
 export DATA_DIR
 
+BUILD_VERSION ?= dev
+BUILD_COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || printf unknown)
+
 GIT_CLIFF_VERSION ?= 2.13.0
 GIT_CLIFF_BIN := $(CURDIR)/bin/git-cliff
 
@@ -13,7 +16,7 @@ frontend:
 	cp -r frontend/dist/* backend/cmd/server/static/
 
 backend:
-	cd backend && go build -o ../app ./cmd/server
+	cd backend && go build -ldflags="-X main.version=$(BUILD_VERSION) -X main.commit=$(BUILD_COMMIT)" -o ../app ./cmd/server
 
 build: frontend backend
 

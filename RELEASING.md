@@ -103,7 +103,7 @@ This starts the container workflow and updates:
 ghcr.io/codewec/dashlit:dev
 ```
 
-It also publishes the updated documentation when `CHANGELOG.md` changes. It does not create a GitHub Release yet.
+It does not publish the release documentation or create a GitHub Release yet.
 
 ### 6. Create and push the tag
 
