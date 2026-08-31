@@ -197,6 +197,8 @@
       iconDark: itemForm.iconDark,
       pingEnabled: itemForm.pingEnabled,
       pingOnlyDown: itemForm.pingOnlyDown,
+      pingUrl: itemForm.pingUrl.trim(),
+      pingSkipTls: itemForm.pingSkipTls,
     };
     try {
       if (editingItem) await api.updateItem(editingItem.id, payload);

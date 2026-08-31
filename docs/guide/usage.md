@@ -51,7 +51,7 @@ The picker shows Default icons on a light preview background and Dark icons on a
 
 ## Availability checks
 
-Enable ping on a link to display whether its destination is reachable. “Only when down” keeps healthy links quiet and surfaces the indicator only when a check fails.
+Enable the availability check on a link to display whether its destination is reachable. By default DashLit checks the link URL, but you can provide a separate check URL—for example, an internal address or a dedicated health endpoint. Enable **Skip TLS verification** only when that endpoint uses a trusted self-signed or mismatched certificate. “Only when down” keeps healthy links quiet and surfaces the indicator only when a check fails.
 
 Availability is a convenience signal from the DashLit server, not a replacement for full monitoring and alerting.
 

@@ -107,6 +107,8 @@ export type ItemForm = {
   groupId: string;
   pingEnabled: boolean;
   pingOnlyDown: boolean;
+  pingUrl: string;
+  pingSkipTls: boolean;
 };
 
 export type DashboardForm = {
@@ -147,6 +149,8 @@ export function emptyItemForm(groupId = ''): ItemForm {
     groupId,
     pingEnabled: false,
     pingOnlyDown: false,
+    pingUrl: '',
+    pingSkipTls: false,
   };
 }
 
@@ -160,6 +164,8 @@ export function itemToForm(item: Item): ItemForm {
     groupId: item.groupId,
     pingEnabled: item.pingEnabled ?? false,
     pingOnlyDown: item.pingOnlyDown ?? false,
+    pingUrl: item.pingUrl || '',
+    pingSkipTls: item.pingSkipTls ?? false,
   };
 }
 

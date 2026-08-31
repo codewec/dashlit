@@ -38,7 +38,7 @@ export type Width = 'default' | 'wide';
 export type Item = {
   id: string; groupId: string; title: string; description: string;
   url: string; icon: string; iconDark: string; pingEnabled: boolean;
-  pingOnlyDown: boolean; position: number;
+  pingOnlyDown: boolean; pingUrl: string; pingSkipTls: boolean; position: number;
 };
 export type Group = {
   id: string; dashboardId: string; title: string; description: string;
