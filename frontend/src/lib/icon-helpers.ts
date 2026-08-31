@@ -41,7 +41,10 @@ export function iconForVariant(result: IconSearchResult, variant: IconVariant): 
 }
 
 export function iconSearchTitle(result: IconSearchResult): string {
-  return `${result.name} · ${result.source}`;
+  const variant = result.variant === 'color'
+    ? 'Color'
+    : result.variant === 'monochrome' ? 'Monochrome' : '';
+  return [result.name, variant, result.source].filter(Boolean).join(' · ');
 }
 
 export function iconPreviewClass(variant: IconVariant): string {
@@ -53,6 +56,12 @@ export function applyIconSelection(
   variant: IconVariant,
   pairedValue: string,
 ): { value: string; pairedValue: string } {
+  if (result.variant === 'color') {
+    return {
+      value: result.icon,
+      pairedValue: variant === 'light' ? '' : pairedValue,
+    };
+  }
   return {
     value: iconForVariant(result, variant),
     pairedValue: pairedValue || (variant === 'dark' ? result.icon : result.iconDark || ''),

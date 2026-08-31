@@ -155,7 +155,7 @@
                   onclick={() => selectIcon(result)}
                 >
                   <Icon icon={iconForVariant(result, variant)} theme={variant} size={20} />
-                  <span class="sr-only">{result.name} from {result.source}</span>
+                  <span class="sr-only">{iconSearchTitle(result)}</span>
                 </button>
               {/each}
             </div>
