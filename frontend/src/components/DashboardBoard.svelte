@@ -20,6 +20,7 @@
     onDeleteItem,
     onCloneItem,
     onLayoutChange,
+    onCreateFirstGroup,
   }: {
     dashboard: Dashboard;
     groups: Group[];
@@ -32,6 +33,7 @@
     onDeleteItem: (item: Item) => void;
     onCloneItem: (item: Item) => void;
     onLayoutChange: () => void | Promise<void>;
+    onCreateFirstGroup?: () => void;
   } = $props();
 
   const filtered = $derived(filterGroups(groups, $searchQuery));
@@ -68,27 +70,39 @@
   }
 </script>
 
-<DragDropProvider {sensors} {onDragOver} {onDragEnd}>
-  <div class={outerClass}>
-    {#each filtered as group, gIndex (group.id)}
-      <div class={cellClass} data-dashboard-group={group.id}>
-        <GroupCard {group} index={gIndex} layout={dashboard.layout} wide={dashboard.width === 'wide'} {canModify} onEdit={onEditGroup} onDelete={onDeleteGroup} onClone={onCloneGroup} {onAddItem}>
-          {#each byGroup[group.id] || [] as item, iIndex (item.id)}
-            <ItemCard {item} index={iIndex} groupId={group.id} itemSize={group.itemSize} {canModify} onEdit={onEditItem} onDelete={onDeleteItem} onClone={onCloneItem} />
-          {/each}
-        </GroupCard>
-      </div>
-    {/each}
+{#if groups.length === 0}
+  <div class="flex flex-col items-center gap-3 py-20 text-center">
+    <p class="text-sm font-medium text-text">This dashboard is empty.</p>
+    <p class="max-w-sm text-sm text-text-muted">Create the first group to start adding services and links.</p>
+    {#if canModify}
+      <button type="button" class="rounded-btn bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover" onclick={onCreateFirstGroup}>
+        Add group
+      </button>
+    {/if}
   </div>
+{:else}
+  <DragDropProvider {sensors} {onDragOver} {onDragEnd}>
+    <div class={outerClass}>
+      {#each filtered as group, gIndex (group.id)}
+        <div class={cellClass} data-dashboard-group={group.id}>
+          <GroupCard {group} index={gIndex} layout={dashboard.layout} wide={dashboard.width === 'wide'} {canModify} onEdit={onEditGroup} onDelete={onDeleteGroup} onClone={onCloneGroup} {onAddItem}>
+            {#each byGroup[group.id] || [] as item, iIndex (item.id)}
+              <ItemCard {item} index={iIndex} groupId={group.id} itemSize={group.itemSize} {canModify} onEdit={onEditItem} onDelete={onDeleteItem} onClone={onCloneItem} />
+            {/each}
+          </GroupCard>
+        </div>
+      {/each}
+    </div>
 
-  <DragOverlay>
-    {#snippet children(source)}
-      {#if source?.data?.item}
-        {@const g = groups.find((x) => x.id === source.data.group)}
-        <ItemCard item={source.data.item} index={0} groupId={source.data.group} itemSize={g?.itemSize ?? '1x1'} isOverlay />
-      {:else if source?.data?.group}
-        <GroupCard group={source.data.group} index={0} layout={dashboard.layout} wide={dashboard.width === 'wide'} isOverlay />
-      {/if}
-    {/snippet}
-  </DragOverlay>
-</DragDropProvider>
+    <DragOverlay>
+      {#snippet children(source)}
+        {#if source?.data?.item}
+          {@const g = groups.find((x) => x.id === source.data.group)}
+          <ItemCard item={source.data.item} index={0} groupId={source.data.group} itemSize={g?.itemSize ?? '1x1'} isOverlay />
+        {:else if source?.data?.group}
+          <GroupCard group={source.data.group} index={0} layout={dashboard.layout} wide={dashboard.width === 'wide'} isOverlay />
+        {/if}
+      {/snippet}
+    </DragOverlay>
+  </DragDropProvider>
+{/if}

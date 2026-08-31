@@ -153,6 +153,11 @@
     groupForm = emptyGroupForm();
     groupOpen = true;
   }
+
+  function createFirstGroup() {
+    editMode.set(true);
+    openNewGroup();
+  }
   function openEditGroup(g: Group) {
     editingGroup = g;
     groupForm = groupToForm(g);
@@ -397,6 +402,7 @@
           })}
         onCloneItem={cloneItem}
         onLayoutChange={persistLayout}
+        onCreateFirstGroup={createFirstGroup}
       />
       {#if $user}
         <EditFabs
@@ -435,6 +441,7 @@
           })}
         onCloneItem={cloneItem}
         onLayoutChange={persistLayout}
+        onCreateFirstGroup={createFirstGroup}
       />
       {#if $user}
         <EditFabs

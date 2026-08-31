@@ -57,6 +57,11 @@
     // rows + 1x2
     return wide ? 'grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6' : 'grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
   });
+
+  function addFirstItem() {
+    editMode.set(true);
+    onAddItem?.(group);
+  }
 </script>
 
 <section class="relative h-full w-full" {@attach ref}>
@@ -97,28 +102,55 @@
       </div>
       {#if $editMode}
         <div class="absolute right-3 top-4 flex items-center gap-0.5">
-          <button type="button" disabled={!canModify} class="rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-text disabled:cursor-not-allowed disabled:opacity-40" onclick={() => onAddItem?.(group)} title="Add item">
+          <button
+            type="button"
+            disabled={!canModify}
+            class="rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
+            onclick={() => onAddItem?.(group)}
+            title="Add item"
+          >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" /></svg>
           </button>
           <DropdownMenu.Root>
-            <DropdownMenu.Trigger disabled={!canModify} class="rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-text disabled:cursor-not-allowed disabled:opacity-40" title="Group actions" aria-label="Group actions">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.75" /><circle cx="12" cy="12" r="1.75" /><circle cx="19" cy="12" r="1.75" /></svg>
+            <DropdownMenu.Trigger
+              disabled={!canModify}
+              class="rounded-md p-1 text-text-muted hover:bg-surface-2 hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
+              title="Group actions"
+              aria-label="Group actions"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
+                ><circle cx="5" cy="12" r="1.75" /><circle cx="12" cy="12" r="1.75" /><circle cx="19" cy="12" r="1.75" /></svg
+              >
             </DropdownMenu.Trigger>
             <DropdownMenu.Portal>
               <DropdownMenu.Content class="z-50 min-w-36 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl outline-none" sideOffset={6} align="end">
-                <DropdownMenu.Item class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => onEdit?.(group)}>Edit</DropdownMenu.Item>
-                <DropdownMenu.Item class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => onClone?.(group)}>Clone</DropdownMenu.Item>
+                <DropdownMenu.Item class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => onEdit?.(group)}>Edit</DropdownMenu.Item
+                >
+                <DropdownMenu.Item class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => onClone?.(group)}
+                  >Clone</DropdownMenu.Item
+                >
                 <DropdownMenu.Separator class="my-1 h-px bg-border-soft" />
-                <DropdownMenu.Item class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-danger outline-none data-[highlighted]:bg-danger-soft" onSelect={() => onDelete?.(group)}>Delete</DropdownMenu.Item>
+                <DropdownMenu.Item class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-danger outline-none data-[highlighted]:bg-danger-soft" onSelect={() => onDelete?.(group)}
+                  >Delete</DropdownMenu.Item
+                >
               </DropdownMenu.Content>
             </DropdownMenu.Portal>
           </DropdownMenu.Root>
         </div>
       {/if}
     </header>
-    <div class={itemsClass}>
-      {@render children?.()}
-    </div>
+    {#if !isOverlay && (group.items?.length ?? 0) === 0}
+      <div class="flex flex-col items-center gap-2 pb-8 text-center">
+        <p class="text-xs text-text-muted">This group is empty.</p>
+        {#if canModify}
+          <button type="button" class="rounded-btn bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-hover" onclick={addFirstItem}> Add item </button>
+        {/if}
+      </div>
+    {:else}
+      <div class={itemsClass}>
+        {@render children?.()}
+      </div>
+    {/if}
   </div>
   {#if !isOverlay && isDragging.current}
     <div class="absolute inset-0 rounded-card border-2 border-dashed border-primary/40 bg-primary/5"></div>
