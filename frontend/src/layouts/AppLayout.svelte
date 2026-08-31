@@ -3,7 +3,7 @@
   import { push } from 'svelte-spa-router';
   import { DropdownMenu, Select } from 'bits-ui';
   import { api, setToken } from '../lib/api';
-  import { user, editMode, theme, resolvedTheme, searchQuery } from '../lib/stores';
+  import { user, editMode, theme, resolvedTheme, searchQuery, systemInfo } from '../lib/stores';
   import { cn } from '../lib/cn';
   import Icon from '../components/Icon.svelte';
   import NavMenu from '../components/NavMenu.svelte';
@@ -207,7 +207,17 @@
   <footer class="border-t border-border-soft bg-bg-elevated/60">
     <div class={cn('mx-auto flex items-center justify-center gap-2 px-4 py-3 text-xs text-text-subtle', wide ? 'max-w-none' : 'max-w-6xl')}>
       <img src={logoUrl} alt="" class="h-3.5 w-3.5 opacity-70" width="14" height="14" />
-      <span>DashLit · 2025</span>
+      <span>DashLit {$systemInfo?.version ?? 'dev'} · 2025</span>
+      {#if $systemInfo?.updateAvailable && $systemInfo.releaseUrl}
+        <a
+          href={$systemInfo.releaseUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="rounded-full bg-primary-soft px-2 py-0.5 font-medium text-primary transition hover:bg-primary hover:text-white"
+        >
+          {$systemInfo.latestVersion} available
+        </a>
+      {/if}
       <a
         href="https://github.com/codewec/dashlit"
         target="_blank"

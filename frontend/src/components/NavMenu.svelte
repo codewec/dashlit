@@ -2,7 +2,7 @@
   import { DropdownMenu } from 'bits-ui';
   import { push } from 'svelte-spa-router';
   import { api, setToken } from '../lib/api';
-  import { user, editMode, theme, setTheme } from '../lib/stores';
+  import { user, editMode, theme, setTheme, systemInfo } from '../lib/stores';
   import Icon from './Icon.svelte';
   import logoUrl from '../assets/dashlit.svg';
   import type { DashListItem } from '../lib/dashboard-helpers';
@@ -39,16 +39,35 @@
     editMode.set(false);
     push('/login');
   }
+
+  function openRelease() {
+    const url = $systemInfo?.releaseUrl;
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+  }
 </script>
 
 <DropdownMenu.Root bind:open={menuOpen}>
-  <DropdownMenu.Trigger class="inline-flex h-9 w-9 items-center justify-center rounded-btn border border-border text-text hover:bg-surface-2" aria-label="Menu">
+  <DropdownMenu.Trigger class="relative inline-flex h-9 w-9 items-center justify-center rounded-btn border border-border text-text hover:bg-surface-2" aria-label="Menu">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M4 6h16M4 12h16M4 18h16" />
     </svg>
+    {#if $systemInfo?.updateAvailable}
+      <span class="absolute -right-1.5 -top-1.5 rounded-full bg-primary px-1.5 py-0.5 text-[8px] font-semibold uppercase leading-none text-white shadow-sm">New</span>
+    {/if}
   </DropdownMenu.Trigger>
   <DropdownMenu.Portal>
     <DropdownMenu.Content class="z-50 min-w-[12rem] overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl outline-none" sideOffset={6} align="end">
+      {#if $systemInfo?.updateAvailable && $systemInfo.releaseUrl}
+        <DropdownMenu.Item
+          class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-primary outline-none data-[highlighted]:bg-primary-soft"
+          onSelect={openRelease}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg>
+          <span class="flex-1">{$systemInfo.latestVersion} available</span>
+          <span aria-hidden="true">↗</span>
+        </DropdownMenu.Item>
+        <DropdownMenu.Separator class="my-1 h-px bg-border-soft" />
+      {/if}
       {#if $user && dashboards.length > 0}
         {#if ownDashboards.length > 0}
           <div class="px-2 py-1.5 text-[10px] font-medium uppercase tracking-wide text-text-subtle">My dashboards</div>

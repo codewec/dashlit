@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import Router from 'svelte-spa-router';
   import { api, setToken } from './lib/api';
-  import { user, theme, applyTheme } from './lib/stores';
+  import { user, theme, applyTheme, systemInfo } from './lib/stores';
   import Login from './pages/Login.svelte';
   import DashboardView from './pages/DashboardView.svelte';
   import Profile from './pages/Profile.svelte';
@@ -24,6 +24,8 @@
     const saved = normalizeTheme(localStorage.getItem('bd_theme'));
     theme.set(saved);
     applyTheme(saved);
+
+    void api.systemInfo().then((info) => systemInfo.set(info)).catch(() => systemInfo.set(null));
 
     // An OIDC callback creates an HttpOnly cookie session. Drop any older
     // local bearer token so it cannot mask the new cookie during /auth/me.

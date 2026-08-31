@@ -64,9 +64,18 @@ export type IconSearchResult = {
   icon: string;
   iconDark?: string;
   source: 'selfh.st' | 'Iconify';
+  variant?: 'color' | 'monochrome';
+};
+export type SystemInfo = {
+  version: string;
+  commit: string;
+  latestVersion?: string;
+  updateAvailable: boolean;
+  releaseUrl?: string;
 };
 
 export const api = {
+  systemInfo: () => request<SystemInfo>('/system/version'),
   authConfig: () => request<AuthConfig>('/auth/config'),
   login: (username: string, password: string) =>
     request<{ token: string; user: User }>('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),

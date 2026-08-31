@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import type { User, Dashboard } from './api';
+import type { User, Dashboard, SystemInfo } from './api';
 import type { ResolvedTheme, Theme } from './themes';
 
 export const user = writable<User | null>(null);
@@ -8,6 +8,7 @@ export const theme = writable<Theme>('system');
 export const resolvedTheme = writable<ResolvedTheme>('frappe');
 export const currentDashboard = writable<Dashboard | null>(null);
 export const searchQuery = writable('');
+export const systemInfo = writable<SystemInfo | null>(null);
 
 let selectedTheme: Theme = 'system';
 let mediaListenerAttached = false;
