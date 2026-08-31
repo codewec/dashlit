@@ -1,6 +1,16 @@
 # Changelog
 
 All notable changes to DashLit are documented in this file.
+## [1.0.5] - 2026-08-31
+
+### Features
+
+- **back:** Color icons selfh.st ([11b3e92](https://github.com/codewec/dashlit/commit/11b3e922214ba2a21e564ed31c1a2d70b7e336a3))
+- **front:** Color icons selfh.st ([23fd034](https://github.com/codewec/dashlit/commit/23fd0346e7fd5ca9dd3340eec72ab54d9dfcdaac))
+- **back:** Check version ([395ccc6](https://github.com/codewec/dashlit/commit/395ccc6636db77717db0c291de9d60a8e30bc526))
+- **front:** Check version ([7c64f4b](https://github.com/codewec/dashlit/commit/7c64f4b027e733afd4ad32a1c43175d099ed0a86))
+- **front:** Cta create first group or item ([f0470c9](https://github.com/codewec/dashlit/commit/f0470c92bbcbba446435df4329232fac42cbe22e))
+
 ## [1.0.4] - 2026-08-31
 
 ### Features
