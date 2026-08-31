@@ -388,6 +388,8 @@ type exportItem struct {
 	IconDark     string `json:"iconDark"`
 	PingEnabled  bool   `json:"pingEnabled"`
 	PingOnlyDown bool   `json:"pingOnlyDown"`
+	PingURL      string `json:"pingUrl"`
+	PingSkipTLS  bool   `json:"pingSkipTls"`
 	Position     int    `json:"position"`
 }
 
@@ -413,7 +415,8 @@ func dashboardToExport(d *models.Dashboard) exportPayload {
 			ei = append(ei, exportItem{
 				Title: it.Title, Description: it.Description, URL: it.URL,
 				Icon: it.Icon, IconDark: it.IconDark, PingEnabled: it.PingEnabled,
-				PingOnlyDown: it.PingOnlyDown, Position: it.Position,
+				PingOnlyDown: it.PingOnlyDown, PingURL: it.PingURL, PingSkipTLS: it.PingSkipTLS,
+				Position: it.Position,
 			})
 		}
 		eg = append(eg, exportGroup{
@@ -522,7 +525,8 @@ func (h *DashboardHandler) importPayload(ctx context.Context, user *models.User,
 				ID: uuid.NewString(), GroupID: g.ID,
 				Title: is.Title, Description: is.Description, URL: is.URL,
 				Icon: is.Icon, IconDark: is.IconDark, PingEnabled: is.PingEnabled,
-				PingOnlyDown: is.PingOnlyDown, Position: is.Position,
+				PingOnlyDown: is.PingOnlyDown, PingURL: is.PingURL, PingSkipTLS: is.PingSkipTLS,
+				Position: is.Position,
 			}
 			if it.Icon == "" {
 				it.Icon = "mdi:link"

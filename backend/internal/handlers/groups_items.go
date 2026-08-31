@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"crypto/tls"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -14,15 +16,22 @@ import (
 )
 
 type GroupItemHandler struct {
-	db         *bun.DB
-	httpClient *http.Client
+	db                 *bun.DB
+	httpClient         *http.Client
+	insecureHTTPClient *http.Client
 }
 
 func NewGroupItemHandler(db *bun.DB) *GroupItemHandler {
+	insecureTransport := http.DefaultTransport.(*http.Transport).Clone()
+	insecureTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true} //nolint:gosec -- explicit per-item opt-in
 	return &GroupItemHandler{
 		db: db,
 		httpClient: &http.Client{
 			Timeout: 5 * time.Second,
+		},
+		insecureHTTPClient: &http.Client{
+			Timeout:   5 * time.Second,
+			Transport: insecureTransport,
 		},
 	}
 }
@@ -156,6 +165,8 @@ type createItemReq struct {
 	IconDark     string `json:"iconDark"`
 	PingEnabled  bool   `json:"pingEnabled"`
 	PingOnlyDown bool   `json:"pingOnlyDown"`
+	PingURL      string `json:"pingUrl"`
+	PingSkipTLS  bool   `json:"pingSkipTls"`
 	Position     int    `json:"position"`
 }
 
@@ -188,6 +199,8 @@ func (h *GroupItemHandler) CreateItem(w http.ResponseWriter, r *http.Request) {
 		IconDark:     req.IconDark,
 		PingEnabled:  req.PingEnabled,
 		PingOnlyDown: req.PingOnlyDown,
+		PingURL:      strings.TrimSpace(req.PingURL),
+		PingSkipTLS:  req.PingSkipTLS,
 		Position:     req.Position,
 	}
 	if _, err := h.db.NewInsert().Model(item).Exec(r.Context()); err != nil {
@@ -221,6 +234,8 @@ func (h *GroupItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		IconDark     *string `json:"iconDark"`
 		PingEnabled  *bool   `json:"pingEnabled"`
 		PingOnlyDown *bool   `json:"pingOnlyDown"`
+		PingURL      *string `json:"pingUrl"`
+		PingSkipTLS  *bool   `json:"pingSkipTls"`
 		Position     *int    `json:"position"`
 		GroupID      *string `json:"groupId"`
 	}
@@ -248,6 +263,12 @@ func (h *GroupItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 	if req.PingOnlyDown != nil {
 		item.PingOnlyDown = *req.PingOnlyDown
+	}
+	if req.PingURL != nil {
+		item.PingURL = strings.TrimSpace(*req.PingURL)
+	}
+	if req.PingSkipTLS != nil {
+		item.PingSkipTLS = *req.PingSkipTLS
 	}
 	if req.Position != nil {
 		item.Position = *req.Position
@@ -370,7 +391,8 @@ func (h *GroupItemHandler) CloneGroup(w http.ResponseWriter, r *http.Request) {
 			ID: uuid.NewString(), GroupID: ng.ID,
 			Title: it.Title, Description: it.Description, URL: it.URL,
 			Icon: it.Icon, IconDark: it.IconDark, PingEnabled: it.PingEnabled,
-			PingOnlyDown: it.PingOnlyDown, Position: i,
+			PingOnlyDown: it.PingOnlyDown, PingURL: it.PingURL, PingSkipTLS: it.PingSkipTLS,
+			Position: i,
 		}
 		if _, err := h.db.NewInsert().Model(ni).Exec(r.Context()); err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())
@@ -402,7 +424,8 @@ func (h *GroupItemHandler) CloneItem(w http.ResponseWriter, r *http.Request) {
 		ID: uuid.NewString(), GroupID: item.GroupID,
 		Title: item.Title + " (copy)", Description: item.Description, URL: item.URL,
 		Icon: item.Icon, IconDark: item.IconDark, PingEnabled: item.PingEnabled,
-		PingOnlyDown: item.PingOnlyDown, Position: maxPos + 1,
+		PingOnlyDown: item.PingOnlyDown, PingURL: item.PingURL, PingSkipTLS: item.PingSkipTLS,
+		Position: maxPos + 1,
 	}
 	if _, err := h.db.NewInsert().Model(ni).Exec(r.Context()); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
@@ -435,30 +458,42 @@ func (h *GroupItemHandler) PingItem(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "ping is disabled for this item")
 		return
 	}
-	parsed, err := url.ParseRequestURI(item.URL)
+	pingURL := strings.TrimSpace(item.PingURL)
+	if pingURL == "" {
+		pingURL = item.URL
+	}
+	parsed, err := url.ParseRequestURI(pingURL)
 	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
 		writeJSON(w, http.StatusOK, map[string]bool{"reachable": false})
 		return
 	}
 
 	reachable := false
+	httpClient := h.httpClient
+	if item.PingSkipTLS {
+		httpClient = h.insecureHTTPClient
+	}
 	req, err := http.NewRequestWithContext(r.Context(), http.MethodHead, parsed.String(), nil)
 	if err == nil {
-		resp, requestErr := h.httpClient.Do(req)
+		resp, requestErr := httpClient.Do(req)
+		fallbackToGET := requestErr != nil
 		if requestErr == nil {
 			resp.Body.Close()
 			if resp.StatusCode == http.StatusMethodNotAllowed || resp.StatusCode == http.StatusNotImplemented {
-				getReq, getErr := http.NewRequestWithContext(r.Context(), http.MethodGet, parsed.String(), nil)
-				if getErr == nil {
-					getReq.Header.Set("Range", "bytes=0-0")
-					getResp, getRequestErr := h.httpClient.Do(getReq)
-					if getRequestErr == nil {
-						getResp.Body.Close()
-						reachable = getResp.StatusCode >= 200 && getResp.StatusCode < 400
-					}
-				}
+				fallbackToGET = true
 			} else {
 				reachable = resp.StatusCode >= 200 && resp.StatusCode < 400
+			}
+		}
+		if fallbackToGET {
+			getReq, getErr := http.NewRequestWithContext(r.Context(), http.MethodGet, parsed.String(), nil)
+			if getErr == nil {
+				getReq.Header.Set("Range", "bytes=0-0")
+				getResp, getRequestErr := httpClient.Do(getReq)
+				if getRequestErr == nil {
+					getResp.Body.Close()
+					reachable = getResp.StatusCode >= 200 && getResp.StatusCode < 400
+				}
 			}
 		}
 	}
