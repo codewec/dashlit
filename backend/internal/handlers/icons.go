@@ -57,15 +57,24 @@ type iconSearchResult struct {
 	Icon     string `json:"icon"`
 	IconDark string `json:"iconDark,omitempty"`
 	Source   string `json:"source"`
+	Variant  string `json:"variant,omitempty"`
 }
 
 func yes(value string) bool { return strings.EqualFold(value, "yes") }
 
-func selfhstResult(icon selfhstIcon) iconSearchResult {
+func selfhstResults(icon selfhstIcon) []iconSearchResult {
 	ext := ".png"
 	if yes(icon.SVG) {
 		ext = ".svg"
 	}
+	results := []iconSearchResult{{
+		Name: icon.Name, Icon: "selfhst-icon:" + icon.Reference + ext,
+		Source: "selfh.st", Variant: "color",
+	}}
+	if !yes(icon.Light) && !yes(icon.Dark) {
+		return results
+	}
+
 	lightReference := icon.Reference
 	darkReference := icon.Reference
 	// selfh.st's dark-colored asset is intended for a light background and
@@ -76,11 +85,11 @@ func selfhstResult(icon selfhstIcon) iconSearchResult {
 	if yes(icon.Light) {
 		darkReference += "-light"
 	}
-	result := iconSearchResult{
+	results = append(results, iconSearchResult{
 		Name: icon.Name, Icon: "selfhst-icon:" + lightReference + ext,
-		IconDark: "selfhst-icon:" + darkReference + ext, Source: "selfh.st",
-	}
-	return result
+		IconDark: "selfhst-icon:" + darkReference + ext, Source: "selfh.st", Variant: "monochrome",
+	})
+	return results
 }
 
 func (h *IconHandler) loadSelfhstIcons() ([]selfhstIcon, error) {
@@ -122,9 +131,11 @@ func searchSelfhst(icons []selfhstIcon, query string, limit int) []iconSearchRes
 		if !strings.Contains(haystack, query) {
 			continue
 		}
-		results = append(results, selfhstResult(icon))
-		if len(results) == limit {
-			break
+		for _, result := range selfhstResults(icon) {
+			results = append(results, result)
+			if len(results) >= limit {
+				return results
+			}
 		}
 	}
 	return results

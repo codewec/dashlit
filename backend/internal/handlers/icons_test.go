@@ -12,21 +12,24 @@ import (
 )
 
 func TestSelfhstResultPrefersSVGAndThemeVariants(t *testing.T) {
-	result := selfhstResult(selfhstIcon{
+	results := selfhstResults(selfhstIcon{
 		Name: "Example", Reference: "example", SVG: "Yes", PNG: "Yes", Light: "Yes", Dark: "Yes",
 	})
-	if result.Icon != "selfhst-icon:example-dark.svg" {
-		t.Fatalf("light-theme icon = %q", result.Icon)
+	if len(results) != 2 {
+		t.Fatalf("result count = %d", len(results))
 	}
-	if result.IconDark != "selfhst-icon:example-light.svg" {
-		t.Fatalf("dark-theme icon = %q", result.IconDark)
+	if results[0].Icon != "selfhst-icon:example.svg" || results[0].IconDark != "" || results[0].Variant != "color" {
+		t.Fatalf("unexpected color result: %#v", results[0])
+	}
+	if results[1].Icon != "selfhst-icon:example-dark.svg" || results[1].IconDark != "selfhst-icon:example-light.svg" || results[1].Variant != "monochrome" {
+		t.Fatalf("unexpected monochrome result: %#v", results[1])
 	}
 }
 
 func TestSelfhstResultFallsBackToPNG(t *testing.T) {
-	result := selfhstResult(selfhstIcon{Name: "Example", Reference: "example", SVG: "No", PNG: "Yes"})
-	if result.Icon != "selfhst-icon:example.png" || result.IconDark != "selfhst-icon:example.png" {
-		t.Fatalf("unexpected PNG result: %#v", result)
+	results := selfhstResults(selfhstIcon{Name: "Example", Reference: "example", SVG: "No", PNG: "Yes"})
+	if len(results) != 1 || results[0].Icon != "selfhst-icon:example.png" || results[0].IconDark != "" || results[0].Variant != "color" {
+		t.Fatalf("unexpected PNG results: %#v", results)
 	}
 }
 
