@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to DashLit are documented in this file.
+## [1.0.4] - 2026-08-31
+
+### Features
+
+- **back:** Availability check advanced settings ([20b8b1c](https://github.com/codewec/dashlit/commit/20b8b1cab97999a40ef2932a3c7b9d9f98a5be8c))
+- **front:** Availability check advanced settings ([472996f](https://github.com/codewec/dashlit/commit/472996f91f8c7fc63bcc0aff2ccd395dbd306284))
+
 ## [1.0.3] - 2026-08-30
 ## [1.0.2] - 2026-08-30
 
