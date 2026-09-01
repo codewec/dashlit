@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { Switch } from 'bits-ui';
-  import type { DashboardForm } from '../lib/dashboard-helpers';
-  import Modal from './Modal.svelte';
-  import IconField from './IconField.svelte';
+  import { Switch } from 'bits-ui'
+  import type { DashboardForm } from '../lib/dashboard-helpers'
+  import Modal from './Modal.svelte'
+  import IconField from './IconField.svelte'
 
   let {
     open = $bindable(false),
@@ -10,16 +10,16 @@
     canSetDefault = false,
     onSave,
   }: {
-    open?: boolean;
-    form: DashboardForm;
-    canSetDefault?: boolean;
-    onSave: () => void | Promise<void>;
-  } = $props();
+    open?: boolean
+    form: DashboardForm
+    canSetDefault?: boolean
+    onSave: () => void | Promise<void>
+  } = $props()
 
   async function submit(e: Event) {
-    e.preventDefault();
-    if (!form.name.trim() || !form.slug.trim()) return;
-    await onSave();
+    e.preventDefault()
+    if (!form.name.trim() || !form.slug.trim()) return
+    await onSave()
   }
 </script>
 

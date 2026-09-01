@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { GroupForm } from '../lib/dashboard-helpers';
-  import Modal from './Modal.svelte';
-  import IconField from './IconField.svelte';
+  import type { GroupForm } from '../lib/dashboard-helpers'
+  import Modal from './Modal.svelte'
+  import IconField from './IconField.svelte'
 
   let {
     open = $bindable(false),
@@ -9,19 +9,19 @@
     editing = false,
     onSave,
   }: {
-    open?: boolean;
-    form: GroupForm;
-    editing?: boolean;
-    onSave: () => void | Promise<void>;
-  } = $props();
+    open?: boolean
+    form: GroupForm
+    editing?: boolean
+    onSave: () => void | Promise<void>
+  } = $props()
 
-  let titleErr = $state(false);
+  let titleErr = $state(false)
 
   async function submit(e: Event) {
-    e.preventDefault();
-    titleErr = !form.title.trim();
-    if (titleErr) return;
-    await onSave();
+    e.preventDefault()
+    titleErr = !form.title.trim()
+    if (titleErr) return
+    await onSave()
   }
 </script>
 
@@ -29,12 +29,20 @@
   <form class="space-y-3" onsubmit={submit}>
     <label class="block">
       <span class="mb-1 block text-xs text-text-muted">Title</span>
-      <input class="w-full rounded-btn border border-border bg-bg-elevated px-3 py-2 text-sm outline-none focus:border-primary {titleErr ? 'field-error' : ''}" bind:value={form.title} />
+      <input
+        class="w-full rounded-btn border border-border bg-bg-elevated px-3 py-2 text-sm outline-none focus:border-primary {titleErr
+          ? 'field-error'
+          : ''}"
+        bind:value={form.title}
+      />
       {#if titleErr}<span class="mt-1 text-xs text-danger">Required</span>{/if}
     </label>
     <label class="block">
       <span class="mb-1 block text-xs text-text-muted">Description</span>
-      <input class="w-full rounded-btn border border-border bg-bg-elevated px-3 py-2 text-sm outline-none focus:border-primary" bind:value={form.description} />
+      <input
+        class="w-full rounded-btn border border-border bg-bg-elevated px-3 py-2 text-sm outline-none focus:border-primary"
+        bind:value={form.description}
+      />
     </label>
     <div>
       <span class="mb-1 block text-xs text-text-muted">Icon</span>
@@ -43,11 +51,23 @@
     <div>
       <span class="mb-1 block text-xs text-text-muted">Item size in this group</span>
       <div class="grid grid-cols-2 gap-2">
-        <button type="button" class="flex min-h-20 items-center justify-center gap-3 rounded-btn border px-3 py-2 text-sm transition {form.itemSize === '1x1' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-bg-elevated text-text-muted hover:bg-surface-2'}" onclick={() => (form.itemSize = '1x1')}>
+        <button
+          type="button"
+          class="flex min-h-20 items-center justify-center gap-3 rounded-btn border px-3 py-2 text-sm transition {form.itemSize === '1x1'
+            ? 'border-primary bg-primary/10 text-primary'
+            : 'border-border bg-bg-elevated text-text-muted hover:bg-surface-2'}"
+          onclick={() => (form.itemSize = '1x1')}
+        >
           <span class="h-8 w-8 rounded-md border-2 border-current" aria-hidden="true"></span>
           <span>1×1</span>
         </button>
-        <button type="button" class="flex min-h-20 items-center justify-center gap-3 rounded-btn border px-3 py-2 text-sm transition {form.itemSize === '1x2' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-bg-elevated text-text-muted hover:bg-surface-2'}" onclick={() => (form.itemSize = '1x2')}>
+        <button
+          type="button"
+          class="flex min-h-20 items-center justify-center gap-3 rounded-btn border px-3 py-2 text-sm transition {form.itemSize === '1x2'
+            ? 'border-primary bg-primary/10 text-primary'
+            : 'border-border bg-bg-elevated text-text-muted hover:bg-surface-2'}"
+          onclick={() => (form.itemSize = '1x2')}
+        >
           <span class="h-8 w-14 rounded-md border-2 border-current" aria-hidden="true"></span>
           <span>1×2</span>
         </button>

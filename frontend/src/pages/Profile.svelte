@@ -1,85 +1,85 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { replace } from 'svelte-spa-router';
-  import { api, type AuthConfig, type Dashboard } from '../lib/api';
-  import { user } from '../lib/stores';
-  import { toast, toastError } from '../lib/toasts';
-  import { toDashList, type DashListItem } from '../lib/dashboard-helpers';
-  import AppLayout from '../layouts/AppLayout.svelte';
-  import Icon from '../components/Icon.svelte';
+  import { onMount } from 'svelte'
+  import { replace } from 'svelte-spa-router'
+  import { api, type AuthConfig, type Dashboard } from '../lib/api'
+  import { user } from '../lib/stores'
+  import { toast, toastError } from '../lib/toasts'
+  import { toDashList, type DashListItem } from '../lib/dashboard-helpers'
+  import AppLayout from '../layouts/AppLayout.svelte'
+  import Icon from '../components/Icon.svelte'
 
-  let dashboards = $state<Dashboard[]>([]);
-  let dashList = $state<DashListItem[]>([]);
-  let username = $state('');
-  let newPassword = $state('');
-  let confirmPassword = $state('');
-  let loading = $state(true);
-  let savingUsername = $state(false);
-  let savingPassword = $state(false);
-  let pageError = $state('');
-  let authConfig = $state<AuthConfig | null>(null);
+  let dashboards = $state<Dashboard[]>([])
+  let dashList = $state<DashListItem[]>([])
+  let username = $state('')
+  let newPassword = $state('')
+  let confirmPassword = $state('')
+  let loading = $state(true)
+  let savingUsername = $state(false)
+  let savingPassword = $state(false)
+  let pageError = $state('')
+  let authConfig = $state<AuthConfig | null>(null)
 
-  const ownDashboards = $derived(dashboards.filter((dashboard) => dashboard.ownerId === $user?.id));
+  const ownDashboards = $derived(dashboards.filter((dashboard) => dashboard.ownerId === $user?.id))
 
   onMount(async () => {
     if (!$user) {
-      replace('/login');
-      return;
+      replace('/login')
+      return
     }
-    username = $user.username;
+    username = $user.username
     try {
-      const [availableDashboards, config] = await Promise.all([api.listDashboards(), api.authConfig()]);
-      dashboards = availableDashboards ?? [];
-      dashList = toDashList(dashboards);
-      authConfig = config;
+      const [availableDashboards, config] = await Promise.all([api.listDashboards(), api.authConfig()])
+      dashboards = availableDashboards ?? []
+      dashList = toDashList(dashboards)
+      authConfig = config
     } catch (error: unknown) {
-      pageError = error instanceof Error ? error.message : 'Could not load dashboards';
+      pageError = error instanceof Error ? error.message : 'Could not load dashboards'
     } finally {
-      loading = false;
+      loading = false
     }
-  });
+  })
 
   async function saveUsername(event: SubmitEvent) {
-    event.preventDefault();
-    if ($user?.authMethod === 'oidc') return;
-    if (!username.trim()) return;
-    savingUsername = true;
+    event.preventDefault()
+    if ($user?.authMethod === 'oidc') return
+    if (!username.trim()) return
+    savingUsername = true
     try {
-      const updated = await api.updateProfile({ username: username.trim() });
-      user.set(updated);
-      username = updated.username;
-      toast.success('Username updated');
+      const updated = await api.updateProfile({ username: username.trim() })
+      user.set(updated)
+      username = updated.username
+      toast.success('Username updated')
     } catch (error: unknown) {
-      toastError(error, 'Could not update username');
+      toastError(error, 'Could not update username')
     } finally {
-      savingUsername = false;
+      savingUsername = false
     }
   }
 
   async function savePassword(event: SubmitEvent) {
-    event.preventDefault();
+    event.preventDefault()
     if (newPassword.length < 6) {
-      toast.error('New password must be at least 6 characters');
-      return;
+      toast.error('New password must be at least 6 characters')
+      return
     }
     if (newPassword !== confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
+      toast.error('Passwords do not match')
+      return
     }
-    savingPassword = true;
+    savingPassword = true
     try {
       const updated = await api.updateProfile({
         username: $user?.username ?? username.trim(),
         newPassword,
-      });
-      user.set(updated);
-      newPassword = '';
-      confirmPassword = '';
-      toast.success('Password updated');
+      })
+      user.set(updated)
+      newPassword = ''
+      confirmPassword = ''
+      toast.success('Password updated')
     } catch (error: unknown) {
-      toastError(error, 'Could not update password');
+      toastError(error, 'Could not update password')
     } finally {
-      savingPassword = false;
+      savingPassword = false
     }
   }
 </script>
@@ -101,14 +101,25 @@
         <h2 class="text-sm font-semibold text-text">Username</h2>
         <label class="mt-4 block">
           <span class="mb-1 block text-xs text-text-muted">Login</span>
-          <input class="w-full rounded-btn border border-border bg-bg-elevated px-3 py-2 text-sm outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-60" bind:value={username} maxlength="64" required autocomplete="username" disabled={$user?.authMethod === 'oidc'} />
+          <input
+            class="w-full rounded-btn border border-border bg-bg-elevated px-3 py-2 text-sm outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
+            bind:value={username}
+            maxlength="64"
+            required
+            autocomplete="username"
+            disabled={$user?.authMethod === 'oidc'}
+          />
           {#if $user?.authMethod === 'oidc'}
             <span class="mt-1 block text-[11px] text-text-subtle">Username is managed by the OIDC provider.</span>
           {/if}
         </label>
         {#if $user?.authMethod !== 'oidc'}
           <div class="mt-4 flex justify-end">
-            <button type="submit" disabled={savingUsername} class="rounded-btn bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:bg-primary-hover disabled:opacity-60">
+            <button
+              type="submit"
+              disabled={savingUsername}
+              class="rounded-btn bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:bg-primary-hover disabled:opacity-60"
+            >
               {savingUsername ? 'Saving…' : 'Save username'}
             </button>
           </div>
@@ -119,17 +130,35 @@
         <form class="rounded-card border border-border-soft bg-surface p-5" onsubmit={savePassword}>
           <h2 class="text-sm font-semibold text-text">Password</h2>
           <div class="mt-4 space-y-3">
-          <label class="block">
-            <span class="mb-1 block text-xs text-text-muted">New password</span>
-            <input type="password" class="w-full rounded-btn border border-border bg-bg-elevated px-3 py-2 text-sm outline-none focus:border-primary" bind:value={newPassword} minlength="6" required autocomplete="new-password" />
-          </label>
-          <label class="block">
-            <span class="mb-1 block text-xs text-text-muted">Confirm new password</span>
-            <input type="password" class="w-full rounded-btn border border-border bg-bg-elevated px-3 py-2 text-sm outline-none focus:border-primary" bind:value={confirmPassword} minlength="6" required autocomplete="new-password" />
-          </label>
+            <label class="block">
+              <span class="mb-1 block text-xs text-text-muted">New password</span>
+              <input
+                type="password"
+                class="w-full rounded-btn border border-border bg-bg-elevated px-3 py-2 text-sm outline-none focus:border-primary"
+                bind:value={newPassword}
+                minlength="6"
+                required
+                autocomplete="new-password"
+              />
+            </label>
+            <label class="block">
+              <span class="mb-1 block text-xs text-text-muted">Confirm new password</span>
+              <input
+                type="password"
+                class="w-full rounded-btn border border-border bg-bg-elevated px-3 py-2 text-sm outline-none focus:border-primary"
+                bind:value={confirmPassword}
+                minlength="6"
+                required
+                autocomplete="new-password"
+              />
+            </label>
           </div>
           <div class="mt-4 flex justify-end">
-            <button type="submit" disabled={savingPassword} class="rounded-btn bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:bg-primary-hover disabled:opacity-60">
+            <button
+              type="submit"
+              disabled={savingPassword}
+              class="rounded-btn bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:bg-primary-hover disabled:opacity-60"
+            >
               {savingPassword ? 'Saving…' : 'Change password'}
             </button>
           </div>
@@ -149,7 +178,7 @@
         <p class="px-5 py-8 text-center text-sm text-text-muted">You do not have any dashboards yet.</p>
       {:else}
         <div class="overflow-x-auto">
-          <table class="w-full min-w-[48rem] text-left text-sm">
+          <table class="w-full min-w-3xl text-left text-sm">
             <thead class="text-xs text-text-muted">
               <tr class="border-b border-border-soft">
                 <th class="px-5 py-3 font-medium">Name</th>

@@ -1,18 +1,18 @@
 <script lang="ts">
-  import type { Snippet } from 'svelte';
-  import { push } from 'svelte-spa-router';
-  import { DropdownMenu, Select } from 'bits-ui';
-  import { api, setToken } from '../lib/api';
-  import { user, editMode, theme, resolvedTheme, searchQuery, systemInfo } from '../lib/stores';
-  import { cn } from '../lib/cn';
-  import Icon from '../components/Icon.svelte';
-  import NavMenu from '../components/NavMenu.svelte';
-  import logoUrl from '../assets/dashlit.svg';
-  import logoUrlMono from '../assets/dashlit-mono.svg';
-  import type { DashListItem } from '../lib/dashboard-helpers';
-  import { toastError } from '../lib/toasts';
-  import { themeLabel } from '../lib/themes';
-  import ThemeItems from '../components/ThemeItems.svelte';
+  import type { Snippet } from 'svelte'
+  import { push } from 'svelte-spa-router'
+  import { DropdownMenu, Select } from 'bits-ui'
+  import { api, setToken } from '../lib/api'
+  import { user, editMode, theme, resolvedTheme, searchQuery, systemInfo } from '../lib/stores'
+  import { cn } from '../lib/cn'
+  import Icon from '../components/Icon.svelte'
+  import NavMenu from '../components/NavMenu.svelte'
+  import logoUrl from '../assets/dashlit.svg'
+  import logoUrlMono from '../assets/dashlit-mono.svg'
+  import type { DashListItem } from '../lib/dashboard-helpers'
+  import { toastError } from '../lib/toasts'
+  import { themeLabel } from '../lib/themes'
+  import ThemeItems from '../components/ThemeItems.svelte'
 
   let {
     children,
@@ -23,30 +23,30 @@
     showSearch = true,
     showEdit = false,
   }: {
-    children?: Snippet;
-    dashboards?: DashListItem[];
-    currentSlug?: string;
-    wide?: boolean;
-    reserveControls?: boolean;
-    showSearch?: boolean;
-    showEdit?: boolean;
-  } = $props();
+    children?: Snippet
+    dashboards?: DashListItem[]
+    currentSlug?: string
+    wide?: boolean
+    reserveControls?: boolean
+    showSearch?: boolean
+    showEdit?: boolean
+  } = $props()
 
-  const selected = $derived(dashboards.find((d) => d.slug === currentSlug) ?? null);
-  const ownDashboards = $derived(dashboards.filter((d) => d.ownerId === $user?.id));
-  const otherDashboards = $derived(dashboards.filter((d) => d.ownerId !== $user?.id));
-  const isDarkTheme = $derived(!['crema', 'latte'].includes($resolvedTheme));
+  const selected = $derived(dashboards.find((d) => d.slug === currentSlug) ?? null)
+  const ownDashboards = $derived(dashboards.filter((d) => d.ownerId === $user?.id))
+  const otherDashboards = $derived(dashboards.filter((d) => d.ownerId !== $user?.id))
+  const isDarkTheme = $derived(!['crema', 'latte'].includes($resolvedTheme))
 
   async function logout() {
     try {
-      await api.logout();
+      await api.logout()
     } catch (error: unknown) {
-      toastError(error, 'Could not sign out on the server');
+      toastError(error, 'Could not sign out on the server')
     }
-    setToken(null);
-    user.set(null);
-    editMode.set(false);
-    push('/login');
+    setToken(null)
+    user.set(null)
+    editMode.set(false)
+    push('/login')
   }
 </script>
 
@@ -64,7 +64,7 @@
             type="single"
             value={selected.slug}
             onValueChange={(v) => {
-              if (v) push('/' + v);
+              if (v) push('/' + v)
             }}
           >
             <Select.Trigger
@@ -78,10 +78,15 @@
                 {/if}
                 <span class="truncate">{selected.name}</span>
               </span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 opacity-60"><path d="m6 9 6 6 6-6" /></svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 opacity-60"
+                ><path d="m6 9 6 6 6-6" /></svg
+              >
             </Select.Trigger>
             <Select.Portal>
-              <Select.Content class="z-50 min-w-(--bits-select-anchor-width) overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl outline-none" sideOffset={6}>
+              <Select.Content
+                class="z-50 min-w-(--bits-select-anchor-width) overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl outline-none"
+                sideOffset={6}
+              >
                 {#if ownDashboards.length > 0}
                   <div class="px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-text-subtle">My dashboards</div>
                 {/if}
@@ -153,7 +158,9 @@
             onclick={() => editMode.set(true)}
             title="Edit dashboard"
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"
+              ><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg
+            >
             <span>Edit</span>
           </button>
         {/if}
@@ -168,23 +175,45 @@
             >
           </DropdownMenu.Trigger>
           <DropdownMenu.Portal>
-            <DropdownMenu.Content class="z-50 min-w-44 rounded-xl border border-border bg-surface p-1 shadow-xl outline-none" sideOffset={6} align="end">
+            <DropdownMenu.Content
+              class="z-50 min-w-44 rounded-xl border border-border bg-surface p-1 shadow-xl outline-none"
+              sideOffset={6}
+              align="end"
+            >
               <ThemeItems />
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
         </DropdownMenu.Root>
         {#if $user}
           {#if $user.role === 'admin'}
-            <a href="#/admin" class="flex h-8 w-8 items-center justify-center rounded-btn text-text-muted hover:bg-surface-2 hover:text-text" title="Administration" aria-label="Administration">
+            <a
+              href="#/admin"
+              class="flex h-8 w-8 items-center justify-center rounded-btn text-text-muted hover:bg-surface-2 hover:text-text"
+              title="Administration"
+              aria-label="Administration"
+            >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 ><path d="M12 3 4 7v5c0 5 3.4 8.3 8 9 4.6-.7 8-4 8-9V7l-8-4Z" /><path d="M9 12l2 2 4-4" /></svg
               >
             </a>
           {/if}
-          <a href="#/profile" class="flex h-8 w-8 items-center justify-center rounded-btn text-text-muted hover:bg-surface-2 hover:text-text" title="Profile" aria-label="Profile">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
+          <a
+            href="#/profile"
+            class="flex h-8 w-8 items-center justify-center rounded-btn text-text-muted hover:bg-surface-2 hover:text-text"
+            title="Profile"
+            aria-label="Profile"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              ><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg
+            >
           </a>
-          <button type="button" class="flex h-8 w-8 items-center justify-center rounded-btn text-text-muted hover:bg-surface-2 hover:text-text" onclick={logout} title="Logout" aria-label="Logout">
+          <button
+            type="button"
+            class="flex h-8 w-8 items-center justify-center rounded-btn text-text-muted hover:bg-surface-2 hover:text-text"
+            onclick={logout}
+            title="Logout"
+            aria-label="Logout"
+          >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               ><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></svg
             >

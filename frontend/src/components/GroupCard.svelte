@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { useSortable } from '@dnd-kit-svelte/svelte/sortable';
-  import { CollisionPriority } from '@dnd-kit/abstract';
-  import { DropdownMenu } from 'bits-ui';
-  import type { Snippet } from 'svelte';
-  import type { Group, Layout } from '../lib/api';
-  import { editMode } from '../lib/stores';
-  import { cn } from '../lib/cn';
-  import Icon from './Icon.svelte';
+  import { useSortable } from '@dnd-kit-svelte/svelte/sortable'
+  import { CollisionPriority } from '@dnd-kit/abstract'
+  import { DropdownMenu } from 'bits-ui'
+  import type { Snippet } from 'svelte'
+  import type { Group, Layout } from '../lib/api'
+  import { editMode } from '../lib/stores'
+  import { cn } from '../lib/cn'
+  import Icon from './Icon.svelte'
 
   let {
     group,
@@ -22,19 +22,19 @@
     onCopyTo,
     onAddItem,
   }: {
-    group: Group;
-    index: number;
-    layout?: Layout;
-    wide?: boolean;
-    isOverlay?: boolean;
-    canModify?: boolean;
-    children?: Snippet;
-    onEdit?: (g: Group) => void;
-    onDelete?: (g: Group) => void;
-    onClone?: (g: Group) => void;
-    onCopyTo?: (g: Group) => void;
-    onAddItem?: (g: Group) => void;
-  } = $props();
+    group: Group
+    index: number
+    layout?: Layout
+    wide?: boolean
+    isOverlay?: boolean
+    canModify?: boolean
+    children?: Snippet
+    onEdit?: (g: Group) => void
+    onDelete?: (g: Group) => void
+    onClone?: (g: Group) => void
+    onCopyTo?: (g: Group) => void
+    onAddItem?: (g: Group) => void
+  } = $props()
 
   const { ref, handleRef, isDragging } = useSortable({
     id: () => group.id,
@@ -44,25 +44,27 @@
     collisionPriority: CollisionPriority.Low,
     data: () => ({ group }),
     disabled: () => !$editMode || !canModify,
-  });
+  })
 
   // Item grid is the same visual language everywhere.
   // 1x1: fixed min size so squares don't grow with container width.
   // 1x2: rows → 4 (default) / 6 (wide); columns & masonry → one per row.
   const itemsClass = $derived.by(() => {
     if (group.itemSize === '1x1') {
-      return 'grid grid-cols-[repeat(auto-fill,minmax(4.5rem,1fr))] gap-2';
+      return 'grid grid-cols-[repeat(auto-fill,minmax(4.5rem,1fr))] gap-2'
     }
     if (layout === 'columns' || layout === 'masonry') {
-      return 'grid grid-cols-1 gap-2';
+      return 'grid grid-cols-1 gap-2'
     }
     // rows + 1x2
-    return wide ? 'grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6' : 'grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
-  });
+    return wide
+      ? 'grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'
+      : 'grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+  })
 
   function addFirstItem() {
-    editMode.set(true);
-    onAddItem?.(group);
+    editMode.set(true)
+    onAddItem?.(group)
   }
 </script>
 
@@ -83,11 +85,11 @@
         aria-label="Drag group"
       >
         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"
-          ><circle cx="9" cy="7" r="1.5" /><circle cx="15" cy="7" r="1.5" /><circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" /><circle cx="9" cy="17" r="1.5" /><circle
-            cx="15"
+          ><circle cx="9" cy="7" r="1.5" /><circle cx="15" cy="7" r="1.5" /><circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" /><circle
+            cx="9"
             cy="17"
             r="1.5"
-          /></svg
+          /><circle cx="15" cy="17" r="1.5" /></svg
         >
       </button>
     {/if}
@@ -125,18 +127,27 @@
               >
             </DropdownMenu.Trigger>
             <DropdownMenu.Portal>
-              <DropdownMenu.Content class="z-50 min-w-36 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl outline-none" sideOffset={6} align="end">
-                <DropdownMenu.Item class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => onEdit?.(group)}>Edit</DropdownMenu.Item
+              <DropdownMenu.Content
+                class="z-50 min-w-36 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl outline-none"
+                sideOffset={6}
+                align="end"
+              >
+                <DropdownMenu.Item
+                  class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
+                  onSelect={() => onEdit?.(group)}>Edit</DropdownMenu.Item
                 >
-                <DropdownMenu.Item class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => onClone?.(group)}
-                  >Clone</DropdownMenu.Item
+                <DropdownMenu.Item
+                  class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
+                  onSelect={() => onClone?.(group)}>Clone</DropdownMenu.Item
                 >
-                <DropdownMenu.Item class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => onCopyTo?.(group)}
-                  >Copy to dashboard…</DropdownMenu.Item
+                <DropdownMenu.Item
+                  class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
+                  onSelect={() => onCopyTo?.(group)}>Copy to dashboard…</DropdownMenu.Item
                 >
                 <DropdownMenu.Separator class="my-1 h-px bg-border-soft" />
-                <DropdownMenu.Item class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-danger outline-none data-[highlighted]:bg-danger-soft" onSelect={() => onDelete?.(group)}
-                  >Delete</DropdownMenu.Item
+                <DropdownMenu.Item
+                  class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-danger outline-none data-highlighted:bg-danger-soft"
+                  onSelect={() => onDelete?.(group)}>Delete</DropdownMenu.Item
                 >
               </DropdownMenu.Content>
             </DropdownMenu.Portal>
@@ -148,7 +159,13 @@
       <div class="flex flex-col items-center gap-2 pb-8 text-center">
         <p class="text-xs text-text-muted">This group is empty.</p>
         {#if canModify}
-          <button type="button" class="rounded-btn bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-hover" onclick={addFirstItem}> Add item </button>
+          <button
+            type="button"
+            class="rounded-btn bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-hover"
+            onclick={addFirstItem}
+          >
+            Add item
+          </button>
         {/if}
       </div>
     {:else}

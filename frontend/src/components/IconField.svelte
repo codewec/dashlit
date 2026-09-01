@@ -1,49 +1,49 @@
 <script lang="ts">
-  import { Dialog } from 'bits-ui';
-  import Icon from './Icon.svelte';
-  import IconPicker from './IconPicker.svelte';
-  import { iconPreviewClass } from '../lib/icon-helpers';
+  import { Dialog } from 'bits-ui'
+  import Icon from './Icon.svelte'
+  import IconPicker from './IconPicker.svelte'
+  import { iconPreviewClass } from '../lib/icon-helpers'
 
   let {
     value = $bindable(''),
     valueDark = $bindable(''),
     defaultIcon = '',
   }: {
-    value?: string;
-    valueDark?: string;
-    defaultIcon?: string;
-  } = $props();
+    value?: string
+    valueDark?: string
+    defaultIcon?: string
+  } = $props()
 
-  let openLight = $state(false);
-  let openDark = $state(false);
-  let draft = $state('');
-  let pairedDraft = $state('');
+  let openLight = $state(false)
+  let openDark = $state(false)
+  let draft = $state('')
+  let pairedDraft = $state('')
 
   function openPicker(which: 'light' | 'dark') {
-    draft = which === 'light' ? value || defaultIcon : valueDark;
-    pairedDraft = which === 'light' ? valueDark : value || defaultIcon;
-    if (which === 'light') openLight = true;
-    else openDark = true;
+    draft = which === 'light' ? value || defaultIcon : valueDark
+    pairedDraft = which === 'light' ? valueDark : value || defaultIcon
+    if (which === 'light') openLight = true
+    else openDark = true
   }
 
   function applyLight() {
-    value = draft || defaultIcon;
-    valueDark = pairedDraft;
-    openLight = false;
+    value = draft || defaultIcon
+    valueDark = pairedDraft
+    openLight = false
   }
   function applyDark() {
-    valueDark = draft;
-    value = pairedDraft || defaultIcon;
-    openDark = false;
+    valueDark = draft
+    value = pairedDraft || defaultIcon
+    openDark = false
   }
 
   function clearLight(e: MouseEvent) {
-    e.stopPropagation();
-    value = defaultIcon;
+    e.stopPropagation()
+    value = defaultIcon
   }
   function clearDark(e: MouseEvent) {
-    e.stopPropagation();
-    valueDark = '';
+    e.stopPropagation()
+    valueDark = ''
   }
 </script>
 
@@ -75,7 +75,9 @@
     <span class="text-[11px] text-text-muted">Dark</span>
     <button
       type="button"
-      class="relative flex h-14 w-14 items-center justify-center rounded-xl border border-dashed border-border {iconPreviewClass('dark')} hover:border-primary"
+      class="relative flex h-14 w-14 items-center justify-center rounded-xl border border-dashed border-border {iconPreviewClass(
+        'dark',
+      )} hover:border-primary"
       onclick={() => openPicker('dark')}
       title="Choose dark theme icon"
     >
@@ -101,8 +103,10 @@
 <!-- nested: light -->
 <Dialog.Root bind:open={openLight}>
   <Dialog.Portal>
-    <Dialog.Overlay class="dialog-overlay fixed inset-0 z-[60] bg-black/50" />
-    <Dialog.Content class="dialog-content fixed left-1/2 top-1/2 z-[60] w-[min(22rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2 rounded-card border border-border bg-surface p-4 shadow-2xl outline-none">
+    <Dialog.Overlay class="dialog-overlay fixed inset-0 z-60 bg-black/50" />
+    <Dialog.Content
+      class="dialog-content fixed left-1/2 top-1/2 z-60 w-[min(22rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2 rounded-card border border-border bg-surface p-4 shadow-2xl outline-none"
+    >
       <Dialog.Title class="text-sm font-semibold text-text">Default icon</Dialog.Title>
       <div class="mt-3">
         {#key openLight}
@@ -120,8 +124,10 @@
 <!-- nested: dark -->
 <Dialog.Root bind:open={openDark}>
   <Dialog.Portal>
-    <Dialog.Overlay class="dialog-overlay fixed inset-0 z-[60] bg-black/50" />
-    <Dialog.Content class="dialog-content fixed left-1/2 top-1/2 z-[60] w-[min(22rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2 rounded-card border border-border bg-surface p-4 shadow-2xl outline-none">
+    <Dialog.Overlay class="dialog-overlay fixed inset-0 z-60 bg-black/50" />
+    <Dialog.Content
+      class="dialog-content fixed left-1/2 top-1/2 z-60 w-[min(22rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2 rounded-card border border-border bg-surface p-4 shadow-2xl outline-none"
+    >
       <Dialog.Title class="text-sm font-semibold text-text">Dark theme icon</Dialog.Title>
       <div class="mt-3">
         {#key openDark}

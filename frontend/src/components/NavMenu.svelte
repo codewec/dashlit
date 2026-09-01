@@ -1,68 +1,80 @@
 <script lang="ts">
-  import { DropdownMenu } from 'bits-ui';
-  import { push } from 'svelte-spa-router';
-  import { api, setToken } from '../lib/api';
-  import { user, editMode, theme, setTheme, systemInfo } from '../lib/stores';
-  import Icon from './Icon.svelte';
-  import logoUrl from '../assets/dashlit.svg';
-  import type { DashListItem } from '../lib/dashboard-helpers';
-  import { toastError } from '../lib/toasts';
-  import { themeOptions } from '../lib/themes';
+  import { DropdownMenu } from 'bits-ui'
+  import { push } from 'svelte-spa-router'
+  import { api, setToken } from '../lib/api'
+  import { user, editMode, theme, setTheme, systemInfo } from '../lib/stores'
+  import Icon from './Icon.svelte'
+  import logoUrl from '../assets/dashlit.svg'
+  import type { DashListItem } from '../lib/dashboard-helpers'
+  import { toastError } from '../lib/toasts'
+  import { themeOptions } from '../lib/themes'
 
   let {
     dashboards = [],
     currentSlug = '',
     showEdit = false,
   }: {
-    dashboards?: DashListItem[];
-    currentSlug?: string;
-    showEdit?: boolean;
-  } = $props();
+    dashboards?: DashListItem[]
+    currentSlug?: string
+    showEdit?: boolean
+  } = $props()
 
-  const ownDashboards = $derived(dashboards.filter((d) => d.ownerId === $user?.id));
-  const otherDashboards = $derived(dashboards.filter((d) => d.ownerId !== $user?.id));
-  let menuOpen = $state(false);
-  let themeExpanded = $state(false);
+  const ownDashboards = $derived(dashboards.filter((d) => d.ownerId === $user?.id))
+  const otherDashboards = $derived(dashboards.filter((d) => d.ownerId !== $user?.id))
+  let menuOpen = $state(false)
+  let themeExpanded = $state(false)
 
   $effect(() => {
-    if (!menuOpen) themeExpanded = false;
-  });
+    if (!menuOpen) themeExpanded = false
+  })
 
   async function logout() {
     try {
-      await api.logout();
+      await api.logout()
     } catch (error: unknown) {
-      toastError(error, 'Could not sign out on the server');
+      toastError(error, 'Could not sign out on the server')
     }
-    setToken(null);
-    user.set(null);
-    editMode.set(false);
-    push('/login');
+    setToken(null)
+    user.set(null)
+    editMode.set(false)
+    push('/login')
   }
 
   function openRelease() {
-    const url = $systemInfo?.releaseUrl;
-    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+    const url = $systemInfo?.releaseUrl
+    if (url) window.open(url, '_blank', 'noopener,noreferrer')
   }
 </script>
 
 <DropdownMenu.Root bind:open={menuOpen}>
-  <DropdownMenu.Trigger class="relative inline-flex h-9 w-9 items-center justify-center rounded-btn border border-border text-text hover:bg-surface-2" aria-label="Menu">
+  <DropdownMenu.Trigger
+    class="relative inline-flex h-9 w-9 items-center justify-center rounded-btn border border-border text-text hover:bg-surface-2"
+    aria-label="Menu"
+  >
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M4 6h16M4 12h16M4 18h16" />
     </svg>
     {#if $systemInfo?.updateAvailable}
-      <span class="absolute -right-1.5 -top-1.5 rounded-full bg-primary px-1.5 py-0.5 text-[8px] font-semibold uppercase leading-none text-white shadow-sm">New</span>
+      <span
+        class="absolute -right-1.5 -top-1.5 rounded-full bg-primary px-1.5 py-0.5 text-[8px] font-semibold uppercase leading-none text-white shadow-sm"
+        >New</span
+      >
     {/if}
   </DropdownMenu.Trigger>
   <DropdownMenu.Portal>
-    <DropdownMenu.Content class="z-50 min-w-[12rem] overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl outline-none" sideOffset={6} align="end">
+    <DropdownMenu.Content
+      class="z-50 min-w-48 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl outline-none"
+      sideOffset={6}
+      align="end"
+    >
       {#if $systemInfo?.updateAvailable && $systemInfo.releaseUrl}
         <DropdownMenu.Item
-          class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-primary outline-none data-[highlighted]:bg-primary-soft"
+          class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-primary outline-none data-highlighted:bg-primary-soft"
           onSelect={openRelease}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"
+            ><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg
+          >
           <span class="flex-1">{$systemInfo.latestVersion} available</span>
           <span aria-hidden="true">↗</span>
         </DropdownMenu.Item>
@@ -74,7 +86,10 @@
         {/if}
         {#each ownDashboards as d}
           <DropdownMenu.Item
-            class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm outline-none data-[highlighted]:bg-surface-2 {d.slug === currentSlug ? 'text-primary' : 'text-text'}"
+            class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm outline-none data-highlighted:bg-surface-2 {d.slug ===
+            currentSlug
+              ? 'text-primary'
+              : 'text-text'}"
             onSelect={() => push('/' + d.slug)}
           >
             {#if d.icon}
@@ -93,7 +108,10 @@
         {/if}
         {#each otherDashboards as d}
           <DropdownMenu.Item
-            class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm outline-none data-[highlighted]:bg-surface-2 {d.slug === currentSlug ? 'text-primary' : 'text-text'}"
+            class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm outline-none data-highlighted:bg-surface-2 {d.slug ===
+            currentSlug
+              ? 'text-primary'
+              : 'text-text'}"
             onSelect={() => push('/' + d.slug)}
           >
             {#if d.icon}
@@ -111,11 +129,11 @@
       {/if}
 
       <DropdownMenu.Item
-        class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2"
+        class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
         aria-expanded={themeExpanded}
         onSelect={(event) => {
-          event.preventDefault();
-          themeExpanded = !themeExpanded;
+          event.preventDefault()
+          themeExpanded = !themeExpanded
         }}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"
@@ -133,7 +151,7 @@
               </div>
             {/if}
             <DropdownMenu.Item
-              class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2"
+              class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
               onSelect={() => setTheme(option.value)}
             >
               <span class="h-3.5 w-3.5 shrink-0 rounded-full border border-border" style:background={option.swatch}></span>
@@ -146,31 +164,50 @@
 
       {#if $user}
         {#if showEdit && !$editMode}
-          <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => editMode.set(true)}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+          <DropdownMenu.Item
+            class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
+            onSelect={() => editMode.set(true)}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              ><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg
+            >
             <span>Edit</span>
           </DropdownMenu.Item>
         {/if}
         {#if $user.role === 'admin'}
-          <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => push('/admin')}>
+          <DropdownMenu.Item
+            class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
+            onSelect={() => push('/admin')}
+          >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               ><path d="M12 3 4 7v5c0 5 3.4 8.3 8 9 4.6-.7 8-4 8-9V7l-8-4Z" /><path d="M9 12l2 2 4-4" /></svg
             >
             <span>Administration</span>
           </DropdownMenu.Item>
         {/if}
-        <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => push('/profile')}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
+        <DropdownMenu.Item
+          class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
+          onSelect={() => push('/profile')}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            ><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg
+          >
           <span>Profile</span>
         </DropdownMenu.Item>
-        <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={logout}>
+        <DropdownMenu.Item
+          class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
+          onSelect={logout}
+        >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             ><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></svg
           >
           <span>Logout</span>
         </DropdownMenu.Item>
       {:else}
-        <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => push('/login')}>
+        <DropdownMenu.Item
+          class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
+          onSelect={() => push('/login')}
+        >
           <span>Sign in</span>
         </DropdownMenu.Item>
       {/if}

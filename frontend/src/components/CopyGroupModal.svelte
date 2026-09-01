@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { Group } from '../lib/api';
-  import type { DashListItem } from '../lib/dashboard-helpers';
-  import Modal from './Modal.svelte';
-  import Icon from './Icon.svelte';
+  import type { Group } from '../lib/api'
+  import type { DashListItem } from '../lib/dashboard-helpers'
+  import Modal from './Modal.svelte'
+  import Icon from './Icon.svelte'
 
   let {
     open = $bindable(false),
@@ -11,12 +11,12 @@
     copyingDashboardId = '',
     onSelect,
   }: {
-    open?: boolean;
-    group: Group | null;
-    dashboards?: DashListItem[];
-    copyingDashboardId?: string;
-    onSelect: (dashboard: DashListItem) => void | Promise<void>;
-  } = $props();
+    open?: boolean
+    group: Group | null
+    dashboards?: DashListItem[]
+    copyingDashboardId?: string
+    onSelect: (dashboard: DashListItem) => void | Promise<void>
+  } = $props()
 </script>
 
 <Modal bind:open title="Copy group" description={group ? `Choose a dashboard for “${group.title}”.` : ''}>
@@ -53,6 +53,11 @@
   {/if}
 
   <div class="mt-4 flex justify-end">
-    <button type="button" disabled={!!copyingDashboardId} class="rounded-btn px-3 py-2 text-sm text-text-muted hover:bg-surface-2 disabled:opacity-50" onclick={() => (open = false)}>Cancel</button>
+    <button
+      type="button"
+      disabled={!!copyingDashboardId}
+      class="rounded-btn px-3 py-2 text-sm text-text-muted hover:bg-surface-2 disabled:opacity-50"
+      onclick={() => (open = false)}>Cancel</button
+    >
   </div>
 </Modal>

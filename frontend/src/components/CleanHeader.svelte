@@ -1,16 +1,16 @@
 <script lang="ts">
-  import type { Dashboard } from '../lib/api';
-  import type { DashListItem } from '../lib/dashboard-helpers';
-  import Icon from './Icon.svelte';
-  import NavMenu from './NavMenu.svelte';
+  import type { Dashboard } from '../lib/api'
+  import type { DashListItem } from '../lib/dashboard-helpers'
+  import Icon from './Icon.svelte'
+  import NavMenu from './NavMenu.svelte'
 
   let {
     dashboard,
     dashboards = [],
   }: {
-    dashboard: Dashboard;
-    dashboards?: DashListItem[];
-  } = $props();
+    dashboard: Dashboard
+    dashboards?: DashListItem[]
+  } = $props()
 </script>
 
 <div class={`mb-6 flex gap-3 ${dashboard.description ? 'items-start' : 'items-center'}`}>

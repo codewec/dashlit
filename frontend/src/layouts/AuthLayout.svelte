@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { Snippet } from 'svelte';
-  let { children }: { children?: Snippet } = $props();
+  import type { Snippet } from 'svelte'
+  let { children }: { children?: Snippet } = $props()
 </script>
 
 <div class="flex min-h-dvh items-center justify-center p-4">

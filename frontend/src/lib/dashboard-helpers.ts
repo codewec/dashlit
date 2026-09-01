@@ -1,15 +1,15 @@
-import type { Dashboard, Group, Item, ItemSize, Layout, Width } from './api';
+import type { Dashboard, Group, Item, ItemSize, Layout, Width } from './api'
 
 export type DashListItem = {
-  id: string;
-  name: string;
-  slug: string;
-  icon?: string;
-  iconDark?: string;
-  ownerId: string;
-  ownerUsername: string;
-  isDefault: boolean;
-};
+  id: string
+  name: string
+  slug: string
+  icon?: string
+  iconDark?: string
+  ownerId: string
+  ownerUsername: string
+  isDefault: boolean
+}
 
 export function toDashList(list: Dashboard[] | null | undefined): DashListItem[] {
   return (list ?? []).map((d) => ({
@@ -21,112 +21,112 @@ export function toDashList(list: Dashboard[] | null | undefined): DashListItem[]
     ownerId: d.ownerId,
     ownerUsername: d.owner?.username ?? '',
     isDefault: !!d.isDefault,
-  }));
+  }))
 }
 
 export function filterGroups(groups: Group[], query: string): Group[] {
-  const q = query.trim().toLowerCase();
-  if (!q) return groups;
+  const q = query.trim().toLowerCase()
+  if (!q) return groups
   return groups
     .map((g) => ({
       ...g,
       items: (g.items ?? []).filter((it) => it.title.toLowerCase().includes(q) || (it.description || '').toLowerCase().includes(q)),
     }))
-    .filter((g) => (g.items?.length ?? 0) > 0 || g.title.toLowerCase().includes(q));
+    .filter((g) => (g.items?.length ?? 0) > 0 || g.title.toLowerCase().includes(q))
 }
 
 export function itemsByGroupMap(groups: Group[]): Record<string, Item[]> {
-  const map: Record<string, Item[]> = {};
+  const map: Record<string, Item[]> = {}
   for (const g of groups) {
-    map[g.id] = [...(g.items ?? [])].sort((a, b) => a.position - b.position);
+    map[g.id] = [...(g.items ?? [])].sort((a, b) => a.position - b.position)
   }
-  return map;
+  return map
 }
 
 export function groupsOuterClass(layout: Layout, wide: boolean): string {
   if (layout === 'columns') {
-    return wide ? 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid grid-cols-1 gap-4 md:grid-cols-2';
+    return wide ? 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid grid-cols-1 gap-4 md:grid-cols-2'
   }
   if (layout === 'masonry') {
-    return wide ? 'columns-1 gap-4 sm:columns-2 lg:columns-3 xl:columns-4' : 'columns-1 gap-4 md:columns-2';
+    return wide ? 'columns-1 gap-4 sm:columns-2 lg:columns-3 xl:columns-4' : 'columns-1 gap-4 md:columns-2'
   }
-  return 'flex flex-col gap-4';
+  return 'flex flex-col gap-4'
 }
 
 export function groupCellClass(layout: Layout): string {
-  if (layout === 'columns') return 'min-w-0';
+  if (layout === 'columns') return 'min-w-0'
   // An inline-block is treated as one atomic box by the multi-column layout.
   // This is more reliable than break-inside on a regular block in Chromium,
   // especially when the sortable action updates element transforms.
-  if (layout === 'masonry') return 'mb-4 inline-block w-full break-inside-avoid align-top';
-  return '';
+  if (layout === 'masonry') return 'mb-4 inline-block w-full break-inside-avoid align-top'
+  return ''
 }
 
 export function buildLayoutPayload(groups: Group[]) {
-  const sortedGroups = groups.map((g, i) => ({ id: g.id, position: i }));
-  const items: { id: string; groupId: string; position: number }[] = [];
+  const sortedGroups = groups.map((g, i) => ({ id: g.id, position: i }))
+  const items: { id: string; groupId: string; position: number }[] = []
   for (const g of groups) {
-    (g.items ?? []).forEach((it, i) => items.push({ id: it.id, groupId: g.id, position: i }));
+    ;(g.items ?? []).forEach((it, i) => items.push({ id: it.id, groupId: g.id, position: i }))
   }
-  return { groups: sortedGroups, items };
+  return { groups: sortedGroups, items }
 }
 
 export function reorderGroups(groups: Group[], fromId: string, toId: string): Group[] {
-  const from = groups.findIndex((g) => g.id === fromId);
-  const to = groups.findIndex((g) => g.id === toId);
-  if (from < 0 || to < 0 || from === to) return groups;
-  const next = [...groups];
-  const [moved] = next.splice(from, 1);
-  next.splice(to, 0, moved);
-  return next;
+  const from = groups.findIndex((g) => g.id === fromId)
+  const to = groups.findIndex((g) => g.id === toId)
+  if (from < 0 || to < 0 || from === to) return groups
+  const next = [...groups]
+  const [moved] = next.splice(from, 1)
+  next.splice(to, 0, moved)
+  return next
 }
 
 export function applyItemMove(groups: Group[], bag: Record<string, Item[]>): Group[] {
   return groups.map((g) => ({
     ...g,
     items: (bag[g.id] || []).map((it, i) => ({ ...it, groupId: g.id, position: i })),
-  }));
+  }))
 }
 
 /* —— form drafts —— */
 
 export type GroupForm = {
-  title: string;
-  description: string;
-  icon: string;
-  iconDark: string;
-  itemSize: ItemSize;
-};
+  title: string
+  description: string
+  icon: string
+  iconDark: string
+  itemSize: ItemSize
+}
 
 export type ItemForm = {
-  title: string;
-  description: string;
-  url: string;
-  icon: string;
-  iconDark: string;
-  groupId: string;
-  pingEnabled: boolean;
-  pingOnlyDown: boolean;
-  pingUrl: string;
-  pingSkipTls: boolean;
-};
+  title: string
+  description: string
+  url: string
+  icon: string
+  iconDark: string
+  groupId: string
+  pingEnabled: boolean
+  pingOnlyDown: boolean
+  pingUrl: string
+  pingSkipTls: boolean
+}
 
 export type DashboardForm = {
-  name: string;
-  slug: string;
-  description: string;
-  icon: string;
-  iconDark: string;
-  privacy: Dashboard['privacy'];
-  layout: Layout;
-  width: Width;
-  cleanMode: boolean;
-  isDefault: boolean;
-  creating: boolean;
-};
+  name: string
+  slug: string
+  description: string
+  icon: string
+  iconDark: string
+  privacy: Dashboard['privacy']
+  layout: Layout
+  width: Width
+  cleanMode: boolean
+  isDefault: boolean
+  creating: boolean
+}
 
 export function emptyGroupForm(): GroupForm {
-  return { title: '', description: '', icon: '', iconDark: '', itemSize: '1x2' };
+  return { title: '', description: '', icon: '', iconDark: '', itemSize: '1x2' }
 }
 
 export function groupToForm(g: Group): GroupForm {
@@ -136,7 +136,7 @@ export function groupToForm(g: Group): GroupForm {
     icon: g.icon || '',
     iconDark: g.iconDark || '',
     itemSize: g.itemSize || '1x1',
-  };
+  }
 }
 
 export function emptyItemForm(groupId = ''): ItemForm {
@@ -151,7 +151,7 @@ export function emptyItemForm(groupId = ''): ItemForm {
     pingOnlyDown: false,
     pingUrl: '',
     pingSkipTls: false,
-  };
+  }
 }
 
 export function itemToForm(item: Item): ItemForm {
@@ -166,7 +166,7 @@ export function itemToForm(item: Item): ItemForm {
     pingOnlyDown: item.pingOnlyDown ?? false,
     pingUrl: item.pingUrl || '',
     pingSkipTls: item.pingSkipTls ?? false,
-  };
+  }
 }
 
 export function emptyDashboardForm(creating = true): DashboardForm {
@@ -182,7 +182,7 @@ export function emptyDashboardForm(creating = true): DashboardForm {
     cleanMode: false,
     isDefault: false,
     creating,
-  };
+  }
 }
 
 export function dashboardToForm(d: Dashboard): DashboardForm {
@@ -198,10 +198,10 @@ export function dashboardToForm(d: Dashboard): DashboardForm {
     cleanMode: !!d.cleanMode,
     isDefault: !!d.isDefault,
     creating: false,
-  };
+  }
 }
 
 export function pageContainerClass(wide: boolean, reserveControls = false): string {
-  const spacing = reserveControls ? 'pb-20 pt-6' : 'py-6';
-  return wide ? `mx-auto max-w-none px-4 ${spacing}` : `mx-auto max-w-6xl px-4 ${spacing}`;
+  const spacing = reserveControls ? 'pb-20 pt-6' : 'py-6'
+  return wide ? `mx-auto max-w-none px-4 ${spacing}` : `mx-auto max-w-6xl px-4 ${spacing}`
 }

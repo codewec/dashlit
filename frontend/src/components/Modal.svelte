@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { Dialog } from 'bits-ui';
-  import type { Snippet } from 'svelte';
-  import { cn } from '../lib/cn';
+  import { Dialog } from 'bits-ui'
+  import type { Snippet } from 'svelte'
+  import { cn } from '../lib/cn'
 
   let {
     open = $bindable(false),
@@ -12,18 +12,18 @@
     footer,
     onOpenChange,
   }: {
-    open?: boolean;
-    title?: string;
-    description?: string;
-    class?: string;
-    children?: Snippet;
-    footer?: Snippet;
-    onOpenChange?: (v: boolean) => void;
-  } = $props();
+    open?: boolean
+    title?: string
+    description?: string
+    class?: string
+    children?: Snippet
+    footer?: Snippet
+    onOpenChange?: (v: boolean) => void
+  } = $props()
 
   function handleOpenChange(v: boolean) {
-    open = v;
-    onOpenChange?.(v);
+    open = v
+    onOpenChange?.(v)
   }
 </script>
 

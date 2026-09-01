@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { DropdownMenu } from 'bits-ui';
-  import { onMount } from 'svelte';
-  import { editMode } from '../lib/stores';
+  import { DropdownMenu } from 'bits-ui'
+  import { onMount } from 'svelte'
+  import { editMode } from '../lib/stores'
 
   let {
     raised = false,
@@ -16,52 +16,55 @@
     onDeleteDashboard,
     onSave,
   }: {
-    raised?: boolean;
-    hideEditButton?: boolean;
-    canModify?: boolean;
-    onCreateDashboard: () => void;
-    onCloneDashboard: () => void;
-    onExport: () => void;
-    onImport: () => void;
-    onNewGroup: () => void;
-    onSettings: () => void;
-    onDeleteDashboard: () => void;
-    onSave: () => void | Promise<void>;
-  } = $props();
+    raised?: boolean
+    hideEditButton?: boolean
+    canModify?: boolean
+    onCreateDashboard: () => void
+    onCloneDashboard: () => void
+    onExport: () => void
+    onImport: () => void
+    onNewGroup: () => void
+    onSettings: () => void
+    onDeleteDashboard: () => void
+    onSave: () => void | Promise<void>
+  } = $props()
 
-  let bottomOffset = $state(20);
-  let updateBottomOffset = () => {};
+  let bottomOffset = $state(20)
+  let updateBottomOffset = () => {}
 
   $effect(() => {
-    if (!raised || !$editMode) return;
-    const frame = requestAnimationFrame(() => updateBottomOffset());
-    return () => cancelAnimationFrame(frame);
-  });
+    if (!raised || !$editMode) return
+    const frame = requestAnimationFrame(() => updateBottomOffset())
+    return () => cancelAnimationFrame(frame)
+  })
 
   onMount(() => {
-    if (!raised) return;
+    if (!raised) return
 
-    const footer = document.querySelector('footer');
-    if (!footer) return;
+    const footer = document.querySelector('footer')
+    if (!footer) return
 
     updateBottomOffset = () => {
-      const visibleFooterHeight = Math.max(0, window.innerHeight - footer.getBoundingClientRect().top);
-      bottomOffset = 20 + visibleFooterHeight;
-    };
+      const visibleFooterHeight = Math.max(0, window.innerHeight - footer.getBoundingClientRect().top)
+      bottomOffset = 20 + visibleFooterHeight
+    }
 
-    updateBottomOffset();
-    window.addEventListener('scroll', updateBottomOffset, { passive: true });
-    window.addEventListener('resize', updateBottomOffset);
+    updateBottomOffset()
+    window.addEventListener('scroll', updateBottomOffset, { passive: true })
+    window.addEventListener('resize', updateBottomOffset)
 
     return () => {
-      window.removeEventListener('scroll', updateBottomOffset);
-      window.removeEventListener('resize', updateBottomOffset);
-    };
-  });
+      window.removeEventListener('scroll', updateBottomOffset)
+      window.removeEventListener('resize', updateBottomOffset)
+    }
+  })
 </script>
 
 {#if $editMode}
-  <div class="pointer-events-none fixed left-1 right-1 z-30 flex items-center justify-between gap-1 sm:left-4 sm:right-4 sm:gap-3" style:bottom="{bottomOffset}px">
+  <div
+    class="pointer-events-none fixed left-1 right-1 z-30 flex items-center justify-between gap-1 sm:left-4 sm:right-4 sm:gap-3"
+    style:bottom="{bottomOffset}px"
+  >
     <div class="pointer-events-auto flex min-w-0 items-center gap-1 sm:gap-1.5">
       <button
         type="button"
@@ -83,17 +86,30 @@
         >
       </button>
       <DropdownMenu.Root>
-        <DropdownMenu.Trigger class="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface text-text shadow-lg hover:bg-surface-2" title="Import / Export">
+        <DropdownMenu.Trigger
+          class="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface text-text shadow-lg hover:bg-surface-2"
+          title="Import / Export"
+        >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             ><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="M7 10l5 5 5-5" /><path d="M12 15V3" /></svg
           >
         </DropdownMenu.Trigger>
         <DropdownMenu.Portal>
-          <DropdownMenu.Content class="z-50 min-w-40 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl outline-none" sideOffset={8} side="top">
-            <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2" onSelect={onExport}>
+          <DropdownMenu.Content
+            class="z-50 min-w-40 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl outline-none"
+            sideOffset={8}
+            side="top"
+          >
+            <DropdownMenu.Item
+              class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
+              onSelect={onExport}
+            >
               Export
             </DropdownMenu.Item>
-            <DropdownMenu.Item class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2" onSelect={onImport}>
+            <DropdownMenu.Item
+              class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
+              onSelect={onImport}
+            >
               Import
             </DropdownMenu.Item>
           </DropdownMenu.Content>
@@ -120,7 +136,13 @@
       >
         Settings
       </button>
-      <button type="button" class="rounded-full bg-primary px-2 py-2 text-xs font-medium text-white hover:bg-primary-hover sm:px-3" onclick={() => onSave()}> Done </button>
+      <button
+        type="button"
+        class="rounded-full bg-primary px-2 py-2 text-xs font-medium text-white hover:bg-primary-hover sm:px-3"
+        onclick={() => onSave()}
+      >
+        Done
+      </button>
     </div>
 
     <button
@@ -130,7 +152,9 @@
       disabled={!canModify}
       title={canModify ? 'Delete dashboard' : 'Only the dashboard owner can delete it'}
     >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        ><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /></svg
+      >
       <span class="hidden sm:inline">Delete</span>
     </button>
   </div>
@@ -141,7 +165,9 @@
       class="flex h-11 items-center gap-1.5 rounded-full border border-border bg-surface px-5 text-xs font-medium text-text shadow-lg hover:bg-surface-2"
       onclick={() => editMode.set(true)}
     >
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"
+        ><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg
+      >
       Edit
     </button>
   </div>

@@ -1,17 +1,19 @@
 <script lang="ts">
-  import { DropdownMenu } from 'bits-ui';
-  import { theme, setTheme } from '../lib/stores';
-  import { themeOptions } from '../lib/themes';
+  import { DropdownMenu } from 'bits-ui'
+  import { theme, setTheme } from '../lib/stores'
+  import { themeOptions } from '../lib/themes'
 
-  let { inset = false }: { inset?: boolean } = $props();
-  const systemTheme = themeOptions[0];
-  const lightThemes = themeOptions.filter((option) => option.mode === 'light');
-  const darkThemes = themeOptions.filter((option) => option.mode === 'dark');
+  let { inset = false }: { inset?: boolean } = $props()
+  const systemTheme = themeOptions[0]
+  const lightThemes = themeOptions.filter((option) => option.mode === 'light')
+  const darkThemes = themeOptions.filter((option) => option.mode === 'dark')
 </script>
 
 {#snippet optionItem(option: (typeof themeOptions)[number])}
   <DropdownMenu.Item
-    class="flex cursor-pointer items-center gap-2 rounded-lg py-2 pr-2.5 text-sm text-text outline-none data-[highlighted]:bg-surface-2 {inset ? 'pl-7' : 'pl-2.5'}"
+    class="flex cursor-pointer items-center gap-2 rounded-lg py-2 pr-2.5 text-sm text-text outline-none data-highlighted:bg-surface-2 {inset
+      ? 'pl-7'
+      : 'pl-2.5'}"
     onSelect={() => setTheme(option.value)}
   >
     <span class="h-3.5 w-3.5 shrink-0 rounded-full border border-border" style:background={option.swatch}></span>
