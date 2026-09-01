@@ -19,6 +19,7 @@
     onEdit,
     onDelete,
     onClone,
+    onCopyTo,
     onAddItem,
   }: {
     group: Group;
@@ -31,6 +32,7 @@
     onEdit?: (g: Group) => void;
     onDelete?: (g: Group) => void;
     onClone?: (g: Group) => void;
+    onCopyTo?: (g: Group) => void;
     onAddItem?: (g: Group) => void;
   } = $props();
 
@@ -128,6 +130,9 @@
                 >
                 <DropdownMenu.Item class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => onClone?.(group)}
                   >Clone</DropdownMenu.Item
+                >
+                <DropdownMenu.Item class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-2" onSelect={() => onCopyTo?.(group)}
+                  >Copy to dashboard…</DropdownMenu.Item
                 >
                 <DropdownMenu.Separator class="my-1 h-px bg-border-soft" />
                 <DropdownMenu.Item class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-danger outline-none data-[highlighted]:bg-danger-soft" onSelect={() => onDelete?.(group)}

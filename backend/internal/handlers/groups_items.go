@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"crypto/tls"
 	"net/http"
 	"net/url"
@@ -401,6 +402,100 @@ func (h *GroupItemHandler) CloneGroup(w http.ResponseWriter, r *http.Request) {
 	}
 	_ = h.db.NewSelect().Model(ng).WherePK().Relation("Items").Scan(r.Context())
 	writeJSON(w, http.StatusCreated, ng)
+}
+
+func (h *GroupItemHandler) CloneGroupToDashboard(w http.ResponseWriter, r *http.Request) {
+	g := new(models.Group)
+	if err := h.db.NewSelect().Model(g).Where("id = ?", chi.URLParam(r, "id")).Relation("Items", func(q *bun.SelectQuery) *bun.SelectQuery {
+		return q.OrderExpr("position ASC")
+	}).Scan(r.Context()); err != nil {
+		writeError(w, http.StatusNotFound, "group not found")
+		return
+	}
+	if _, ok := h.canEditDashboard(r, g.DashboardID); !ok {
+		writeError(w, http.StatusForbidden, "cannot edit source dashboard")
+		return
+	}
+
+	var req struct {
+		DashboardID string `json:"dashboardId"`
+	}
+	if err := decodeJSON(r, &req); err != nil || strings.TrimSpace(req.DashboardID) == "" {
+		writeError(w, http.StatusBadRequest, "dashboardId required")
+		return
+	}
+	if req.DashboardID == g.DashboardID {
+		writeError(w, http.StatusBadRequest, "destination dashboard must be different")
+		return
+	}
+	if _, ok := h.canEditDashboard(r, req.DashboardID); !ok {
+		writeError(w, http.StatusForbidden, "cannot edit destination dashboard")
+		return
+	}
+
+	clone, err := h.cloneGroupToDashboard(r.Context(), g, req.DashboardID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusCreated, clone)
+}
+
+func (h *GroupItemHandler) cloneGroupToDashboard(ctx context.Context, source *models.Group, dashboardID string) (*models.Group, error) {
+	tx, err := h.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	var maxPosition int
+	if err := tx.NewSelect().Model((*models.Group)(nil)).
+		ColumnExpr("COALESCE(MAX(position), -1)").
+		Where("dashboard_id = ?", dashboardID).
+		Scan(ctx, &maxPosition); err != nil {
+		return nil, err
+	}
+	clone := &models.Group{
+		ID:          uuid.NewString(),
+		DashboardID: dashboardID,
+		Title:       source.Title,
+		Description: source.Description,
+		Icon:        source.Icon,
+		IconDark:    source.IconDark,
+		ItemSize:    source.ItemSize,
+		Position:    maxPosition + 1,
+	}
+	if _, err := tx.NewInsert().Model(clone).Exec(ctx); err != nil {
+		return nil, err
+	}
+	for _, item := range source.Items {
+		copy := &models.Item{
+			ID:           uuid.NewString(),
+			GroupID:      clone.ID,
+			Title:        item.Title,
+			Description:  item.Description,
+			URL:          item.URL,
+			Icon:         item.Icon,
+			IconDark:     item.IconDark,
+			PingEnabled:  item.PingEnabled,
+			PingOnlyDown: item.PingOnlyDown,
+			PingURL:      item.PingURL,
+			PingSkipTLS:  item.PingSkipTLS,
+			Position:     item.Position,
+		}
+		if _, err := tx.NewInsert().Model(copy).Exec(ctx); err != nil {
+			return nil, err
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	if err := h.db.NewSelect().Model(clone).WherePK().Relation("Items", func(q *bun.SelectQuery) *bun.SelectQuery {
+		return q.OrderExpr("position ASC")
+	}).Scan(ctx); err != nil {
+		return nil, err
+	}
+	return clone, nil
 }
 
 func (h *GroupItemHandler) CloneItem(w http.ResponseWriter, r *http.Request) {

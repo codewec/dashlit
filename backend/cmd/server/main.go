@@ -123,6 +123,7 @@ func main() {
 		r.With(auth.RequireAuth).Put("/groups/{id}", giH.UpdateGroup)
 		r.With(auth.RequireAuth).Delete("/groups/{id}", giH.DeleteGroup)
 		r.With(auth.RequireAuth).Post("/groups/{id}/clone", giH.CloneGroup)
+		r.With(auth.RequireAuth).Post("/groups/{id}/clone-to", giH.CloneGroupToDashboard)
 		r.With(auth.RequireAuth).Post("/groups/{groupID}/items", giH.CreateItem)
 		r.With(auth.RequireAuth).Put("/items/{id}", giH.UpdateItem)
 		r.With(auth.RequireAuth).Delete("/items/{id}", giH.DeleteItem)

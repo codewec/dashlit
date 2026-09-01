@@ -118,6 +118,8 @@ export const api = {
   updateGroup: (id: string, data: Partial<Group>) =>
     request<Group>(`/groups/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteGroup: (id: string) => request(`/groups/${id}`, { method: 'DELETE' }),
+  cloneGroupToDashboard: (id: string, dashboardId: string) =>
+    request<Group>(`/groups/${id}/clone-to`, { method: 'POST', body: JSON.stringify({ dashboardId }) }),
   createItem: (groupId: string, data: Partial<Item>) =>
     request<Item>(`/groups/${groupId}/items`, { method: 'POST', body: JSON.stringify(data) }),
   updateItem: (id: string, data: Partial<Item> & { groupId?: string }) =>

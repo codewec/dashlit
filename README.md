@@ -34,7 +34,7 @@
 - URL availability monitoring with live status chips
 - Local password authentication and OIDC, including Pocket ID
 - User profile and administration pages
-- Import, export, and cloning for dashboards, groups, and items
+- Import, export, and cloning for dashboards, groups, and items, including copying groups between dashboards
 - Built-in icon search across selfh.st/icons and Iconify
 - Automatic light/dark icon pairing from selfh.st and light rendering of monochrome Iconify icons on dark themes
 - Multiple light and dark Catppuccin-inspired themes

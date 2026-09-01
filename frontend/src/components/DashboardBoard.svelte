@@ -15,6 +15,7 @@
     onEditGroup,
     onDeleteGroup,
     onCloneGroup,
+    onCopyGroupToDashboard,
     onAddItem,
     onEditItem,
     onDeleteItem,
@@ -28,6 +29,7 @@
     onEditGroup: (g: Group) => void;
     onDeleteGroup: (g: Group) => void;
     onCloneGroup: (g: Group) => void;
+    onCopyGroupToDashboard: (g: Group) => void;
     onAddItem: (g: Group) => void;
     onEditItem: (item: Item) => void;
     onDeleteItem: (item: Item) => void;
@@ -85,7 +87,7 @@
     <div class={outerClass}>
       {#each filtered as group, gIndex (group.id)}
         <div class={cellClass} data-dashboard-group={group.id}>
-          <GroupCard {group} index={gIndex} layout={dashboard.layout} wide={dashboard.width === 'wide'} {canModify} onEdit={onEditGroup} onDelete={onDeleteGroup} onClone={onCloneGroup} {onAddItem}>
+          <GroupCard {group} index={gIndex} layout={dashboard.layout} wide={dashboard.width === 'wide'} {canModify} onEdit={onEditGroup} onDelete={onDeleteGroup} onClone={onCloneGroup} onCopyTo={onCopyGroupToDashboard} {onAddItem}>
             {#each byGroup[group.id] || [] as item, iIndex (item.id)}
               <ItemCard {item} index={iIndex} groupId={group.id} itemSize={group.itemSize} {canModify} onEdit={onEditItem} onDelete={onDeleteItem} onClone={onCloneItem} />
             {/each}

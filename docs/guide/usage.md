@@ -59,4 +59,4 @@ Availability is a convenience signal from the DashLit server, not a replacement 
 
 Dashboard export creates a portable DashLit JSON file containing dashboard settings, groups, and items. Import it while signed in to create a new owned dashboard. Slug conflicts are resolved automatically.
 
-You can also clone complete dashboards, individual groups, or individual items when building similar views.
+You can also clone complete dashboards, individual groups, or individual items when building similar views. From a group's actions menu, choose **Copy to dashboard…** to select another dashboard you can edit and copy the group there together with all of its links and settings.

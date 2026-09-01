@@ -26,6 +26,7 @@
   import ItemFormModal from '../components/ItemFormModal.svelte';
   import DashboardFormModal from '../components/DashboardFormModal.svelte';
   import ConfirmModal from '../components/ConfirmModal.svelte';
+  import CopyGroupModal from '../components/CopyGroupModal.svelte';
   import { toast, toastError } from '../lib/toasts';
 
   let { params = { slug: '' } } = $props<{ params?: { slug?: string } }>();
@@ -50,8 +51,18 @@
   let confirmOpen = $state(false);
   let confirmMsg = $state('');
   let confirmAction = $state<(() => Promise<void>) | null>(null);
+  let copyGroupOpen = $state(false);
+  let groupToCopy = $state<Group | null>(null);
+  let copyingDashboardId = $state('');
   const canModifyDashboard = $derived(
     !!dashboard && !!$user && (dashboard.ownerId === $user.id || $user.role === 'admin'),
+  );
+  const copyGroupTargets = $derived(
+    dashList.filter((candidate) =>
+      candidate.id !== dashboard?.id
+      && !!$user
+      && (candidate.ownerId === $user.id || $user.role === 'admin'),
+    ),
   );
 
   function askConfirm(message: string, action: () => Promise<void>) {
@@ -348,6 +359,26 @@
     }
   }
 
+  function openCopyGroup(g: Group) {
+    groupToCopy = g;
+    copyingDashboardId = '';
+    copyGroupOpen = true;
+  }
+
+  async function copyGroupToDashboard(target: DashListItem) {
+    if (!groupToCopy) return;
+    copyingDashboardId = target.id;
+    try {
+      await api.cloneGroupToDashboard(groupToCopy.id, target.id);
+      copyGroupOpen = false;
+      toast.success(`Group copied to ${target.name}`);
+    } catch (e: unknown) {
+      toastError(e, 'Could not copy group');
+    } finally {
+      copyingDashboardId = '';
+    }
+  }
+
   async function cloneItem(item: Item) {
     try {
       const created = await api.cloneItem(item.id);
@@ -393,6 +424,7 @@
             await load();
           })}
         onCloneGroup={cloneGroup}
+        onCopyGroupToDashboard={openCopyGroup}
         onAddItem={openNewItem}
         onEditItem={openEditItem}
         onDeleteItem={(it) =>
@@ -432,6 +464,7 @@
             await load();
           })}
         onCloneGroup={cloneGroup}
+        onCopyGroupToDashboard={openCopyGroup}
         onAddItem={openNewItem}
         onEditItem={openEditItem}
         onDeleteItem={(it) =>
@@ -487,3 +520,4 @@
     await confirmAction?.();
   }}
 />
+<CopyGroupModal bind:open={copyGroupOpen} group={groupToCopy} dashboards={copyGroupTargets} {copyingDashboardId} onSelect={copyGroupToDashboard} />
