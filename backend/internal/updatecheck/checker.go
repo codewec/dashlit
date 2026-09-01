@@ -23,7 +23,7 @@ type Info struct {
 	Version         string `json:"version"`
 	Commit          string `json:"commit"`
 	LatestVersion   string `json:"latestVersion,omitempty"`
-	UpdateAvailable bool   `json:"updateAvailable"`
+	UpdateAvailable bool   `json:"updateAvailable,omitempty"`
 	ReleaseURL      string `json:"releaseUrl,omitempty"`
 }
 
@@ -50,8 +50,12 @@ func New(version, commit string, enabled bool, latestOverride string) *Checker {
 	}
 }
 
+func (c *Checker) Current() Info {
+	return Info{Version: fallback(c.version, "dev"), Commit: fallback(c.commit, "unknown")}
+}
+
 func (c *Checker) Info(ctx context.Context) Info {
-	info := Info{Version: fallback(c.version, "dev"), Commit: fallback(c.commit, "unknown")}
+	info := c.Current()
 	if !c.enabled || !validVersion(info.Version) {
 		return info
 	}

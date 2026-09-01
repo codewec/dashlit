@@ -169,7 +169,7 @@ The container image already provides appropriate values for these internal setti
 | `DATA_DIR`      | `./data`                 | Database, uploaded icons, and cache directory; the image uses `/data` |
 | `DATABASE_PATH` | `$DATA_DIR/bookmarks.db` | Custom SQLite database path                                           |
 
-Release builds embed their Git tag and commit in the executable. Check a native installation with `dashlit --version`; the same version is shown in the application footer. Update checks are cached for 12 hours and failures never prevent DashLit from starting. Set `UPDATE_CHECK_ENABLED=false` to disable the outbound GitHub request.
+Release builds embed their Git tag and commit in the executable. Check a native installation with `dashlit --version`; the same version is shown in the application footer. Update checks run only for administrator sessions, are cached for 12 hours, and failures never prevent DashLit from starting. Regular users receive no available-release information. Set `UPDATE_CHECK_ENABLED=false` to disable the outbound GitHub request.
 
 To provision the first administrator non-interactively, set both `INITIAL_ADMIN_USERNAME` and `INITIAL_ADMIN_PASSWORD` before the first start. The password must contain at least six characters. DashLit creates the account only while the users table is empty; after any user exists, both variables are ignored and can be removed from the deployment configuration. They do not reset or update an existing account.
 

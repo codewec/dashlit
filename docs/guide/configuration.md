@@ -14,7 +14,7 @@ Most container installations only need a secure `JWT_SECRET`. Docker already pro
 | `DEV_MODE` | `false` | Enables verbose database diagnostics for development. |
 | `UPDATE_CHECK_ENABLED` | `true` | Checks GitHub Releases for a newer stable DashLit version. |
 
-Release builds contain their Git tag and commit. The installed version appears in the footer and can be inspected in a native installation with `dashlit --version`. DashLit caches the GitHub result for 12 hours; a failed check does not affect startup or normal operation. Set `UPDATE_CHECK_ENABLED=false` if the instance must not make this outbound request.
+Release builds contain their Git tag and commit. The installed version appears in the footer and can be inspected in a native installation with `dashlit --version`. DashLit checks GitHub only for administrator sessions and caches the result for 12 hours; regular users receive no available-release information. A failed check does not affect startup or normal operation. Set `UPDATE_CHECK_ENABLED=false` if the instance must not make this outbound request.
 
 ## Initial administrator
 

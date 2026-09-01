@@ -70,7 +70,7 @@ export type SystemInfo = {
   version: string;
   commit: string;
   latestVersion?: string;
-  updateAvailable: boolean;
+  updateAvailable?: boolean;
   releaseUrl?: string;
 };
 

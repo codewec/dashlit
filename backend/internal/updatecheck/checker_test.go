@@ -47,6 +47,17 @@ func TestDevelopmentBuildDoesNotCheckForUpdates(t *testing.T) {
 	}
 }
 
+func TestCurrentDoesNotCheckForUpdates(t *testing.T) {
+	called := false
+	checker := New("v1.0.0", "abc123", true, "")
+	checker.client = jsonClient(`{"tag_name":"v9.9.9"}`, func() { called = true })
+
+	info := checker.Current()
+	if called || info.Version != "v1.0.0" || info.LatestVersion != "" || info.UpdateAvailable {
+		t.Fatalf("unexpected current info: %#v, called: %v", info, called)
+	}
+}
+
 func TestLatestVersionOverrideSupportsLocalTesting(t *testing.T) {
 	checker := New("v1.0.0", "local", true, "v9.9.9")
 	info := checker.Info(context.Background())
