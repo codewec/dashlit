@@ -1,6 +1,29 @@
 # Changelog
 
 All notable changes to DashLit are documented in this file.
+## [1.0.6] - 2026-09-01
+
+### Features
+
+- **back:** Initial user #30 ([4a7f230](https://github.com/codewec/dashlit/commit/4a7f23076565e09d1bb0399454fe0b8c9b462b9e))
+- Copy group to dashboard ([12ea96a](https://github.com/codewec/dashlit/commit/12ea96aa59bb4d12777e506f2fba187b6b704e34))
+
+
+### Fixes
+
+- Add env flags ([85ab0f0](https://github.com/codewec/dashlit/commit/85ab0f0c1682d79c0965c6ed14e21bfe80a6cf75))
+- The new version check is admin-only. ([513da6a](https://github.com/codewec/dashlit/commit/513da6a7c7001f3df41aca235259074c5a151df5))
+
+
+### Documentation
+
+- Update screenshots ([9119b0e](https://github.com/codewec/dashlit/commit/9119b0e7f68b6a740443ad39d512684c314562bc))
+
+
+### Chores
+
+- **front:** Format ([7a7e2d6](https://github.com/codewec/dashlit/commit/7a7e2d6e0b100f1a3b7f0632e37bf24a3f1438c9))
+
 ## [1.0.5] - 2026-08-31
 
 ### Features
