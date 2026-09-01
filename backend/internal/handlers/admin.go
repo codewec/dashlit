@@ -59,6 +59,8 @@ func (h *AdminHandler) Overview(w http.ResponseWriter, r *http.Request) {
 		"dashboards": dashboards,
 		"flags": map[string]bool{
 			"DEV_MODE":                      h.cfg.DevMode,
+			"OIDC_INSECURE_SKIP_TLS_VERIFY": h.cfg.OIDCInsecureSkipTLSVerify,
+			"UPDATE_CHECK_ENABLED":          h.cfg.UpdateCheckEnabled,
 			"DISABLE_PASSWORD_REGISTRATION": h.cfg.DisablePasswordRegistration,
 			"DISABLE_OIDC_REGISTRATION":     h.cfg.DisableOIDCRegistration,
 			"DISABLE_PASSWORD_LOGIN":        h.cfg.DisablePasswordLogin,

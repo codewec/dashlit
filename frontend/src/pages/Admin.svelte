@@ -26,6 +26,8 @@
 
   const flagDescriptions: Record<string, string> = {
     DEV_MODE: 'Enables development-mode behavior.',
+    OIDC_INSECURE_SKIP_TLS_VERIFY: 'Disables TLS certificate verification for OIDC requests.',
+    UPDATE_CHECK_ENABLED: 'Checks GitHub Releases for newer stable DashLit versions.',
     DISABLE_PASSWORD_REGISTRATION: 'Prevents new users from registering with a password.',
     DISABLE_OIDC_REGISTRATION: 'Prevents creation of new users through OIDC.',
     DISABLE_PASSWORD_LOGIN: 'Disables password sign-in and password registration.',
