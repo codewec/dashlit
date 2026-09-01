@@ -9,10 +9,25 @@ Most container installations only need a secure `JWT_SECRET`. Docker already pro
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `JWT_SECRET` | Development value | Secret used to sign sessions. Always replace it in production. |
+| `INITIAL_ADMIN_USERNAME` | Empty | Username used to create the first administrator automatically. |
+| `INITIAL_ADMIN_PASSWORD` | Empty | Password used to create the first administrator automatically. |
 | `DEV_MODE` | `false` | Enables verbose database diagnostics for development. |
 | `UPDATE_CHECK_ENABLED` | `true` | Checks GitHub Releases for a newer stable DashLit version. |
 
 Release builds contain their Git tag and commit. The installed version appears in the footer and can be inspected in a native installation with `dashlit --version`. DashLit caches the GitHub result for 12 hours; a failed check does not affect startup or normal operation. Set `UPDATE_CHECK_ENABLED=false` if the instance must not make this outbound request.
+
+## Initial administrator
+
+For unattended deployments, set both bootstrap variables before the first start:
+
+```dotenv
+INITIAL_ADMIN_USERNAME=admin
+INITIAL_ADMIN_PASSWORD=replace-with-a-secure-password
+```
+
+DashLit creates this user as an administrator only when the users table is empty. The password must contain at least six characters. If only one variable is set on an empty database, startup stops with a configuration error. As soon as any user exists, both values are completely ignored: changing them cannot rename the administrator or reset its password. Remove them from Compose or `.env` after provisioning to avoid retaining the plaintext password.
+
+This bootstrap is independent of `DISABLE_PASSWORD_REGISTRATION`, allowing registration to remain disabled in an automatically provisioned installation.
 
 ## Authentication settings
 

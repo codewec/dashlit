@@ -30,6 +30,8 @@ type Config struct {
 	UpdateCheckEnabled          bool
 	VersionOverride             string
 	LatestVersionOverride       string
+	InitialAdminUsername        string
+	InitialAdminPassword        string
 }
 
 func Load() *Config {
@@ -64,6 +66,8 @@ func Load() *Config {
 		UpdateCheckEnabled:          envBool("UPDATE_CHECK_ENABLED", true),
 		VersionOverride:             strings.TrimSpace(os.Getenv("DASHLIT_VERSION_OVERRIDE")),
 		LatestVersionOverride:       strings.TrimSpace(os.Getenv("UPDATE_CHECK_LATEST_VERSION")),
+		InitialAdminUsername:        strings.TrimSpace(os.Getenv("INITIAL_ADMIN_USERNAME")),
+		InitialAdminPassword:        os.Getenv("INITIAL_ADMIN_PASSWORD"),
 	}
 }
 

@@ -59,6 +59,13 @@ func main() {
 	defer database.Close()
 
 	authSvc := auth.NewService(database, cfg)
+	createdInitialAdmin, err := authSvc.BootstrapAdmin(context.Background(), cfg.InitialAdminUsername, cfg.InitialAdminPassword)
+	if err != nil {
+		log.Fatalf("initial admin: %v", err)
+	}
+	if createdInitialAdmin {
+		log.Printf("created initial administrator %q", cfg.InitialAdminUsername)
+	}
 	legacyMigrator, err := legacy.NewMigrator(context.Background(), database, cfg)
 	if err != nil {
 		log.Printf("legacy dashboard migration disabled: %v", err)

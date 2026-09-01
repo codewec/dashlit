@@ -105,6 +105,41 @@ func (s *Service) Register(ctx context.Context, username, password string) (*mod
 	return user, nil
 }
 
+// BootstrapAdmin creates the first administrator from deployment credentials.
+// Once any user exists, the supplied values are deliberately ignored.
+func (s *Service) BootstrapAdmin(ctx context.Context, username, password string) (bool, error) {
+	count, err := s.db.NewSelect().Model((*models.User)(nil)).Count(ctx)
+	if err != nil {
+		return false, err
+	}
+	if count > 0 {
+		return false, nil
+	}
+
+	username = strings.TrimSpace(username)
+	if username == "" && password == "" {
+		return false, nil
+	}
+	if username == "" || password == "" {
+		return false, errors.New("INITIAL_ADMIN_USERNAME and INITIAL_ADMIN_PASSWORD must both be set")
+	}
+	if len(username) > 64 {
+		return false, errors.New("INITIAL_ADMIN_USERNAME must not exceed 64 characters")
+	}
+	if len(password) < 6 {
+		return false, errors.New("INITIAL_ADMIN_PASSWORD must be at least 6 characters")
+	}
+
+	user, err := s.Register(ctx, username, password)
+	if err != nil {
+		return false, err
+	}
+	if user.Role != models.RoleAdmin {
+		return false, errors.New("bootstrap user was not created as administrator")
+	}
+	return true, nil
+}
+
 func (s *Service) Login(ctx context.Context, username, password string) (*models.User, string, error) {
 	user := new(models.User)
 	err := s.db.NewSelect().Model(user).Where("username = ?", username).Scan(ctx)

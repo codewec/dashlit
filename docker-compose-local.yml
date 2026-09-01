@@ -16,6 +16,8 @@ services:
       ADDR: ':8080'
       DATA_DIR: /data
       JWT_SECRET: '${JWT_SECRET:-local-development-secret-change-me}'
+      INITIAL_ADMIN_USERNAME: '${INITIAL_ADMIN_USERNAME:-}'
+      INITIAL_ADMIN_PASSWORD: '${INITIAL_ADMIN_PASSWORD:-}'
       DEV_MODE: '${DEV_MODE:-false}'
       UPDATE_CHECK_ENABLED: '${UPDATE_CHECK_ENABLED:-true}'
       DASHLIT_VERSION_OVERRIDE: '${DASHLIT_VERSION_OVERRIDE:-}'

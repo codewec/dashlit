@@ -144,6 +144,8 @@ Most container installations only need to set `JWT_SECRET` and, when required, t
 | Variable                        | Default             | Description                                            |
 | ------------------------------- | ------------------- | ------------------------------------------------------ |
 | `JWT_SECRET`                    | Development value   | Signing secret; always replace in production           |
+| `INITIAL_ADMIN_USERNAME`        | Empty               | Username for one-time first administrator creation     |
+| `INITIAL_ADMIN_PASSWORD`        | Empty               | Password for one-time first administrator creation     |
 | `DEV_MODE`                      | `false`             | Enable development diagnostics                         |
 | `OIDC_ISSUER`                   | Empty               | OIDC issuer URL; leave empty to disable OIDC           |
 | `OIDC_CLIENT_ID`                | Empty               | OIDC client ID                                         |
@@ -168,6 +170,8 @@ The container image already provides appropriate values for these internal setti
 | `DATABASE_PATH` | `$DATA_DIR/bookmarks.db` | Custom SQLite database path                                           |
 
 Release builds embed their Git tag and commit in the executable. Check a native installation with `dashlit --version`; the same version is shown in the application footer. Update checks are cached for 12 hours and failures never prevent DashLit from starting. Set `UPDATE_CHECK_ENABLED=false` to disable the outbound GitHub request.
+
+To provision the first administrator non-interactively, set both `INITIAL_ADMIN_USERNAME` and `INITIAL_ADMIN_PASSWORD` before the first start. The password must contain at least six characters. DashLit creates the account only while the users table is empty; after any user exists, both variables are ignored and can be removed from the deployment configuration. They do not reset or update an existing account.
 
 When DashLit is behind a reverse proxy, use the external HTTPS address for the callback:
 
