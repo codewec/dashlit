@@ -6,19 +6,15 @@ Sign in, create a dashboard, and choose a unique URL slug. The slug becomes part
 
 Use edit mode to drag groups into a new order or move links within and between groups. Layout changes are saved to the server.
 
-<div class="screenshot-placeholder">
-  <div><strong>Dashboard editor placeholder</strong><br>Add a screenshot showing groups, items, and edit controls.</div>
-</div>
-
 ## Visibility
 
 Choose visibility based on who should reach the dashboard:
 
-| Visibility | Anonymous visitor | Signed-in user | Owner or admin |
-| --- | ---: | ---: | ---: |
-| Public | ✓ | ✓ | ✓ |
-| Authenticated users | — | ✓ | ✓ |
-| Private | — | — | ✓ |
+| Visibility          | Anonymous visitor | Signed-in user | Owner or admin |
+| ------------------- | ----------------: | -------------: | -------------: |
+| Public              |                 ✓ |              ✓ |              ✓ |
+| Authenticated users |                 — |              ✓ |              ✓ |
+| Private             |                 — |              — |              ✓ |
 
 Administrators can select a non-private dashboard as the system main dashboard. This is the landing view for users who do not have a personal default and for anonymous visitors when it is public.
 

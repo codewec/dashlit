@@ -71,10 +71,6 @@ If `DATABASE_PATH` is customized, place the JSON beside that file rather than di
 
 The selection is carried through OIDC in a short-lived, HttpOnly cookie. No migration choice or dashboard data is stored in browser local storage.
 
-<div class="screenshot-placeholder">
-  <div><strong>Legacy migration placeholder</strong><br>Add a screenshot of the detection message and import switch.</div>
-</div>
-
 ## What is migrated
 
 The converter imports groups in their original order and links in each group's original order. It preserves group titles and descriptions plus link titles, descriptions, URLs, and icons.
