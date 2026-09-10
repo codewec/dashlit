@@ -2,7 +2,8 @@
   import { onMount, tick } from 'svelte'
   import { push, replace } from 'svelte-spa-router'
   import { api, type Dashboard, type Group, type Item } from '../lib/api'
-  import { user, editMode, currentDashboard } from '../lib/stores'
+  import { user, editMode, currentDashboard, searchQuery } from '../lib/stores'
+  import DashboardFilter from '../components/DashboardFilter.svelte'
   import {
     type DashListItem,
     type GroupForm,
@@ -54,6 +55,35 @@
   let copyGroupOpen = $state(false)
   let groupToCopy = $state<Group | null>(null)
   let copyingDashboardId = $state('')
+
+  async function handleFilterKeydown(event: KeyboardEvent) {
+    if (loading || !dashboard || event.defaultPrevented || event.isComposing || event.ctrlKey || event.metaKey || event.altKey) return
+    if (groupOpen || itemOpen || dashOpen || confirmOpen || copyGroupOpen) return
+    if (document.querySelector('[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]')) return
+
+    const target = event.target
+    const isFilter = target instanceof HTMLElement && target.matches('[data-dashboard-filter]')
+    if (
+      target instanceof HTMLElement &&
+      !isFilter &&
+      target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]')
+    )
+      return
+
+    if (event.key === 'Escape') {
+      searchQuery.set('')
+      event.preventDefault()
+      return
+    }
+    if (isFilter || event.key.length !== 1 || !/\S/u.test(event.key)) return
+
+    event.preventDefault()
+    searchQuery.update((query) => query + event.key)
+    await tick()
+    const input = document.querySelector<HTMLInputElement>('[data-dashboard-filter]')
+    input?.focus()
+    input?.setSelectionRange(input.value.length, input.value.length)
+  }
   const canModifyDashboard = $derived(!!dashboard && !!$user && (dashboard.ownerId === $user.id || $user.role === 'admin'))
   const copyGroupTargets = $derived(
     dashList.filter((candidate) => candidate.id !== dashboard?.id && !!$user && (candidate.ownerId === $user.id || $user.role === 'admin')),
@@ -390,6 +420,8 @@
   }
 </script>
 
+<svelte:window onkeydown={handleFilterKeydown} />
+
 {#if loading}
   <div class="flex min-h-dvh items-center justify-center text-sm text-text-subtle">Loading…</div>
 {:else if notFound}
@@ -401,6 +433,11 @@
 {:else if dashboard}
   {@const d = dashboard}
   {#if d.cleanMode}
+    {#if $searchQuery}
+      <div class="fixed left-1/2 top-4 z-40 w-[min(20rem,calc(100vw-2rem))] -translate-x-1/2 rounded-btn bg-surface p-2 shadow-xl">
+        <DashboardFilter />
+      </div>
+    {/if}
     <div class={pageContainerClass(d.width === 'wide', !!$user && $editMode)}>
       <CleanHeader dashboard={d} dashboards={dashList} />
       <DashboardBoard

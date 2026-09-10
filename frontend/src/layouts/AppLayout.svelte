@@ -3,7 +3,8 @@
   import { push } from 'svelte-spa-router'
   import { DropdownMenu, Select } from 'bits-ui'
   import { api, setToken } from '../lib/api'
-  import { user, editMode, theme, resolvedTheme, searchQuery, systemInfo } from '../lib/stores'
+  import { user, editMode, theme, resolvedTheme, systemInfo } from '../lib/stores'
+  import DashboardFilter from '../components/DashboardFilter.svelte'
   import { cn } from '../lib/cn'
   import Icon from '../components/Icon.svelte'
   import NavMenu from '../components/NavMenu.svelte'
@@ -141,12 +142,7 @@
 
       <div class="min-w-0 flex-1">
         {#if showSearch}
-          <input
-            type="search"
-            placeholder="Filter…"
-            bind:value={$searchQuery}
-            class="w-full max-w-xs rounded-btn border border-border bg-surface px-3 py-1.5 text-sm outline-none placeholder:text-text-subtle focus:border-primary"
-          />
+          <DashboardFilter />
         {/if}
       </div>
 
