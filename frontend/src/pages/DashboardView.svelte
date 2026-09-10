@@ -88,6 +88,9 @@
   const copyGroupTargets = $derived(
     dashList.filter((candidate) => candidate.id !== dashboard?.id && !!$user && (candidate.ownerId === $user.id || $user.role === 'admin')),
   )
+  const usedItemHotkeys = $derived(
+    groups.flatMap((group) => (group.items ?? []).filter((item) => item.id !== editingItem?.id && !!item.hotkey).map((item) => item.hotkey)),
+  )
 
   function askConfirm(message: string, action: () => Promise<void>) {
     confirmMsg = message
@@ -239,6 +242,7 @@
       pingOnlyDown: itemForm.pingOnlyDown,
       pingUrl: itemForm.pingUrl.trim(),
       pingSkipTls: itemForm.pingSkipTls,
+      hotkey: itemForm.hotkey,
     }
     try {
       if (editingItem) await api.updateItem(editingItem.id, payload)
@@ -532,7 +536,13 @@
 {/if}
 
 <GroupFormModal bind:open={groupOpen} bind:form={groupForm} editing={!!editingGroup} onSave={saveGroup} />
-<ItemFormModal bind:open={itemOpen} bind:form={itemForm} editing={!!editingItem} onSave={saveItem} />
+<ItemFormModal
+  bind:open={itemOpen}
+  bind:form={itemForm}
+  editing={!!editingItem}
+  usedHotkeys={usedItemHotkeys}
+  onSave={saveItem}
+/>
 <DashboardFormModal
   bind:open={dashOpen}
   bind:form={dashForm}

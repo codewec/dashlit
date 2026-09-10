@@ -109,6 +109,7 @@ export type ItemForm = {
   pingOnlyDown: boolean
   pingUrl: string
   pingSkipTls: boolean
+  hotkey: string
 }
 
 export type DashboardForm = {
@@ -151,6 +152,7 @@ export function emptyItemForm(groupId = ''): ItemForm {
     pingOnlyDown: false,
     pingUrl: '',
     pingSkipTls: false,
+    hotkey: '',
   }
 }
 
@@ -166,6 +168,7 @@ export function itemToForm(item: Item): ItemForm {
     pingOnlyDown: item.pingOnlyDown ?? false,
     pingUrl: item.pingUrl || '',
     pingSkipTls: item.pingSkipTls ?? false,
+    hotkey: item.hotkey || '',
   }
 }
 

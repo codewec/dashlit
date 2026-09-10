@@ -3,30 +3,69 @@
   import type { ItemForm } from '../lib/dashboard-helpers'
   import Modal from './Modal.svelte'
   import IconField from './IconField.svelte'
+  import { formatHotkey, formatModifierPreview, hotkeyFromEvent, hotkeysEquivalent } from '../lib/hotkeys'
 
   let {
     open = $bindable(false),
     form = $bindable(),
     editing = false,
+    usedHotkeys = [],
     onSave,
   }: {
     open?: boolean
     form: ItemForm
     editing?: boolean
+    usedHotkeys?: string[]
     onSave: () => void | Promise<void>
   } = $props()
 
   let titleErr = $state(false)
   let urlErr = $state(false)
   let availabilityExpanded = $state(false)
+  let hotkeyError = $state('')
+  let hotkeyPreview = $state('')
+  const hotkeyConflict = $derived(!!form.hotkey && usedHotkeys.some((hotkey) => hotkeysEquivalent(form.hotkey, hotkey)))
 
   $effect(() => {
     if (!open || !form.pingEnabled) {
       availabilityExpanded = false
+      if (!open) {
+        hotkeyError = ''
+        hotkeyPreview = ''
+      }
     } else {
       availabilityExpanded = true
     }
   })
+
+  function captureHotkey(event: KeyboardEvent) {
+    event.preventDefault()
+    event.stopPropagation()
+    if (event.key === 'Escape') {
+      ;(event.currentTarget as HTMLInputElement).blur()
+      hotkeyError = ''
+      hotkeyPreview = ''
+      return
+    }
+    if (event.key === 'Backspace' || event.key === 'Delete') {
+      form.hotkey = ''
+      hotkeyError = ''
+      return
+    }
+    const hotkey = hotkeyFromEvent(event)
+    if (!hotkey) {
+      hotkeyPreview = formatModifierPreview(event)
+      if (!['Control', 'Alt', 'Shift', 'Meta'].includes(event.key)) hotkeyError = 'Use at least one modifier key'
+      return
+    }
+    form.hotkey = hotkey
+    hotkeyPreview = ''
+    hotkeyError = ''
+  }
+
+  function releaseHotkeyModifier(event: KeyboardEvent) {
+    if (['Control', 'Alt', 'Shift', 'Meta'].includes(event.key)) hotkeyPreview = formatModifierPreview(event)
+  }
 
   function setPingEnabled(value: boolean) {
     form.pingEnabled = value
@@ -74,6 +113,42 @@
     <div>
       <span class="mb-1 block text-xs text-text-muted">Icon</span>
       <IconField bind:value={form.icon} bind:valueDark={form.iconDark} defaultIcon="mdi:link" />
+    </div>
+    <div class="hidden sm:block">
+      <span class="mb-1 block text-xs text-text-muted">Hotkey</span>
+      <div class="flex gap-2">
+        <input
+          readonly
+          value={hotkeyPreview || formatHotkey(form.hotkey)}
+          placeholder="Focus and press a combination"
+          aria-label="Item hotkey"
+          class="min-w-0 flex-1 cursor-default rounded-btn border border-border bg-bg-elevated px-3 py-2 text-sm outline-none placeholder:text-text-subtle focus:border-primary"
+          onkeydown={captureHotkey}
+          onkeyup={releaseHotkeyModifier}
+          onblur={() => (hotkeyPreview = '')}
+        />
+        {#if form.hotkey}
+          <button
+            type="button"
+            class="rounded-btn border border-border px-3 text-sm text-text-muted hover:bg-surface-2 hover:text-text"
+            onclick={() => {
+              form.hotkey = ''
+              hotkeyError = ''
+            }}>Clear</button
+          >
+        {/if}
+      </div>
+      {#if hotkeyConflict}
+        <span class="mt-1 block text-xs text-amber-600 dark:text-amber-400">
+          This hotkey is already used. All items assigned to it will open simultaneously. Your browser may ask for permission to open multiple tabs or block some of them.
+        </span>
+      {/if}
+      <span class="mt-1 block text-xs {hotkeyError ? 'text-danger' : 'text-text-subtle'}">
+        {hotkeyError || 'Press Ctrl, Alt, Shift or Meta together with another key. Backspace clears it.'}
+      </span>
+      <span class="mt-1 block text-xs text-text-subtle">
+        Some shortcuts may be intercepted by your operating system or browser, especially combinations using Meta.
+      </span>
     </div>
     <div class="rounded-btn border border-border bg-bg-elevated p-3">
       <div class="flex items-center justify-between gap-3">

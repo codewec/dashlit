@@ -107,6 +107,7 @@ type Item struct {
 	PingOnlyDown bool   `bun:"ping_only_down,notnull,default:false" json:"pingOnlyDown"`
 	PingURL      string `bun:"ping_url,notnull,default:''" json:"pingUrl"`
 	PingSkipTLS  bool   `bun:"ping_skip_tls,notnull,default:false" json:"pingSkipTls"`
+	Hotkey       string `bun:"hotkey,notnull,default:''" json:"hotkey"`
 	Position     int    `bun:"position,notnull,default:0" json:"position"`
 }
 

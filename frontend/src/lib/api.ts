@@ -49,6 +49,7 @@ export type Item = {
   pingOnlyDown: boolean
   pingUrl: string
   pingSkipTls: boolean
+  hotkey: string
   position: number
 }
 export type Group = {

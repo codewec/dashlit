@@ -168,6 +168,7 @@ type createItemReq struct {
 	PingOnlyDown bool   `json:"pingOnlyDown"`
 	PingURL      string `json:"pingUrl"`
 	PingSkipTLS  bool   `json:"pingSkipTls"`
+	Hotkey       string `json:"hotkey"`
 	Position     int    `json:"position"`
 }
 
@@ -190,6 +191,7 @@ func (h *GroupItemHandler) CreateItem(w http.ResponseWriter, r *http.Request) {
 	if req.Icon == "" {
 		req.Icon = "mdi:link"
 	}
+	req.Hotkey = strings.TrimSpace(req.Hotkey)
 	item := &models.Item{
 		ID:           uuid.NewString(),
 		GroupID:      groupID,
@@ -202,6 +204,7 @@ func (h *GroupItemHandler) CreateItem(w http.ResponseWriter, r *http.Request) {
 		PingOnlyDown: req.PingOnlyDown,
 		PingURL:      strings.TrimSpace(req.PingURL),
 		PingSkipTLS:  req.PingSkipTLS,
+		Hotkey:       req.Hotkey,
 		Position:     req.Position,
 	}
 	if _, err := h.db.NewInsert().Model(item).Exec(r.Context()); err != nil {
@@ -237,6 +240,7 @@ func (h *GroupItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		PingOnlyDown *bool   `json:"pingOnlyDown"`
 		PingURL      *string `json:"pingUrl"`
 		PingSkipTLS  *bool   `json:"pingSkipTls"`
+		Hotkey       *string `json:"hotkey"`
 		Position     *int    `json:"position"`
 		GroupID      *string `json:"groupId"`
 	}
@@ -270,6 +274,9 @@ func (h *GroupItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 	if req.PingSkipTLS != nil {
 		item.PingSkipTLS = *req.PingSkipTLS
+	}
+	if req.Hotkey != nil {
+		item.Hotkey = strings.TrimSpace(*req.Hotkey)
 	}
 	if req.Position != nil {
 		item.Position = *req.Position
@@ -393,7 +400,7 @@ func (h *GroupItemHandler) CloneGroup(w http.ResponseWriter, r *http.Request) {
 			Title: it.Title, Description: it.Description, URL: it.URL,
 			Icon: it.Icon, IconDark: it.IconDark, PingEnabled: it.PingEnabled,
 			PingOnlyDown: it.PingOnlyDown, PingURL: it.PingURL, PingSkipTLS: it.PingSkipTLS,
-			Position: i,
+			Hotkey: it.Hotkey, Position: i,
 		}
 		if _, err := h.db.NewInsert().Model(ni).Exec(r.Context()); err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())
@@ -481,6 +488,7 @@ func (h *GroupItemHandler) cloneGroupToDashboard(ctx context.Context, source *mo
 			PingOnlyDown: item.PingOnlyDown,
 			PingURL:      item.PingURL,
 			PingSkipTLS:  item.PingSkipTLS,
+			Hotkey:       item.Hotkey,
 			Position:     item.Position,
 		}
 		if _, err := tx.NewInsert().Model(copy).Exec(ctx); err != nil {
@@ -520,7 +528,7 @@ func (h *GroupItemHandler) CloneItem(w http.ResponseWriter, r *http.Request) {
 		Title: item.Title + " (copy)", Description: item.Description, URL: item.URL,
 		Icon: item.Icon, IconDark: item.IconDark, PingEnabled: item.PingEnabled,
 		PingOnlyDown: item.PingOnlyDown, PingURL: item.PingURL, PingSkipTLS: item.PingSkipTLS,
-		Position: maxPos + 1,
+		Hotkey: item.Hotkey, Position: maxPos + 1,
 	}
 	if _, err := h.db.NewInsert().Model(ni).Exec(r.Context()); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())

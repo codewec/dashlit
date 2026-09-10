@@ -16,6 +16,8 @@
     canModify = true,
     tabIndex = undefined,
     isKeyboardActive = false,
+    hotkeyHint = '',
+    isHotkeyDimmed = false,
     onEdit,
     onDelete,
     onClone,
@@ -28,6 +30,8 @@
     canModify?: boolean
     tabIndex?: number
     isKeyboardActive?: boolean
+    hotkeyHint?: string
+    isHotkeyDimmed?: boolean
     onEdit?: (item: Item) => void
     onDelete?: (item: Item) => void
     onClone?: (item: Item) => void
@@ -87,6 +91,8 @@
       isDragging.current && !isOverlay && 'invisible',
       isOverlay && 'shadow-xl ring-2 ring-primary/30',
       isKeyboardActive && !isOverlay && 'border-primary ring-2 ring-primary/35',
+      hotkeyHint && itemSize === '1x2' && 'pr-14',
+      isHotkeyDimmed && 'sm:opacity-35 sm:saturate-50',
     )}
     onclick={(e) => $editMode && e.preventDefault()}
     title={itemSize === '1x1' ? item.title : undefined}
@@ -107,6 +113,15 @@
           /><circle cx="15" cy="17" r="1.5" /></svg
         >
       </button>
+    {/if}
+
+    {#if hotkeyHint}
+      <kbd
+        class={cn(
+          'pointer-events-none absolute z-10 hidden min-w-7 items-center justify-center rounded-md border border-primary/40 bg-bg-elevated/95 px-1.5 py-1 text-xs font-semibold text-primary shadow-md backdrop-blur-sm sm:flex',
+          itemSize === '1x1' ? 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2' : 'right-3 top-1/2 -translate-y-1/2',
+        )}>{hotkeyHint}</kbd
+      >
     {/if}
 
     {#if item.pingEnabled && pingReachable !== null && (!item.pingOnlyDown || !pingReachable)}

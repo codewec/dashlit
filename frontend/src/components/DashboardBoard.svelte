@@ -8,6 +8,13 @@
   import GroupCard from './GroupCard.svelte'
   import ItemCard from './ItemCard.svelte'
   import { searchQuery } from '../lib/stores'
+  import {
+    hotkeyKeyLabel,
+    hotkeyMatches,
+    modifierStateFromEvent,
+    shouldShowHotkey,
+    type ModifierState,
+  } from '../lib/hotkeys'
 
   let {
     dashboard,
@@ -50,7 +57,16 @@
   const sensors = [PointerSensor.configure({ activationConstraints: () => undefined }), KeyboardSensor]
 
   let activeItemId = $state('')
-  let boardElement = $state<HTMLElement | null>(null)
+  let heldModifiers = $state<ModifierState>({ ctrl: false, alt: false, shift: false, meta: false })
+  const hasHeldModifier = $derived(heldModifiers.ctrl || heldModifiers.alt || heldModifiers.shift || heldModifiers.meta)
+  const heldModifierLabels = $derived.by(() => {
+    const labels: string[] = []
+    if (heldModifiers.ctrl) labels.push('Ctrl')
+    if (heldModifiers.alt) labels.push('Alt')
+    if (heldModifiers.shift) labels.push('Shift')
+    if (heldModifiers.meta) labels.push('Meta')
+    return labels
+  })
 
   // ID первого элемента на доске — точка входа для Tab, когда ничего не выбрано
   const firstItemId = $derived.by(() => {
@@ -85,16 +101,31 @@
   })
 
   $effect(() => {
-    if ($editMode) activeItemId = ''
+    if ($editMode) {
+      activeItemId = ''
+      clearHeldModifiers()
+    }
   })
 
   function clearSelection() {
     activeItemId = ''
   }
 
+  function clearHeldModifiers() {
+    heldModifiers = { ctrl: false, alt: false, shift: false, meta: false }
+  }
+
+  function handleWindowKeyup(event: KeyboardEvent) {
+    if ($editMode) {
+      clearHeldModifiers()
+      return
+    }
+    heldModifiers = modifierStateFromEvent(event)
+  }
+
   // Навигация по реальным DOM-позициям элементов — корректна при любом CSS-layout
   function getItemElements() {
-    return boardElement ? Array.from(boardElement.querySelectorAll<HTMLAnchorElement>('[data-dashboard-item]')) : []
+    return Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-dashboard-item]'))
   }
 
   function navigateByDOM(fromId: string, direction: 'left' | 'right' | 'up' | 'down'): string | null {
@@ -139,7 +170,7 @@
   }
 
   function handleWindowKeydown(event: KeyboardEvent) {
-    if (event.isComposing || event.ctrlKey || event.metaKey || event.altKey) return
+    if (event.isComposing) return
 
     const hasOpenOverlay = !!document.querySelector('[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]')
 
@@ -153,8 +184,12 @@
       }
       return
     }
-    if ($editMode || event.defaultPrevented || hasOpenOverlay) return
+    if ($editMode || hasOpenOverlay) {
+      clearHeldModifiers()
+      return
+    }
 
+    heldModifiers = modifierStateFromEvent(event)
     const target = event.target
     const isFilter = target instanceof HTMLElement && target.matches('[data-dashboard-filter]')
     if (
@@ -162,6 +197,24 @@
       !isFilter &&
       target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]')
     ) return
+
+    if (!event.repeat && (event.ctrlKey || event.altKey || event.shiftKey || event.metaKey)) {
+      const matchingIds = filtered.flatMap((group) =>
+        (byGroup[group.id] || []).filter((item) => item.hotkey && hotkeyMatches(event, item.hotkey)).map((item) => item.id),
+      )
+      if (matchingIds.length > 0) {
+        const matchingItems = filtered.flatMap((group) => (byGroup[group.id] || []).filter((item) => matchingIds.includes(item.id)))
+        event.preventDefault()
+        event.stopPropagation()
+        clearSelection()
+        window.getSelection()?.removeAllRanges()
+        for (const item of matchingItems) window.open(item.url, '_blank', 'noopener')
+        requestAnimationFrame(() => window.getSelection()?.removeAllRanges())
+        return
+      }
+    }
+
+    if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return
 
     const dirs: Record<string, 'left' | 'right' | 'up' | 'down'> = {
       ArrowLeft: 'left',
@@ -218,7 +271,24 @@
   }
 </script>
 
-<svelte:window onkeydown={handleWindowKeydown} onpointerdown={clearSelection} />
+<svelte:window
+  onkeydown={handleWindowKeydown}
+  onkeyup={handleWindowKeyup}
+  onpointerdown={clearSelection}
+  onblur={clearHeldModifiers}
+/>
+
+<div
+  class="pointer-events-none fixed left-1/2 z-40 -translate-x-1/2 items-center gap-1.5 rounded-xl border border-border bg-bg-elevated/95 px-3 py-2 shadow-xl backdrop-blur-md {hasHeldModifier && !$editMode ? 'hidden sm:flex' : 'hidden'} {dashboard.cleanMode
+    ? 'bottom-5'
+    : 'bottom-16'}"
+  aria-hidden="true"
+>
+  {#each heldModifierLabels as label, index}
+    {#if index > 0}<span class="text-xs text-text-subtle">+</span>{/if}
+    <kbd class="min-w-9 rounded-md border border-border bg-surface px-2 py-1 text-center text-xs font-semibold text-text shadow-sm">{label}</kbd>
+  {/each}
+</div>
 
 {#if groups.length === 0}
   <div class="flex flex-col items-center gap-3 py-20 text-center">
@@ -236,7 +306,7 @@
   </div>
 {:else}
   <DragDropProvider {sensors} {onDragOver} {onDragEnd}>
-    <div class={outerClass} bind:this={boardElement}>
+    <div class={outerClass}>
       {#each filtered as group, gIndex (group.id)}
         <div class={cellClass} data-dashboard-group={group.id}>
           <GroupCard
@@ -259,6 +329,8 @@
                 itemSize={group.itemSize}
                 tabIndex={activeItemId ? (item.id === activeItemId ? 0 : -1) : (item.id === firstItemId ? 0 : -1)}
                 isKeyboardActive={!!activeItemId && item.id === activeItemId}
+                hotkeyHint={!$editMode && shouldShowHotkey(item.hotkey, heldModifiers) ? hotkeyKeyLabel(item.hotkey) : ''}
+                isHotkeyDimmed={!$editMode && hasHeldModifier && !shouldShowHotkey(item.hotkey, heldModifiers)}
                 {canModify}
                 onEdit={onEditItem}
                 onDelete={onDeleteItem}

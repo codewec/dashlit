@@ -390,6 +390,7 @@ type exportItem struct {
 	PingOnlyDown bool   `json:"pingOnlyDown"`
 	PingURL      string `json:"pingUrl"`
 	PingSkipTLS  bool   `json:"pingSkipTls"`
+	Hotkey       string `json:"hotkey"`
 	Position     int    `json:"position"`
 }
 
@@ -416,7 +417,7 @@ func dashboardToExport(d *models.Dashboard) exportPayload {
 				Title: it.Title, Description: it.Description, URL: it.URL,
 				Icon: it.Icon, IconDark: it.IconDark, PingEnabled: it.PingEnabled,
 				PingOnlyDown: it.PingOnlyDown, PingURL: it.PingURL, PingSkipTLS: it.PingSkipTLS,
-				Position: it.Position,
+				Hotkey: it.Hotkey, Position: it.Position,
 			})
 		}
 		eg = append(eg, exportGroup{
@@ -526,7 +527,7 @@ func (h *DashboardHandler) importPayload(ctx context.Context, user *models.User,
 				Title: is.Title, Description: is.Description, URL: is.URL,
 				Icon: is.Icon, IconDark: is.IconDark, PingEnabled: is.PingEnabled,
 				PingOnlyDown: is.PingOnlyDown, PingURL: is.PingURL, PingSkipTLS: is.PingSkipTLS,
-				Position: is.Position,
+				Hotkey: is.Hotkey, Position: is.Position,
 			}
 			if it.Icon == "" {
 				it.Icon = "mdi:link"
