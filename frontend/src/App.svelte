@@ -2,13 +2,13 @@
   import { onMount } from 'svelte'
   import Router from 'svelte-spa-router'
   import { api, setToken } from './lib/api'
-  import { user, theme, applyTheme, systemInfo } from './lib/stores'
+  import { user, hydrateThemeFromUser, systemInfo } from './lib/stores'
   import Login from './pages/Login.svelte'
   import DashboardView from './pages/DashboardView.svelte'
   import Profile from './pages/Profile.svelte'
   import Admin from './pages/Admin.svelte'
   import { Toaster } from 'svelte-french-toast'
-  import { normalizeTheme } from './lib/themes'
+  import CustomThemeModal from './components/CustomThemeModal.svelte'
 
   const routes = {
     '/login': Login,
@@ -21,9 +21,7 @@
   let ready = $state(false)
 
   onMount(async () => {
-    const saved = normalizeTheme(localStorage.getItem('bd_theme'))
-    theme.set(saved)
-    applyTheme(saved)
+    hydrateThemeFromUser(null)
 
     void api
       .systemInfo()
@@ -38,10 +36,13 @@
     }
 
     try {
-      user.set(await api.me())
+      const me = await api.me()
+      user.set(me)
+      hydrateThemeFromUser(me)
     } catch {
       setToken(null)
       user.set(null)
+      hydrateThemeFromUser(null)
     }
     ready = true
   })
@@ -50,6 +51,8 @@
 {#if ready}
   <Router {routes} />
 {/if}
+
+<CustomThemeModal />
 
 <Toaster
   position="top-right"

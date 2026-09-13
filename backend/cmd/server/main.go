@@ -106,6 +106,7 @@ func main() {
 		r.Post("/auth/logout", authH.Logout)
 		r.Get("/auth/me", authH.Me)
 		r.With(auth.RequireAuth).Put("/auth/profile", authH.UpdateProfile)
+		r.With(auth.RequireAuth).Put("/auth/theme", authH.UpdateTheme)
 
 		r.Get("/dashboards", dashH.List)
 		r.Get("/dashboards/main", dashH.GetMain)

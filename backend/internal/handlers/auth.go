@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/url"
@@ -329,6 +330,31 @@ func (h *AuthHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusConflict, "username is already taken")
 			return
 		}
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, user)
+}
+
+func (h *AuthHandler) UpdateTheme(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	if user == nil {
+		writeError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	var req struct {
+		Theme       string          `json:"theme"`
+		CustomTheme json.RawMessage `json:"customTheme"`
+	}
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid body")
+		return
+	}
+	customTheme := ""
+	if len(req.CustomTheme) > 0 && string(req.CustomTheme) != "null" {
+		customTheme = string(req.CustomTheme)
+	}
+	if err := h.svc.UpdateTheme(r.Context(), user, req.Theme, customTheme); err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}

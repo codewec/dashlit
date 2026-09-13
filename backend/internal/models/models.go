@@ -54,6 +54,8 @@ type User struct {
 	Role         Role       `bun:"role,notnull,default:'user'" json:"role"`
 	OIDCSubject  *string    `bun:"oidc_subject" json:"-"`
 	OIDCIssuer   *string    `bun:"oidc_issuer" json:"-"`
+	Theme        string     `bun:"theme,notnull,default:'system'" json:"theme"`
+	CustomTheme  string     `bun:"custom_theme,notnull,default:''" json:"customTheme"`
 	AuthMethod   AuthMethod `bun:"-" json:"authMethod,omitempty"`
 }
 

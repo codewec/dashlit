@@ -1,6 +1,7 @@
 <script lang="ts">
   import { iconSrc, isIconifyIcon, resolveIcon } from '../lib/icon-helpers'
-  import { resolvedTheme } from '../lib/stores'
+  import { customTheme, resolvedTheme } from '../lib/stores'
+  import { isLightResolvedTheme } from '../lib/themes'
 
   let {
     icon = '',
@@ -11,7 +12,7 @@
     class: className = '',
   }: { icon?: string; iconDark?: string; size?: number; alt?: string; theme?: 'auto' | 'light' | 'dark'; class?: string } = $props()
 
-  const isDark = $derived(theme === 'dark' || (theme === 'auto' && !['crema', 'latte'].includes($resolvedTheme)))
+  const isDark = $derived(theme === 'dark' || (theme === 'auto' && !isLightResolvedTheme($resolvedTheme, $customTheme.scheme)))
   const resolved = $derived(resolveIcon(icon, iconDark, isDark))
   const src = $derived(iconSrc(resolved))
   const isIconify = $derived(isIconifyIcon(resolved))

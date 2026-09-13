@@ -92,3 +92,28 @@ func TestUpdateProfileAllowsOIDCUserToSetFirstPassword(t *testing.T) {
 		t.Fatal("first password was not set")
 	}
 }
+
+func TestUpdateThemePersistsCustomPalette(t *testing.T) {
+	svc := newMergeTestService(t, false)
+	user, err := svc.Register(context.Background(), "alice", "password")
+	if err != nil {
+		t.Fatal(err)
+	}
+	custom := `{"scheme":"dark","bg":"#111111","surface":"#222222","text":"#eeeeee","primary":"#89b4fa","accent":"#cba6f7","danger":"#f38ba8","success":"#a6e3a1","backgroundImage":""}`
+	if err := svc.UpdateTheme(context.Background(), user, "custom", custom); err != nil {
+		t.Fatal(err)
+	}
+	loaded, err := svc.GetUser(context.Background(), user.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.Theme != "custom" || loaded.CustomTheme == "" {
+		t.Fatalf("theme was not persisted: theme=%q custom=%q", loaded.Theme, loaded.CustomTheme)
+	}
+	if err := svc.UpdateTheme(context.Background(), user, "mocha", ""); err != nil {
+		t.Fatal(err)
+	}
+	if user.Theme != "mocha" || user.CustomTheme != "" {
+		t.Fatalf("preset theme clear failed: theme=%q custom=%q", user.Theme, user.CustomTheme)
+	}
+}
