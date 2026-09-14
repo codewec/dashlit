@@ -11,7 +11,7 @@
     setTheme,
     theme,
   } from '../lib/stores'
-  import { defaultCustomTheme, isLightResolvedTheme, type CustomThemeConfig } from '../lib/themes'
+  import { defaultCustomTheme, isLightResolvedTheme, normalizeCustomTheme, type CustomThemeConfig } from '../lib/themes'
   import { toastError } from '../lib/toasts'
 
   let open = $state(false)
@@ -51,7 +51,7 @@
     const styles = getComputedStyle(document.documentElement)
     const current: CustomThemeConfig = $hasCustomTheme
       ? { ...$customTheme }
-      : {
+      : normalizeCustomTheme({
           scheme: isLightResolvedTheme($resolvedTheme) ? 'light' : 'dark',
           bg: styles.getPropertyValue('--color-bg').trim(),
           surface: styles.getPropertyValue('--color-surface').trim(),
@@ -61,12 +61,14 @@
           danger: styles.getPropertyValue('--color-danger').trim(),
           success: styles.getPropertyValue('--color-success').trim(),
           backgroundImage: '',
-        }
+        })
     snapshot = current
     draft = { ...current }
     backgroundImage = current.backgroundImage
+    // Prepare the preview palette before switching to custom, otherwise the
+    // default custom palette is briefly applied while the editor opens.
+    setCustomTheme(current, { persist: false, apply: false })
     setTheme('custom', { persist: false })
-    setCustomTheme(current, { persist: false, apply: true })
   })
 
   $effect(() => {

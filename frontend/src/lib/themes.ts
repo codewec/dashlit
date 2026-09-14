@@ -75,8 +75,13 @@ export function isLightResolvedTheme(resolved: ResolvedTheme, customScheme: 'lig
   return resolved === 'crema' || resolved === 'latte'
 }
 
-function isHexColor(value: unknown): value is string {
-  return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value)
+// Production CSS minification may shorten #RRGGBB to #RGB; expand it for color inputs and the API.
+function normalizeHexColor(value: unknown, fallback: string): string {
+  if (typeof value !== 'string') return fallback
+  if (/^#[0-9a-fA-F]{6}$/.test(value)) return value
+  const short = /^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$/.exec(value)
+  if (!short) return fallback
+  return `#${short[1]}${short[1]}${short[2]}${short[2]}${short[3]}${short[3]}`
 }
 
 export function normalizeCustomTheme(raw: unknown): CustomThemeConfig {
@@ -84,13 +89,13 @@ export function normalizeCustomTheme(raw: unknown): CustomThemeConfig {
   const value = raw as Partial<CustomThemeConfig>
   return {
     scheme: value.scheme === 'light' ? 'light' : 'dark',
-    bg: isHexColor(value.bg) ? value.bg : defaultCustomTheme.bg,
-    surface: isHexColor(value.surface) ? value.surface : defaultCustomTheme.surface,
-    text: isHexColor(value.text) ? value.text : defaultCustomTheme.text,
-    primary: isHexColor(value.primary) ? value.primary : defaultCustomTheme.primary,
-    accent: isHexColor(value.accent) ? value.accent : defaultCustomTheme.accent,
-    danger: isHexColor(value.danger) ? value.danger : defaultCustomTheme.danger,
-    success: isHexColor(value.success) ? value.success : defaultCustomTheme.success,
+    bg: normalizeHexColor(value.bg, defaultCustomTheme.bg),
+    surface: normalizeHexColor(value.surface, defaultCustomTheme.surface),
+    text: normalizeHexColor(value.text, defaultCustomTheme.text),
+    primary: normalizeHexColor(value.primary, defaultCustomTheme.primary),
+    accent: normalizeHexColor(value.accent, defaultCustomTheme.accent),
+    danger: normalizeHexColor(value.danger, defaultCustomTheme.danger),
+    success: normalizeHexColor(value.success, defaultCustomTheme.success),
     backgroundImage: typeof value.backgroundImage === 'string' ? value.backgroundImage : '',
   }
 }
