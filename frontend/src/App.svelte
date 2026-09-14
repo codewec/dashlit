@@ -5,8 +5,6 @@
   import { routePath, startRouter } from './lib/router'
   import Login from './pages/Login.svelte'
   import DashboardView from './pages/DashboardView.svelte'
-  import Profile from './pages/Profile.svelte'
-  import Admin from './pages/Admin.svelte'
   import { Toaster } from 'svelte-french-toast'
   import CustomThemeModal from './components/CustomThemeModal.svelte'
 
@@ -49,9 +47,29 @@
   {#if $routePath === '/login'}
     <Login />
   {:else if $routePath === '/profile'}
-    <Profile />
+    {#await import('./pages/Profile.svelte')}
+      <div class="flex min-h-dvh items-center justify-center text-sm text-text-subtle">Loading…</div>
+    {:then module}
+      {@const Profile = module.default}
+      <Profile />
+    {:catch}
+      <div class="flex min-h-dvh flex-col items-center justify-center gap-3 px-4 text-center">
+        <p class="text-sm text-text-muted">Could not load profile</p>
+        <button type="button" class="text-sm text-primary hover:underline" onclick={() => window.location.reload()}>Reload page</button>
+      </div>
+    {/await}
   {:else if $routePath === '/admin'}
-    <Admin />
+    {#await import('./pages/Admin.svelte')}
+      <div class="flex min-h-dvh items-center justify-center text-sm text-text-subtle">Loading…</div>
+    {:then module}
+      {@const Admin = module.default}
+      <Admin />
+    {:catch}
+      <div class="flex min-h-dvh flex-col items-center justify-center gap-3 px-4 text-center">
+        <p class="text-sm text-text-muted">Could not load administration page</p>
+        <button type="button" class="text-sm text-primary hover:underline" onclick={() => window.location.reload()}>Reload page</button>
+      </div>
+    {/await}
   {:else if $routePath === '/'}
     <DashboardView />
   {:else if dashboardSlug}
