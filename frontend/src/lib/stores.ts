@@ -1,21 +1,68 @@
-import { writable } from 'svelte/store'
-import type { User, Dashboard, SystemInfo } from './api'
-import type { ResolvedTheme, Theme } from './themes'
+import { get, writable } from 'svelte/store'
+import { api, type User, type Dashboard, type SystemInfo } from './api'
+import { iconSrc } from './icon-helpers'
+import { toastError } from './toasts'
+import {
+  customThemeColorVars,
+  defaultCustomTheme,
+  guestHasCustomTheme,
+  isLightResolvedTheme,
+  loadGuestCustomTheme,
+  loadGuestTheme,
+  normalizeCustomTheme,
+  normalizeTheme,
+  parseCustomTheme,
+  saveGuestTheme,
+  type CustomThemeConfig,
+  type ResolvedTheme,
+  type Theme,
+} from './themes'
 
 export const user = writable<User | null>(null)
 export const editMode = writable(false)
 export const theme = writable<Theme>('system')
 export const resolvedTheme = writable<ResolvedTheme>('frappe')
+export const customTheme = writable<CustomThemeConfig>(loadGuestCustomTheme())
+export const hasCustomTheme = writable(guestHasCustomTheme())
+export const customThemeEditorOpen = writable(false)
 export const currentDashboard = writable<Dashboard | null>(null)
 export const searchQuery = writable('')
 export const systemInfo = writable<SystemInfo | null>(null)
 
 let selectedTheme: Theme = 'system'
 let mediaListenerAttached = false
+let activeCustom: CustomThemeConfig = loadGuestCustomTheme()
+let activeHasCustomTheme = guestHasCustomTheme()
+let persistTimer: ReturnType<typeof setTimeout> | undefined
 
 function resolveTheme(mode: Theme): ResolvedTheme {
   if (mode !== 'system') return mode
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'frappe' : 'crema'
+}
+
+function clearCustomThemeStyles(root: HTMLElement) {
+  for (const property of customThemeColorVars) {
+    root.style.removeProperty(property)
+  }
+  root.style.removeProperty('--page-bg-image')
+}
+
+export function applyCustomThemeStyles(config: CustomThemeConfig) {
+  const root = document.documentElement
+  root.style.setProperty('--color-bg', config.bg)
+  root.style.setProperty('--color-surface', config.surface)
+  root.style.setProperty('--color-text', config.text)
+  root.style.setProperty('--color-primary', config.primary)
+  root.style.setProperty('--color-accent', config.accent)
+  root.style.setProperty('--color-danger', config.danger)
+  root.style.setProperty('--color-success', config.success)
+
+  const imageSrc = config.backgroundImage ? iconSrc(config.backgroundImage) : ''
+  if (imageSrc) {
+    root.style.setProperty('--page-bg-image', `url(${JSON.stringify(imageSrc)})`)
+  } else {
+    root.style.removeProperty('--page-bg-image')
+  }
 }
 
 export function applyTheme(mode: Theme) {
@@ -23,9 +70,17 @@ export function applyTheme(mode: Theme) {
   const root = document.documentElement
   const resolved = resolveTheme(mode)
   root.setAttribute('data-theme', resolved)
-  root.style.colorScheme = resolved === 'crema' || resolved === 'latte' ? 'light' : 'dark'
+
+  if (resolved === 'custom') {
+    applyCustomThemeStyles(activeCustom)
+    root.style.colorScheme = activeCustom.scheme
+  } else {
+    clearCustomThemeStyles(root)
+    root.style.colorScheme = isLightResolvedTheme(resolved) ? 'light' : 'dark'
+  }
+
   resolvedTheme.set(resolved)
-  localStorage.setItem('bd_theme', mode)
+  saveGuestTheme(mode, activeCustom, activeHasCustomTheme)
 
   if (!mediaListenerAttached) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
@@ -35,7 +90,76 @@ export function applyTheme(mode: Theme) {
   }
 }
 
-export function setTheme(mode: Theme) {
+async function persistThemeToServer(mode: Theme, config: CustomThemeConfig) {
+  if (!get(user)) return
+  const updated = await api.updateTheme({
+    theme: mode,
+    customTheme: activeHasCustomTheme ? config : null,
+  })
+  user.set(updated)
+}
+
+function schedulePersist(mode: Theme, config: CustomThemeConfig) {
+  clearTimeout(persistTimer)
+  persistTimer = setTimeout(() => {
+    void persistThemeToServer(mode, config).catch((error: unknown) => toastError(error, 'Could not save theme'))
+  }, 250)
+}
+
+export function setTheme(mode: Theme, options?: { persist?: boolean }) {
   theme.set(mode)
   applyTheme(mode)
+  if (options?.persist !== false) schedulePersist(mode, activeCustom)
+}
+
+export function setCustomTheme(config: CustomThemeConfig, options?: { persist?: boolean; apply?: boolean; exists?: boolean }) {
+  const next = normalizeCustomTheme(config)
+  activeCustom = next
+  if (options?.exists) activeHasCustomTheme = true
+  customTheme.set(next)
+  hasCustomTheme.set(activeHasCustomTheme)
+  saveGuestTheme(selectedTheme, next, activeHasCustomTheme)
+  if (options?.apply !== false && selectedTheme === 'custom') applyTheme('custom')
+  if (options?.persist !== false) schedulePersist(selectedTheme, next)
+}
+
+export function openCustomThemeEditor() {
+  customThemeEditorOpen.set(true)
+}
+
+export function selectCustomTheme() {
+  setTheme('custom')
+}
+
+export async function deleteCustomTheme() {
+  const currentUser = get(user)
+  const updated = currentUser ? await api.updateTheme({ theme: 'system', customTheme: null }) : null
+  activeCustom = { ...defaultCustomTheme }
+  activeHasCustomTheme = false
+  customTheme.set(activeCustom)
+  hasCustomTheme.set(false)
+  setTheme('system', { persist: false })
+  if (updated) user.set(updated)
+}
+
+export function hydrateThemeFromUser(nextUser: User | null) {
+  if (!nextUser) {
+    const guestTheme = loadGuestTheme()
+    activeCustom = loadGuestCustomTheme()
+    activeHasCustomTheme = guestHasCustomTheme()
+    customTheme.set(activeCustom)
+    hasCustomTheme.set(activeHasCustomTheme)
+    theme.set(guestTheme)
+    applyTheme(guestTheme)
+    return
+  }
+
+  const nextTheme = normalizeTheme(nextUser.theme)
+  const nextCustom = parseCustomTheme(nextUser.customTheme)
+  activeCustom = nextCustom
+  activeHasCustomTheme = !!nextUser.customTheme?.trim()
+  customTheme.set(nextCustom)
+  hasCustomTheme.set(activeHasCustomTheme)
+  theme.set(nextTheme)
+  applyTheme(nextTheme)
 }

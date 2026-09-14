@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { api, setToken, type AuthConfig } from '../lib/api'
-  import { user } from '../lib/stores'
+  import { user, hydrateThemeFromUser } from '../lib/stores'
   import { push } from 'svelte-spa-router'
   import AuthLayout from '../layouts/AuthLayout.svelte'
   import ThemeFab from '../components/ThemeFab.svelte'
@@ -61,6 +61,7 @@
       const res = mode === 'login' ? await api.login(username, password) : await api.register(username, password, importLegacy)
       setToken(res.token)
       user.set(res.user)
+      hydrateThemeFromUser(res.user)
       push('/')
     } catch (err: unknown) {
       toastError(err, mode === 'login' ? 'Sign in failed' : 'Registration failed')

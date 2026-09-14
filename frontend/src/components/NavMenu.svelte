@@ -2,12 +2,12 @@
   import { DropdownMenu } from 'bits-ui'
   import { push } from 'svelte-spa-router'
   import { api, setToken } from '../lib/api'
-  import { user, editMode, theme, setTheme, systemInfo } from '../lib/stores'
+  import { user, editMode, systemInfo } from '../lib/stores'
   import Icon from './Icon.svelte'
   import logoUrl from '../assets/dashlit.svg'
   import type { DashListItem } from '../lib/dashboard-helpers'
   import { toastError } from '../lib/toasts'
-  import { themeOptions } from '../lib/themes'
+  import ThemeItems from './ThemeItems.svelte'
   import { formatHotkey } from '../lib/hotkeys'
 
   let {
@@ -153,21 +153,7 @@
       </DropdownMenu.Item>
       {#if themeExpanded}
         <div class="ml-3 border-l border-border-soft pl-1">
-          {#each themeOptions as option, index}
-            {#if index === 1 || index === 3}
-              <div class="px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-text-subtle">
-                {index === 1 ? 'Light' : 'Dark'}
-              </div>
-            {/if}
-            <DropdownMenu.Item
-              class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
-              onSelect={() => setTheme(option.value)}
-            >
-              <span class="h-3.5 w-3.5 shrink-0 rounded-full border border-border" style:background={option.swatch}></span>
-              <span class="flex-1">{option.label}</span>
-              {#if $theme === option.value}<span class="text-primary">✓</span>{/if}
-            </DropdownMenu.Item>
-          {/each}
+          <ThemeItems inset />
         </div>
       {/if}
 

@@ -117,6 +117,26 @@
   --color-success: #a6e3a1;
 }
 
+/* Base tokens for custom are set via documentElement.style; derived tokens stay in CSS. */
+[data-theme='custom'] {
+  --color-bg: #000000;
+  --color-surface: #1a1a1a;
+  --color-text: #e8e8e8;
+  --color-primary: #8aadf4;
+  --color-accent: #c6a0f6;
+  --color-danger: #ed8796;
+  --color-success: #a6da95;
+  --color-bg-elevated: color-mix(in srgb, var(--color-bg) 82%, var(--color-surface));
+  --color-surface-2: color-mix(in srgb, var(--color-surface) 82%, var(--color-text) 18%);
+  --color-border: color-mix(in srgb, var(--color-surface) 62%, var(--color-text));
+  --color-border-soft: color-mix(in srgb, var(--color-surface) 78%, var(--color-text));
+  --color-text-muted: color-mix(in srgb, var(--color-text) 72%, var(--color-bg));
+  --color-text-subtle: color-mix(in srgb, var(--color-text) 48%, var(--color-bg));
+  --color-primary-hover: color-mix(in srgb, var(--color-primary) 78%, var(--color-text));
+  --color-primary-fg: var(--color-bg);
+  --color-danger-soft: color-mix(in srgb, var(--color-danger) 14%, transparent);
+}
+
 [data-theme='black'] {
   --color-bg: #000000;
   --color-bg-elevated: #0a0a0a;
@@ -146,9 +166,17 @@
   body {
     margin: 0;
     min-height: 100dvh;
-    background:
-      radial-gradient(1200px 600px at 10% -10%, color-mix(in oklab, var(--color-primary) 12%, transparent), transparent),
-      radial-gradient(900px 500px at 90% 0%, color-mix(in oklab, var(--color-accent) 8%, transparent), transparent), var(--color-bg);
+    background-color: var(--color-bg);
+    background-image:
+      var(--page-bg-image, none), radial-gradient(1200px 600px at 10% -10%, color-mix(in oklab, var(--color-primary) 12%, transparent), transparent),
+      radial-gradient(900px 500px at 90% 0%, color-mix(in oklab, var(--color-accent) 8%, transparent), transparent);
+    background-size: cover, auto, auto;
+    background-position:
+      center,
+      0 0,
+      0 0;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-attachment: fixed, scroll, scroll;
   }
   * {
     border-color: var(--color-border);

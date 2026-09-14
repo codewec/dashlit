@@ -3,9 +3,11 @@ package auth
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -98,6 +100,7 @@ func (s *Service) Register(ctx context.Context, username, password string) (*mod
 		Username:     username,
 		PasswordHash: &hash,
 		Role:         role,
+		Theme:        "system",
 	}
 	if _, err := s.db.NewInsert().Model(user).Exec(ctx); err != nil {
 		return nil, err
@@ -195,6 +198,118 @@ func (s *Service) UpdateProfile(ctx context.Context, user *models.User, username
 	return nil
 }
 
+var allowedThemes = map[string]bool{
+	"system": true, "crema": true, "latte": true, "frappe": true,
+	"macchiato": true, "mocha": true, "custom": true,
+}
+
+var hexColorRegex = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
+
+type CustomThemeConfig struct {
+	Scheme          string `json:"scheme"`
+	Bg              string `json:"bg"`
+	Surface         string `json:"surface"`
+	Text            string `json:"text"`
+	Primary         string `json:"primary"`
+	Accent          string `json:"accent"`
+	Danger          string `json:"danger"`
+	Success         string `json:"success"`
+	BackgroundImage string `json:"backgroundImage"`
+}
+
+func NormalizeTheme(value string) string {
+	value = strings.TrimSpace(value)
+	if allowedThemes[value] {
+		return value
+	}
+	if value == "light" {
+		return "crema"
+	}
+	if value == "dark" {
+		return "frappe"
+	}
+	return "system"
+}
+
+func NormalizeCustomThemeJSON(raw string) (string, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return "", nil
+	}
+	var cfg CustomThemeConfig
+	if err := json.Unmarshal([]byte(raw), &cfg); err != nil {
+		return "", errors.New("custom theme must be valid JSON")
+	}
+	normalized, err := normalizeCustomTheme(cfg)
+	if err != nil {
+		return "", err
+	}
+	encoded, err := json.Marshal(normalized)
+	if err != nil {
+		return "", err
+	}
+	return string(encoded), nil
+}
+
+func normalizeCustomTheme(cfg CustomThemeConfig) (CustomThemeConfig, error) {
+	scheme := cfg.Scheme
+	if scheme != "light" && scheme != "dark" {
+		scheme = "dark"
+	}
+	colors := []struct {
+		name  string
+		value string
+	}{
+		{"bg", cfg.Bg},
+		{"surface", cfg.Surface},
+		{"text", cfg.Text},
+		{"primary", cfg.Primary},
+		{"accent", cfg.Accent},
+		{"danger", cfg.Danger},
+		{"success", cfg.Success},
+	}
+	for _, color := range colors {
+		if !hexColorRegex.MatchString(color.value) {
+			return CustomThemeConfig{}, fmt.Errorf("custom theme %s must be a #RRGGBB color", color.name)
+		}
+	}
+	if len(cfg.BackgroundImage) > 2048 {
+		return CustomThemeConfig{}, errors.New("custom theme background image is too long")
+	}
+	return CustomThemeConfig{
+		Scheme:          scheme,
+		Bg:              cfg.Bg,
+		Surface:         cfg.Surface,
+		Text:            cfg.Text,
+		Primary:         cfg.Primary,
+		Accent:          cfg.Accent,
+		Danger:          cfg.Danger,
+		Success:         cfg.Success,
+		BackgroundImage: cfg.BackgroundImage,
+	}, nil
+}
+
+func (s *Service) UpdateTheme(ctx context.Context, user *models.User, theme, customTheme string) error {
+	theme = NormalizeTheme(theme)
+	normalizedCustom, err := NormalizeCustomThemeJSON(customTheme)
+	if err != nil {
+		return err
+	}
+	if theme == "custom" && normalizedCustom == "" {
+		return errors.New("custom theme colors are required when theme is custom")
+	}
+	if _, err := s.db.NewUpdate().Model((*models.User)(nil)).
+		Set("theme = ?", theme).
+		Set("custom_theme = ?", normalizedCustom).
+		Where("id = ?", user.ID).
+		Exec(ctx); err != nil {
+		return err
+	}
+	user.Theme = theme
+	user.CustomTheme = normalizedCustom
+	return nil
+}
+
 func (s *Service) FindOrCreateOIDCUser(ctx context.Context, identity *OIDCIdentity, allowCreate bool) (*models.User, error) {
 	user := new(models.User)
 	err := s.db.NewSelect().Model(user).
@@ -260,6 +375,7 @@ func (s *Service) FindOrCreateOIDCUser(ctx context.Context, identity *OIDCIdenti
 		Role:        role,
 		OIDCSubject: &identity.Subject,
 		OIDCIssuer:  &identity.Issuer,
+		Theme:       "system",
 	}
 	if _, err := s.db.NewInsert().Model(user).Exec(ctx); err != nil {
 		return nil, err

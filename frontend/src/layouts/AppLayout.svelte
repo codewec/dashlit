@@ -3,7 +3,7 @@
   import { push } from 'svelte-spa-router'
   import { DropdownMenu, Select } from 'bits-ui'
   import { api, setToken } from '../lib/api'
-  import { user, editMode, theme, resolvedTheme, systemInfo } from '../lib/stores'
+  import { user, editMode, theme, resolvedTheme, customTheme, systemInfo } from '../lib/stores'
   import DashboardFilter from '../components/DashboardFilter.svelte'
   import { cn } from '../lib/cn'
   import Icon from '../components/Icon.svelte'
@@ -12,7 +12,7 @@
   import logoUrlMono from '../assets/dashlit-mono.svg'
   import type { DashListItem } from '../lib/dashboard-helpers'
   import { toastError } from '../lib/toasts'
-  import { themeLabel } from '../lib/themes'
+  import { isLightResolvedTheme, themeLabel } from '../lib/themes'
   import ThemeItems from '../components/ThemeItems.svelte'
   import { formatHotkey } from '../lib/hotkeys'
 
@@ -37,7 +37,7 @@
   const selected = $derived(dashboards.find((d) => d.slug === currentSlug) ?? null)
   const ownDashboards = $derived(dashboards.filter((d) => d.ownerId === $user?.id))
   const otherDashboards = $derived(dashboards.filter((d) => d.ownerId !== $user?.id))
-  const isDarkTheme = $derived(!['crema', 'latte'].includes($resolvedTheme))
+  const isDarkTheme = $derived(!isLightResolvedTheme($resolvedTheme, $customTheme.scheme))
 
   async function logout() {
     try {
