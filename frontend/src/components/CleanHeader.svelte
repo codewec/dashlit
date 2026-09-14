@@ -24,6 +24,6 @@
     {/if}
   </div>
   <div class="shrink-0">
-    <NavMenu {dashboards} currentSlug={dashboard.slug} showEdit />
+    <NavMenu {dashboards} currentSlug={dashboard.slug} showEdit constrainHeight />
   </div>
 </div>

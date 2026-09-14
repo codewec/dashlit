@@ -14,10 +14,12 @@
     dashboards = [],
     currentSlug = '',
     showEdit = false,
+    constrainHeight = false,
   }: {
     dashboards?: DashListItem[]
     currentSlug?: string
     showEdit?: boolean
+    constrainHeight?: boolean
   } = $props()
 
   const ownDashboards = $derived(dashboards.filter((d) => d.ownerId === $user?.id))
@@ -64,7 +66,9 @@
   </DropdownMenu.Trigger>
   <DropdownMenu.Portal>
     <DropdownMenu.Content
-      class="z-50 min-w-48 overflow-hidden rounded-xl border border-border bg-surface p-1 shadow-xl outline-none"
+      class="z-50 min-w-48 rounded-xl border border-border bg-surface p-1 shadow-xl outline-none {constrainHeight
+        ? 'max-h-[var(--bits-dropdown-menu-content-available-height)] overflow-y-auto'
+        : 'overflow-hidden'}"
       sideOffset={6}
       align="end"
     >
