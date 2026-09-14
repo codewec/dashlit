@@ -35,9 +35,12 @@
 - Local password authentication and OIDC, including Pocket ID
 - User profile and administration pages
 - Import, export, and cloning for dashboards, groups, and items, including copying groups between dashboards
+- Start filtering dashboard items simply by typing; press Esc to clear the filter
+- Navigate dashboard items with the arrow keys and open the selected item with Enter
+- Assign modifier-key shortcuts to items and your dashboards for faster access
 - Built-in icon search across selfh.st/icons and Iconify
 - Automatic light/dark icon pairing from selfh.st and light rendering of monochrome Iconify icons on dark themes
-- Multiple light and dark Catppuccin-inspired themes
+- Multiple light and dark Catppuccin-inspired themes, plus custom color palettes and dashboard backgrounds
 - A single Go binary with the Svelte frontend embedded
 
 ## Run with Docker

@@ -28,6 +28,30 @@ An individual user can mark one of their own dashboards as their personal defaul
 - **Wide mode** uses more of the browser width.
 - **Clean mode** reduces surrounding navigation for a focused display.
 
+## Keyboard control
+
+### Quick filter
+
+Start typing anywhere on a dashboard to filter its items. In the regular layout, the text appears in the filter field in the navigation bar. In clean mode, DashLit shows a floating filter field while a query is active. Press **Esc** to clear the filter.
+
+### Move between items
+
+Use the **arrow keys** to select an item according to its position on the dashboard. Press **Enter** to open the selected item. Press **Esc** to clear the selection; it also leaves edit mode when no dialog or menu is open.
+
+### Item and dashboard shortcuts
+
+When creating or editing an item or dashboard on a desktop-sized screen, focus its **Hotkey** field and press a combination that includes **Ctrl**, **Alt**, **Shift**, or **Meta** plus another key. Use Backspace, Delete, or the Clear button to remove it.
+
+An item shortcut opens every matching item on the current dashboard. A dashboard shortcut switches to one of your own dashboards. Dashboard shortcuts are unique for each user and are never shown or handled for another user's dashboards or for anonymous visitors. A dashboard shortcut cannot reuse a shortcut assigned to one of your items.
+
+## Themes and custom themes
+
+Open the theme menu from the navigation bar or the floating control in clean mode to select one of the built-in light or dark themes. Choose **Edit colors…** to create a custom theme. If no custom theme exists yet, the editor starts with the colors of the currently selected theme.
+
+The editor lets you adjust the page, surface, text, primary, accent, danger, and success colors, select a light or dark color scheme, and optionally add a background image. A background can be referenced by URL. Signed-in users can also upload an image to DashLit; file upload is unavailable to anonymous visitors.
+
+After saving, **Custom** appears as a regular option in the theme menu and can be selected without reopening the editor. Use **Delete theme** in the editor to remove it and return to the system theme. For signed-in users the selected theme, custom palette, and background reference are stored with their account and follow them between browsers. Anonymous preferences are stored only in the current browser.
+
 ## Icon search and theme variants
 
 The icon picker searches two sources independently:

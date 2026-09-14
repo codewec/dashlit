@@ -31,13 +31,13 @@ features:
     details: Check linked services and show live availability directly alongside your shortcuts.
   - icon: 🎨
     title: Made to feel at home
-    details: Choose light and dark themes, compact clean mode, custom icons, and wide layouts.
+    details: Choose a built-in theme or create a custom palette with your own colors and background, alongside clean mode and wide layouts.
   - icon: ✨
-    title: Two icon libraries
-    details: Search selfh.st/icons and Iconify together, with fast independent results and thousands of service and general-purpose icons.
-  - icon: 🌓
-    title: Theme-aware icons
-    details: DashLit pairs light and dark selfh.st variants automatically and keeps monochrome Iconify icons visible on dark backgrounds.
+    title: Icons that fit every theme
+    details: Search selfh.st and Iconify together. DashLit pairs light and dark selfh.st variants automatically and keeps monochrome Iconify icons visible on dark backgrounds.
+  - icon: ⌨️
+    title: Keyboard control
+    details: Type to filter items, move through the dashboard with arrow keys, and assign shortcuts to items and your dashboards.
   - icon: 📦
     title: Simple to operate
     details: A compact standalone binary with no runtime dependencies, also shipped as one container with SQLite-backed persistent storage.
