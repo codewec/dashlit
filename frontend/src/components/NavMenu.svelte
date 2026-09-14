@@ -1,6 +1,6 @@
 <script lang="ts">
   import { DropdownMenu } from 'bits-ui'
-  import { push } from 'svelte-spa-router'
+  import { push } from '../lib/router'
   import { api, setToken } from '../lib/api'
   import { user, editMode, systemInfo } from '../lib/stores'
   import Icon from './Icon.svelte'

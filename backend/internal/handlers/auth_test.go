@@ -42,7 +42,7 @@ func TestOIDCFailureRedirectsToFrontendReturnURL(t *testing.T) {
 	if recorder.Code != http.StatusFound {
 		t.Fatalf("got status %d, want %d", recorder.Code, http.StatusFound)
 	}
-	want := "http://localhost:5173/#/login?oidc_error=Registration+through+OIDC+is+disabled"
+	want := "http://localhost:5173/login?oidc_error=Registration+through+OIDC+is+disabled"
 	if got := recorder.Header().Get("Location"); got != want {
 		t.Fatalf("got redirect %q, want %q", got, want)
 	}

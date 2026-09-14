@@ -26,9 +26,6 @@ importers:
       svelte-french-toast:
         specifier: 2.0.0-alpha.0
         version: 2.0.0-alpha.0(svelte@5.56.10)
-      svelte-spa-router:
-        specifier: ^4.0.1
-        version: 4.0.2
       tailwind-merge:
         specifier: ^2.6.0
         version: 2.6.1
@@ -786,10 +783,6 @@ packages:
     resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
     engines: {node: '>= 14.18.0'}
 
-  regexparam@2.0.2:
-    resolution: {integrity: sha512-A1PeDEYMrkLrfyOwv2jwihXbo9qxdGD3atBYQA9JJgreAx8/7rC6IUkWOw2NQlOxLp2wL0ifQbh1HuidDfYA6w==}
-    engines: {node: '>=8'}
-
   rollup@4.63.0:
     resolution: {integrity: sha512-T5vnZ2y4QqC3/4P+w2+JO+Q/OVdnPsv4XcSYJYMEn0R9/jjl5AgLwO9LAZMzP2lN71O6pypn91rB7lDstUkfrQ==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
@@ -823,9 +816,6 @@ packages:
     resolution: {integrity: sha512-81wcVaY9UZ/0JuzLEizMSoIXqNbX7yhfTZavBuw94T3cnT2HmJ9O+qXY/c91h9FkeMwboo0KHZVmzOEQVTXDFg==}
     peerDependencies:
       svelte: ^5.0.0
-
-  svelte-spa-router@4.0.2:
-    resolution: {integrity: sha512-T1WYYk+ymwCr5m5U+n91k4dRAT6cw5HgmoPaI/TpKgAmuugymFoSBlfzkcKIK83QH4H8gUMn4tdQ0B9enFBM6g==}
 
   svelte-toolbelt@0.7.1:
     resolution: {integrity: sha512-HcBOcR17Vx9bjaOceUvxkY3nGmbBmCBBbuWLLEWO6jtmWH8f/QoWmbyUfQZrpDINH39en1b8mptfPQT9VKQ1xQ==}
@@ -1460,8 +1450,6 @@ snapshots:
 
   readdirp@4.1.2: {}
 
-  regexparam@2.0.2: {}
-
   rollup@4.63.0:
     dependencies:
       '@types/estree': 1.0.9
@@ -1526,10 +1514,6 @@ snapshots:
     dependencies:
       svelte: 5.56.10
       svelte-writable-derived: 3.1.1(svelte@5.56.10)
-
-  svelte-spa-router@4.0.2:
-    dependencies:
-      regexparam: 2.0.2
 
   svelte-toolbelt@0.7.1(svelte@5.56.10):
     dependencies:

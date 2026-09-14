@@ -1,7 +1,7 @@
 <script lang="ts">
   import { tick, untrack } from 'svelte'
   import { derived } from 'svelte/store'
-  import { push, replace } from 'svelte-spa-router'
+  import { push, replace } from '../lib/router'
   import { api, type Dashboard, type Group, type Item } from '../lib/api'
   import { user, editMode, currentDashboard, searchQuery } from '../lib/stores'
   import DashboardFilter from '../components/DashboardFilter.svelte'
@@ -487,7 +487,7 @@
   <div class="flex min-h-dvh flex-col items-center justify-center gap-3 px-4 text-center">
     <p class="text-5xl font-semibold tracking-tight text-text">404</p>
     <p class="text-sm text-text-muted">Page not found</p>
-    <a href="#/" class="mt-2 text-sm text-primary hover:underline">Go to home</a>
+    <a href="/" class="mt-2 text-sm text-primary hover:underline">Go to home</a>
   </div>
 {:else if dashboard}
   {@const d = dashboard}

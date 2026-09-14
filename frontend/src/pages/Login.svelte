@@ -2,7 +2,7 @@
   import { onMount } from 'svelte'
   import { api, setToken, type AuthConfig } from '../lib/api'
   import { user, hydrateThemeFromUser } from '../lib/stores'
-  import { push } from 'svelte-spa-router'
+  import { push, replace } from '../lib/router'
   import AuthLayout from '../layouts/AuthLayout.svelte'
   import ThemeFab from '../components/ThemeFab.svelte'
   import logoUrl from '../assets/dashlit.svg'
@@ -27,11 +27,10 @@
   )
 
   onMount(async () => {
-    const query = window.location.hash.split('?', 2)[1]
-    const oidcError = query ? new URLSearchParams(query).get('oidc_error') : null
+    const oidcError = new URLSearchParams(window.location.search).get('oidc_error')
     if (oidcError) {
       error = oidcError
-      history.replaceState(null, '', `${window.location.pathname}${window.location.search}#/login`)
+      replace('/login')
     }
     try {
       authConfig = await api.authConfig()

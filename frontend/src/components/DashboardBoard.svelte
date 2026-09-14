@@ -1,7 +1,7 @@
 <script lang="ts">
   import { DragDropProvider, DragOverlay, KeyboardSensor, PointerSensor } from '@dnd-kit-svelte/svelte'
   import { move } from '@dnd-kit/helpers'
-  import { push } from 'svelte-spa-router'
+  import { push } from '../lib/router'
 
   import type { Dashboard, Group, Item } from '../lib/api'
   import { editMode, user } from '../lib/stores'

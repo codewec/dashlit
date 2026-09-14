@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
-  import { push } from 'svelte-spa-router'
+  import { push } from '../lib/router'
   import { DropdownMenu, Select } from 'bits-ui'
   import { api, setToken } from '../lib/api'
   import { user, editMode, theme, resolvedTheme, customTheme, systemInfo } from '../lib/stores'
@@ -55,7 +55,7 @@
 <div class="flex min-h-dvh flex-col">
   <header class="sticky top-0 z-40 border-b border-border-soft bg-bg-elevated/80 backdrop-blur-md">
     <div class={cn('mx-auto flex items-center gap-2 px-4 py-2.5 sm:gap-3', wide ? 'max-w-none' : 'max-w-6xl')}>
-      <a href="#/" class="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-text">
+      <a href="/" class="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-text">
         <img src={logoUrl} alt="" class="h-6 w-6" width="24" height="24" />
         <span>DashLit</span>
       </a>
@@ -195,7 +195,7 @@
         {#if $user}
           {#if $user.role === 'admin'}
             <a
-              href="#/admin"
+              href="/admin"
               class="flex h-8 w-8 items-center justify-center rounded-btn text-text-muted hover:bg-surface-2 hover:text-text"
               title="Administration"
               aria-label="Administration"
@@ -206,7 +206,7 @@
             </a>
           {/if}
           <a
-            href="#/profile"
+            href="/profile"
             class="flex h-8 w-8 items-center justify-center rounded-btn text-text-muted hover:bg-surface-2 hover:text-text"
             title="Profile"
             aria-label="Profile"
@@ -227,7 +227,7 @@
             >
           </button>
         {:else}
-          <a href="#/login" class="rounded-btn bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-hover"> Sign in </a>
+          <a href="/login" class="rounded-btn bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-hover"> Sign in </a>
         {/if}
       </div>
 

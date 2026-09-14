@@ -212,7 +212,7 @@ func oidcReturnURL(returnCookie *http.Cookie, requestHost string) string {
 }
 
 func (h *AuthHandler) oidcFailure(w http.ResponseWriter, r *http.Request, returnCookie *http.Cookie, message string) {
-	target := oidcReturnURL(returnCookie, r.Host) + "#/login?oidc_error=" + url.QueryEscape(message)
+	target := oidcReturnURL(returnCookie, r.Host) + "login?oidc_error=" + url.QueryEscape(message)
 	http.Redirect(w, r, target, http.StatusFound)
 }
 

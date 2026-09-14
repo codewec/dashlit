@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { replace } from 'svelte-spa-router'
+  import { replace } from '../lib/router'
   import { api, type AuthConfig, type Dashboard } from '../lib/api'
   import { user } from '../lib/stores'
   import { toast, toastError } from '../lib/toasts'
@@ -192,7 +192,7 @@
               {#each ownDashboards as dashboard (dashboard.id)}
                 <tr class="border-b border-border-soft last:border-0 hover:bg-surface-2">
                   <td class="px-5 py-3 font-medium">
-                    <a class="flex items-center gap-2 text-text hover:text-primary" href="#/{dashboard.slug}">
+                    <a class="flex items-center gap-2 text-text hover:text-primary" href="/{dashboard.slug}">
                       {#if dashboard.icon}<Icon icon={dashboard.icon} iconDark={dashboard.iconDark} size={20} class="shrink-0 rounded" />{/if}
                       <span>{dashboard.name}</span>
                     </a>
