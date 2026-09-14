@@ -185,17 +185,26 @@
               align="end"
             >
               <DropdownMenu.Item
-                class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
-                onSelect={() => onEdit?.(item)}>Edit</DropdownMenu.Item
+                class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
+                onSelect={() => onEdit?.(item)}
+                ><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"
+                  ><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg
+                >Edit</DropdownMenu.Item
               >
               <DropdownMenu.Item
-                class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
-                onSelect={() => onClone?.(item)}>Clone</DropdownMenu.Item
+                class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
+                onSelect={() => onClone?.(item)}
+                ><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"
+                  ><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg
+                >Clone</DropdownMenu.Item
               >
               <DropdownMenu.Separator class="my-1 h-px bg-border-soft" />
               <DropdownMenu.Item
-                class="cursor-pointer rounded-lg px-2.5 py-2 text-sm text-danger outline-none data-highlighted:bg-danger-soft"
-                onSelect={() => onDelete?.(item)}>Delete</DropdownMenu.Item
+                class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-danger outline-none data-highlighted:bg-danger-soft"
+                onSelect={() => onDelete?.(item)}
+                ><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"
+                  ><path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 11v6M14 11v6" /></svg
+                >Delete</DropdownMenu.Item
               >
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
