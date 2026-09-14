@@ -4,10 +4,13 @@ export type DashListItem = {
   id: string
   name: string
   slug: string
+  description: string
   icon?: string
   iconDark?: string
   ownerId: string
   ownerUsername: string
+  hotkey: string
+  hotkeyLabel: string
   isDefault: boolean
 }
 
@@ -16,10 +19,13 @@ export function toDashList(list: Dashboard[] | null | undefined): DashListItem[]
     id: d.id,
     name: d.name,
     slug: d.slug,
+    description: d.description || '',
     icon: d.icon,
     iconDark: d.iconDark,
     ownerId: d.ownerId,
     ownerUsername: d.owner?.username ?? '',
+    hotkey: d.hotkey || '',
+    hotkeyLabel: d.hotkeyLabel || '',
     isDefault: !!d.isDefault,
   }))
 }
@@ -110,6 +116,7 @@ export type ItemForm = {
   pingUrl: string
   pingSkipTls: boolean
   hotkey: string
+  hotkeyLabel: string
 }
 
 export type DashboardForm = {
@@ -122,6 +129,8 @@ export type DashboardForm = {
   layout: Layout
   width: Width
   cleanMode: boolean
+  hotkey: string
+  hotkeyLabel: string
   isDefault: boolean
   creating: boolean
 }
@@ -153,6 +162,7 @@ export function emptyItemForm(groupId = ''): ItemForm {
     pingUrl: '',
     pingSkipTls: false,
     hotkey: '',
+    hotkeyLabel: '',
   }
 }
 
@@ -169,6 +179,7 @@ export function itemToForm(item: Item): ItemForm {
     pingUrl: item.pingUrl || '',
     pingSkipTls: item.pingSkipTls ?? false,
     hotkey: item.hotkey || '',
+    hotkeyLabel: item.hotkeyLabel || '',
   }
 }
 
@@ -183,6 +194,8 @@ export function emptyDashboardForm(creating = true): DashboardForm {
     layout: 'rows',
     width: 'default',
     cleanMode: false,
+    hotkey: '',
+    hotkeyLabel: '',
     isDefault: false,
     creating,
   }
@@ -199,6 +212,8 @@ export function dashboardToForm(d: Dashboard): DashboardForm {
     layout: d.layout,
     width: d.width || 'default',
     cleanMode: !!d.cleanMode,
+    hotkey: d.hotkey || '',
+    hotkeyLabel: d.hotkeyLabel || '',
     isDefault: !!d.isDefault,
     creating: false,
   }

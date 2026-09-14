@@ -6,10 +6,14 @@ export type ModifierState = {
 }
 
 const modifierKeys = new Set(['Control', 'Alt', 'Shift', 'Meta'])
-const physicalCodePattern = /^(?:Key[A-Z]|Digit[0-9]|Numpad\w+|F(?:[1-9]|1[0-9]|2[0-4])|Space|Minus|Equal|Slash|Backslash|BracketLeft|BracketRight|Semicolon|Quote|Comma|Period|Backquote|Enter|Tab|ArrowUp|ArrowDown|ArrowLeft|ArrowRight|Home|End|PageUp|PageDown|Insert|Delete)$/
+const physicalCodePattern =
+  /^(?:Key[A-Z]|Digit[0-9]|Numpad\w+|F(?:[1-9]|1[0-9]|2[0-4])|Space|Minus|Equal|Slash|Backslash|BracketLeft|BracketRight|Semicolon|Quote|Comma|Period|Backquote|Enter|Tab|ArrowUp|ArrowDown|ArrowLeft|ArrowRight|Home|End|PageUp|PageDown|Insert|Delete)$/
 
 function parseHotkey(hotkey: string) {
-  const parts = hotkey.split('+').map((part) => part.trim()).filter(Boolean)
+  const parts = hotkey
+    .split('+')
+    .map((part) => part.trim())
+    .filter(Boolean)
   return {
     modifiers: new Set(parts.slice(0, -1).map((part) => part.toLowerCase())),
     key: parts.at(-1) || '',
@@ -92,16 +96,17 @@ export function hotkeysEquivalent(first: string, second: string): boolean {
   return false
 }
 
-export function hotkeyKeyLabel(hotkey: string): string {
+export function hotkeyKeyLabel(hotkey: string, label?: string): string {
   const key = parseHotkey(hotkey).key
+  if (label) return label.length === 1 ? label.toLocaleUpperCase() : label
   return isPhysicalCode(key) ? codeLabel(key) : key
 }
 
-export function formatHotkey(hotkey: string): string {
+export function formatHotkey(hotkey: string, label?: string): string {
   if (!hotkey) return ''
   const parsed = parseHotkey(hotkey)
   const modifiers = ['Ctrl', 'Alt', 'Shift', 'Meta'].filter((modifier) => parsed.modifiers.has(modifier.toLowerCase()))
-  return [...modifiers, hotkeyKeyLabel(hotkey)].join(' + ')
+  return [...modifiers, hotkeyKeyLabel(hotkey, label)].join(' + ')
 }
 
 export function modifierStateFromEvent(event: KeyboardEvent): ModifierState {

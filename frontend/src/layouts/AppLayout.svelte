@@ -14,6 +14,7 @@
   import { toastError } from '../lib/toasts'
   import { themeLabel } from '../lib/themes'
   import ThemeItems from '../components/ThemeItems.svelte'
+  import { formatHotkey } from '../lib/hotkeys'
 
   let {
     children,
@@ -78,6 +79,9 @@
                   <img src={logoUrlMono} alt="" class={cn('h-4 w-4', isDarkTheme && 'brightness-0 invert')} width="16" height="16" />
                 {/if}
                 <span class="truncate">{selected.name}</span>
+                {#if selected.ownerId === $user?.id && selected.hotkey}
+                  <kbd class="hidden shrink-0 text-[9px] text-text-subtle lg:inline">{formatHotkey(selected.hotkey, selected.hotkeyLabel)}</kbd>
+                {/if}
               </span>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 opacity-60"
                 ><path d="m6 9 6 6 6-6" /></svg
@@ -103,7 +107,15 @@
                       {:else}
                         <img src={logoUrlMono} alt="" class={cn('h-4 w-4', isDarkTheme && 'brightness-0 invert')} width="16" height="16" />
                       {/if}
-                      <span class="min-w-0 flex-1 truncate">{d.name}</span>
+                      <span class="min-w-0 flex-1">
+                        <span class="flex min-w-0 items-center gap-2">
+                          <span class="min-w-0 flex-1 truncate">{d.name}</span>
+                          {#if d.hotkey}<kbd class="shrink-0 text-[9px] text-text-subtle">{formatHotkey(d.hotkey, d.hotkeyLabel)}</kbd>{/if}
+                        </span>
+                        {#if d.description || d.hotkey}
+                          <span class="block truncate text-[10px] text-text-subtle">{d.description}</span>
+                        {/if}
+                      </span>
                       <span class="w-3 shrink-0 text-right text-primary">{isSelected ? '✓' : ''}</span>
                     {/snippet}
                   </Select.Item>
@@ -128,7 +140,7 @@
                       {/if}
                       <span class="min-w-0 flex-1">
                         <span class="block truncate">{d.name}</span>
-                        <span class="block truncate text-[10px] text-text-subtle">{d.ownerUsername}</span>
+                        <span class="block truncate text-[10px] text-text-subtle">{d.description || d.ownerUsername}</span>
                       </span>
                       <span class="w-3 shrink-0 text-right text-primary">{isSelected ? '✓' : ''}</span>
                     {/snippet}

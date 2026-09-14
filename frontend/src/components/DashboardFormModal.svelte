@@ -3,22 +3,67 @@
   import type { DashboardForm } from '../lib/dashboard-helpers'
   import Modal from './Modal.svelte'
   import IconField from './IconField.svelte'
+  import { formatHotkey, formatModifierPreview, hotkeyFromEvent, hotkeysEquivalent } from '../lib/hotkeys'
 
   let {
     open = $bindable(false),
     form = $bindable(),
     canSetDefault = false,
+    conflictingHotkeys = [],
     onSave,
   }: {
     open?: boolean
     form: DashboardForm
     canSetDefault?: boolean
+    conflictingHotkeys?: string[]
     onSave: () => void | Promise<void>
   } = $props()
 
+  let hotkeyError = $state('')
+  let hotkeyPreview = $state('')
+  const hotkeyConflict = $derived(!!form.hotkey && conflictingHotkeys.some((hotkey) => hotkeysEquivalent(form.hotkey, hotkey)))
+
+  $effect(() => {
+    if (!open) {
+      hotkeyError = ''
+      hotkeyPreview = ''
+    }
+  })
+
+  function captureHotkey(event: KeyboardEvent) {
+    event.preventDefault()
+    event.stopPropagation()
+    if (event.key === 'Escape') {
+      ;(event.currentTarget as HTMLInputElement).blur()
+      hotkeyError = ''
+      hotkeyPreview = ''
+      return
+    }
+    if (event.key === 'Backspace' || event.key === 'Delete') {
+      form.hotkey = ''
+      form.hotkeyLabel = ''
+      hotkeyError = ''
+      return
+    }
+    const hotkey = hotkeyFromEvent(event)
+    if (!hotkey) {
+      hotkeyPreview = formatModifierPreview(event)
+      if (!['Control', 'Alt', 'Shift', 'Meta'].includes(event.key)) hotkeyError = 'Use at least one modifier key'
+      return
+    }
+    form.hotkey = hotkey
+    form.hotkeyLabel = event.key
+    hotkeyPreview = ''
+    hotkeyError = ''
+  }
+
+  function releaseHotkeyModifier(event: KeyboardEvent) {
+    if (['Control', 'Alt', 'Shift', 'Meta'].includes(event.key)) hotkeyPreview = formatModifierPreview(event)
+  }
+
   async function submit(e: Event) {
     e.preventDefault()
-    if (!form.name.trim() || !form.slug.trim()) return
+    if (!form.name.trim() || !form.slug.trim() || hotkeyConflict) return
     await onSave()
   }
 </script>
@@ -40,6 +85,42 @@
     <div>
       <span class="mb-1 block text-xs text-text-muted">Icon</span>
       <IconField bind:value={form.icon} bind:valueDark={form.iconDark} />
+    </div>
+
+    <div class="hidden sm:block">
+      <span class="mb-1 block text-xs text-text-muted">Hotkey</span>
+      <div class="flex gap-2">
+        <input
+          readonly
+          value={hotkeyPreview || formatHotkey(form.hotkey, form.hotkeyLabel)}
+          placeholder="Focus and press a combination"
+          aria-label="Dashboard hotkey"
+          class="min-w-0 flex-1 cursor-default rounded-btn border border-border bg-bg-elevated px-3 py-2 text-sm outline-none placeholder:text-text-subtle focus:border-primary"
+          onkeydown={captureHotkey}
+          onkeyup={releaseHotkeyModifier}
+          onblur={() => (hotkeyPreview = '')}
+        />
+        {#if form.hotkey}
+          <button
+            type="button"
+            class="rounded-btn border border-border px-3 text-sm text-text-muted hover:bg-surface-2 hover:text-text"
+            onclick={() => {
+              form.hotkey = ''
+              form.hotkeyLabel = ''
+              hotkeyError = ''
+            }}>Clear</button
+          >
+        {/if}
+      </div>
+      {#if hotkeyConflict}
+        <span class="mt-1 block text-xs text-danger">This hotkey is already assigned to an item or dashboard. Choose another combination.</span>
+      {/if}
+      <span class="mt-1 block text-xs {hotkeyError ? 'text-danger' : 'text-text-subtle'}">
+        {hotkeyError || 'Press Ctrl, Alt, Shift or Meta together with another key. Backspace clears it.'}
+      </span>
+      <span class="mt-1 block text-xs text-text-subtle">
+        Some shortcuts may be intercepted by your operating system or browser, especially combinations using Meta.
+      </span>
     </div>
 
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -107,7 +188,11 @@
 
     <div class="flex justify-end gap-2 pt-2">
       <button type="button" class="rounded-btn px-3 py-2 text-sm text-text-muted" onclick={() => (open = false)}>Cancel</button>
-      <button type="submit" class="rounded-btn bg-primary px-3 py-2 text-sm font-medium text-white">Save</button>
+      <button
+        type="submit"
+        disabled={hotkeyConflict}
+        class="rounded-btn bg-primary px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50">Save</button
+      >
     </div>
   </form>
 </Modal>

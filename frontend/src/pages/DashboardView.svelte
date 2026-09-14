@@ -91,6 +91,16 @@
   const usedItemHotkeys = $derived(
     groups.flatMap((group) => (group.items ?? []).filter((item) => item.id !== editingItem?.id && !!item.hotkey).map((item) => item.hotkey)),
   )
+  const ownDashboards = $derived(dashList.filter((candidate) => candidate.ownerId === $user?.id))
+  const dashboardHotkeys = $derived(ownDashboards.filter((candidate) => !!candidate.hotkey).map((candidate) => candidate.hotkey))
+  const dashboardFormConflicts = $derived([
+    ...(dashboard?.ownerId === $user?.id
+      ? groups.flatMap((group) => (group.items ?? []).filter((item) => !!item.hotkey).map((item) => item.hotkey))
+      : []),
+    ...ownDashboards
+      .filter((candidate) => !!candidate.hotkey && (dashForm.creating || candidate.id !== dashboard?.id))
+      .map((candidate) => candidate.hotkey),
+  ])
 
   function askConfirm(message: string, action: () => Promise<void>) {
     confirmMsg = message
@@ -243,6 +253,7 @@
       pingUrl: itemForm.pingUrl.trim(),
       pingSkipTls: itemForm.pingSkipTls,
       hotkey: itemForm.hotkey,
+      hotkeyLabel: itemForm.hotkeyLabel,
     }
     try {
       if (editingItem) await api.updateItem(editingItem.id, payload)
@@ -278,6 +289,8 @@
       layout: dashForm.layout,
       width: dashForm.width,
       cleanMode: dashForm.cleanMode,
+      hotkey: dashForm.hotkey,
+      hotkeyLabel: dashForm.hotkeyLabel,
     }
     try {
       if (dashForm.creating || !dashboard) {
@@ -446,6 +459,7 @@
       <CleanHeader dashboard={d} dashboards={dashList} />
       <DashboardBoard
         dashboard={d}
+        dashboards={ownDashboards}
         canModify={canModifyDashboard}
         bind:groups
         onEditGroup={openEditGroup}
@@ -486,6 +500,7 @@
     <AppLayout dashboards={dashList} currentSlug={d.slug} wide={d.width === 'wide'} reserveControls={!!$user} showEdit>
       <DashboardBoard
         dashboard={d}
+        dashboards={ownDashboards}
         canModify={canModifyDashboard}
         bind:groups
         onEditGroup={openEditGroup}
@@ -536,17 +551,12 @@
 {/if}
 
 <GroupFormModal bind:open={groupOpen} bind:form={groupForm} editing={!!editingGroup} onSave={saveGroup} />
-<ItemFormModal
-  bind:open={itemOpen}
-  bind:form={itemForm}
-  editing={!!editingItem}
-  usedHotkeys={usedItemHotkeys}
-  onSave={saveItem}
-/>
+<ItemFormModal bind:open={itemOpen} bind:form={itemForm} editing={!!editingItem} itemHotkeys={usedItemHotkeys} {dashboardHotkeys} onSave={saveItem} />
 <DashboardFormModal
   bind:open={dashOpen}
   bind:form={dashForm}
   canSetDefault={!!$user && (dashForm.creating || dashboard?.ownerId === $user.id)}
+  conflictingHotkeys={dashboardFormConflicts}
   onSave={saveDash}
 />
 <ConfirmModal

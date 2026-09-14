@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"net/http"
 	"net/url"
 	"strings"
@@ -169,6 +170,7 @@ type createItemReq struct {
 	PingURL      string `json:"pingUrl"`
 	PingSkipTLS  bool   `json:"pingSkipTls"`
 	Hotkey       string `json:"hotkey"`
+	HotkeyLabel  string `json:"hotkeyLabel"`
 	Position     int    `json:"position"`
 }
 
@@ -179,7 +181,8 @@ func (h *GroupItemHandler) CreateItem(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "group not found")
 		return
 	}
-	if _, ok := h.canEditDashboard(r, g.DashboardID); !ok {
+	dashboard, ok := h.canEditDashboard(r, g.DashboardID)
+	if !ok {
 		writeError(w, http.StatusForbidden, "forbidden")
 		return
 	}
@@ -191,7 +194,16 @@ func (h *GroupItemHandler) CreateItem(w http.ResponseWriter, r *http.Request) {
 	if req.Icon == "" {
 		req.Icon = "mdi:link"
 	}
-	req.Hotkey = strings.TrimSpace(req.Hotkey)
+	req.Hotkey = normalizeHotkey(req.Hotkey)
+	conflict, err := itemHotkeyConflicts(r.Context(), h.db, dashboard.OwnerID, req.Hotkey)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if conflict {
+		writeError(w, http.StatusConflict, hotkeyConflictError(req.Hotkey, req.HotkeyLabel).Error())
+		return
+	}
 	item := &models.Item{
 		ID:           uuid.NewString(),
 		GroupID:      groupID,
@@ -205,6 +217,7 @@ func (h *GroupItemHandler) CreateItem(w http.ResponseWriter, r *http.Request) {
 		PingURL:      strings.TrimSpace(req.PingURL),
 		PingSkipTLS:  req.PingSkipTLS,
 		Hotkey:       req.Hotkey,
+		HotkeyLabel:  req.HotkeyLabel,
 		Position:     req.Position,
 	}
 	if _, err := h.db.NewInsert().Model(item).Exec(r.Context()); err != nil {
@@ -226,7 +239,8 @@ func (h *GroupItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "group not found")
 		return
 	}
-	if _, ok := h.canEditDashboard(r, g.DashboardID); !ok {
+	dashboard, ok := h.canEditDashboard(r, g.DashboardID)
+	if !ok {
 		writeError(w, http.StatusForbidden, "forbidden")
 		return
 	}
@@ -241,11 +255,43 @@ func (h *GroupItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		PingURL      *string `json:"pingUrl"`
 		PingSkipTLS  *bool   `json:"pingSkipTls"`
 		Hotkey       *string `json:"hotkey"`
+		HotkeyLabel  *string `json:"hotkeyLabel"`
 		Position     *int    `json:"position"`
 		GroupID      *string `json:"groupId"`
 	}
 	if err := decodeJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid body")
+		return
+	}
+	targetDashboard := dashboard
+	if req.GroupID != nil && *req.GroupID != item.GroupID {
+		targetGroup := new(models.Group)
+		if err := h.db.NewSelect().Model(targetGroup).Where("id = ?", *req.GroupID).Scan(r.Context()); err != nil {
+			writeError(w, http.StatusNotFound, "target group not found")
+			return
+		}
+		var ok bool
+		targetDashboard, ok = h.canEditDashboard(r, targetGroup.DashboardID)
+		if !ok {
+			writeError(w, http.StatusForbidden, "cannot edit target dashboard")
+			return
+		}
+	}
+	proposedHotkey := item.Hotkey
+	if req.Hotkey != nil {
+		proposedHotkey = normalizeHotkey(*req.Hotkey)
+	}
+	proposedHotkeyLabel := item.HotkeyLabel
+	if req.HotkeyLabel != nil {
+		proposedHotkeyLabel = *req.HotkeyLabel
+	}
+	conflict, err := itemHotkeyConflicts(r.Context(), h.db, targetDashboard.OwnerID, proposedHotkey)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if conflict {
+		writeError(w, http.StatusConflict, hotkeyConflictError(proposedHotkey, proposedHotkeyLabel).Error())
 		return
 	}
 	if req.Title != nil {
@@ -276,7 +322,10 @@ func (h *GroupItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		item.PingSkipTLS = *req.PingSkipTLS
 	}
 	if req.Hotkey != nil {
-		item.Hotkey = strings.TrimSpace(*req.Hotkey)
+		item.Hotkey = normalizeHotkey(*req.Hotkey)
+	}
+	if req.HotkeyLabel != nil {
+		item.HotkeyLabel = *req.HotkeyLabel
 	}
 	if req.Position != nil {
 		item.Position = *req.Position
@@ -355,10 +404,22 @@ func (h *GroupItemHandler) UpdateLayout(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 	for _, it := range req.Items {
+		targetExists, err := tx.NewSelect().Model((*models.Group)(nil)).
+			Where("id = ? AND dashboard_id = ?", it.GroupID, dashboardID).
+			Exists(ctx)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		if !targetExists {
+			writeError(w, http.StatusBadRequest, "item target group is outside the dashboard")
+			return
+		}
 		if _, err := tx.NewUpdate().Model((*models.Item)(nil)).
 			Set("position = ?", it.Position).
 			Set("group_id = ?", it.GroupID).
 			Where("id = ?", it.ID).
+			Where("group_id IN (SELECT id FROM groups WHERE dashboard_id = ?)", dashboardID).
 			Exec(ctx); err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())
 			return
@@ -400,7 +461,7 @@ func (h *GroupItemHandler) CloneGroup(w http.ResponseWriter, r *http.Request) {
 			Title: it.Title, Description: it.Description, URL: it.URL,
 			Icon: it.Icon, IconDark: it.IconDark, PingEnabled: it.PingEnabled,
 			PingOnlyDown: it.PingOnlyDown, PingURL: it.PingURL, PingSkipTLS: it.PingSkipTLS,
-			Hotkey: it.Hotkey, Position: i,
+			Hotkey: it.Hotkey, HotkeyLabel: it.HotkeyLabel, Position: i,
 		}
 		if _, err := h.db.NewInsert().Model(ni).Exec(r.Context()); err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())
@@ -442,6 +503,10 @@ func (h *GroupItemHandler) CloneGroupToDashboard(w http.ResponseWriter, r *http.
 
 	clone, err := h.cloneGroupToDashboard(r.Context(), g, req.DashboardID)
 	if err != nil {
+		if errors.Is(err, errHotkeyConflict) {
+			writeError(w, http.StatusConflict, err.Error())
+			return
+		}
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -449,6 +514,20 @@ func (h *GroupItemHandler) CloneGroupToDashboard(w http.ResponseWriter, r *http.
 }
 
 func (h *GroupItemHandler) cloneGroupToDashboard(ctx context.Context, source *models.Group, dashboardID string) (*models.Group, error) {
+	target := new(models.Dashboard)
+	if err := h.db.NewSelect().Model(target).Where("id = ?", dashboardID).Scan(ctx); err != nil {
+		return nil, err
+	}
+	for _, item := range source.Items {
+		conflict, err := itemHotkeyConflicts(ctx, h.db, target.OwnerID, item.Hotkey)
+		if err != nil {
+			return nil, err
+		}
+		if conflict {
+			return nil, hotkeyConflictError(item.Hotkey, item.HotkeyLabel)
+		}
+	}
+
 	tx, err := h.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -489,6 +568,7 @@ func (h *GroupItemHandler) cloneGroupToDashboard(ctx context.Context, source *mo
 			PingURL:      item.PingURL,
 			PingSkipTLS:  item.PingSkipTLS,
 			Hotkey:       item.Hotkey,
+			HotkeyLabel:  item.HotkeyLabel,
 			Position:     item.Position,
 		}
 		if _, err := tx.NewInsert().Model(copy).Exec(ctx); err != nil {
@@ -528,7 +608,7 @@ func (h *GroupItemHandler) CloneItem(w http.ResponseWriter, r *http.Request) {
 		Title: item.Title + " (copy)", Description: item.Description, URL: item.URL,
 		Icon: item.Icon, IconDark: item.IconDark, PingEnabled: item.PingEnabled,
 		PingOnlyDown: item.PingOnlyDown, PingURL: item.PingURL, PingSkipTLS: item.PingSkipTLS,
-		Hotkey: item.Hotkey, Position: maxPos + 1,
+		Hotkey: item.Hotkey, HotkeyLabel: item.HotkeyLabel, Position: maxPos + 1,
 	}
 	if _, err := h.db.NewInsert().Model(ni).Exec(r.Context()); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())

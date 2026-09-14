@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -37,6 +38,7 @@ func (h *DashboardHandler) List(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	hideForeignDashboardHotkeys(user, list...)
 	writeJSON(w, http.StatusOK, list)
 }
 
@@ -68,6 +70,7 @@ func (h *DashboardHandler) Get(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	hideForeignDashboardHotkeys(user, d)
 	writeJSON(w, http.StatusOK, d)
 }
 
@@ -96,7 +99,17 @@ func (h *DashboardHandler) GetMain(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusForbidden, "access denied")
 		return
 	}
+	hideForeignDashboardHotkeys(user, d)
 	writeJSON(w, http.StatusOK, d)
+}
+
+func hideForeignDashboardHotkeys(user *models.User, dashboards ...*models.Dashboard) {
+	for _, dashboard := range dashboards {
+		if dashboard != nil && (user == nil || dashboard.OwnerID != user.ID) {
+			dashboard.Hotkey = ""
+			dashboard.HotkeyLabel = ""
+		}
+	}
 }
 
 type createDashboardReq struct {
@@ -109,6 +122,8 @@ type createDashboardReq struct {
 	Width       models.Width   `json:"width"`
 	Privacy     models.Privacy `json:"privacy"`
 	CleanMode   bool           `json:"cleanMode"`
+	Hotkey      string         `json:"hotkey"`
+	HotkeyLabel string         `json:"hotkeyLabel"`
 }
 
 func (h *DashboardHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -140,6 +155,16 @@ func (h *DashboardHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if req.Privacy == "" {
 		req.Privacy = models.PrivacyPrivate
 	}
+	req.Hotkey = normalizeHotkey(req.Hotkey)
+	conflict, err := dashboardHotkeyConflicts(r.Context(), h.db, user.ID, req.Hotkey, "")
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if conflict {
+		writeError(w, http.StatusConflict, hotkeyConflictError(req.Hotkey, req.HotkeyLabel).Error())
+		return
+	}
 	d := &models.Dashboard{
 		ID:          uuid.NewString(),
 		OwnerID:     user.ID,
@@ -151,8 +176,10 @@ func (h *DashboardHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Layout:      req.Layout,
 		Width:       req.Width,
 		Privacy:     req.Privacy,
+		CleanMode:   req.CleanMode,
+		Hotkey:      req.Hotkey,
+		HotkeyLabel: req.HotkeyLabel,
 	}
-	d.CleanMode = req.CleanMode
 	if _, err := h.db.NewInsert().Model(d).Exec(r.Context()); err != nil {
 		writeError(w, http.StatusConflict, "slug already exists")
 		return
@@ -209,6 +236,17 @@ func (h *DashboardHandler) Update(w http.ResponseWriter, r *http.Request) {
 		d.Privacy = req.Privacy
 	}
 	d.CleanMode = req.CleanMode
+	d.Hotkey = normalizeHotkey(req.Hotkey)
+	d.HotkeyLabel = req.HotkeyLabel
+	conflict, err := dashboardHotkeyConflicts(r.Context(), h.db, d.OwnerID, d.Hotkey, d.ID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if conflict {
+		writeError(w, http.StatusConflict, hotkeyConflictError(d.Hotkey, d.HotkeyLabel).Error())
+		return
+	}
 	if _, err := h.db.NewUpdate().Model(d).WherePK().Exec(r.Context()); err != nil {
 		writeError(w, http.StatusConflict, "update failed")
 		return
@@ -350,7 +388,7 @@ func (h *DashboardHandler) SetDefault(w http.ResponseWriter, r *http.Request) {
 }
 
 // ExportFormatVersion is bumped when the export JSON schema changes.
-const ExportFormatVersion = 1
+const ExportFormatVersion = 2
 
 type exportPayload struct {
 	Version   int             `json:"version"`
@@ -367,6 +405,8 @@ type exportDashboard struct {
 	Width       models.Width   `json:"width"`
 	Privacy     models.Privacy `json:"privacy"`
 	CleanMode   bool           `json:"cleanMode"`
+	Hotkey      string         `json:"hotkey"`
+	HotkeyLabel string         `json:"hotkeyLabel"`
 	Groups      []exportGroup  `json:"groups"`
 }
 
@@ -391,6 +431,7 @@ type exportItem struct {
 	PingURL      string `json:"pingUrl"`
 	PingSkipTLS  bool   `json:"pingSkipTls"`
 	Hotkey       string `json:"hotkey"`
+	HotkeyLabel  string `json:"hotkeyLabel"`
 	Position     int    `json:"position"`
 }
 
@@ -417,7 +458,7 @@ func dashboardToExport(d *models.Dashboard) exportPayload {
 				Title: it.Title, Description: it.Description, URL: it.URL,
 				Icon: it.Icon, IconDark: it.IconDark, PingEnabled: it.PingEnabled,
 				PingOnlyDown: it.PingOnlyDown, PingURL: it.PingURL, PingSkipTLS: it.PingSkipTLS,
-				Hotkey: it.Hotkey, Position: it.Position,
+				Hotkey: it.Hotkey, HotkeyLabel: it.HotkeyLabel, Position: it.Position,
 			})
 		}
 		eg = append(eg, exportGroup{
@@ -430,7 +471,8 @@ func dashboardToExport(d *models.Dashboard) exportPayload {
 		Dashboard: exportDashboard{
 			Name: d.Name, Slug: d.Slug, Description: d.Description,
 			Icon: d.Icon, IconDark: d.IconDark, Layout: d.Layout, Width: d.Width,
-			Privacy: d.Privacy, CleanMode: d.CleanMode, Groups: eg,
+			Privacy: d.Privacy, CleanMode: d.CleanMode,
+			Hotkey: d.Hotkey, HotkeyLabel: d.HotkeyLabel, Groups: eg,
 		},
 	}
 }
@@ -477,6 +519,30 @@ func (h *DashboardHandler) importPayload(ctx context.Context, user *models.User,
 		return nil, fmt.Errorf("unsupported export version %d (supported: 1–%d)", payload.Version, ExportFormatVersion)
 	}
 	src := payload.Dashboard
+	src.Hotkey = normalizeHotkey(src.Hotkey)
+	conflict, err := dashboardHotkeyConflicts(ctx, h.db, user.ID, src.Hotkey, "")
+	if err != nil {
+		return nil, err
+	}
+	if conflict {
+		return nil, hotkeyConflictError(src.Hotkey, src.HotkeyLabel)
+	}
+	for gi := range src.Groups {
+		for ii := range src.Groups[gi].Items {
+			item := &src.Groups[gi].Items[ii]
+			item.Hotkey = normalizeHotkey(item.Hotkey)
+			if canonicalHotkey(src.Hotkey) != "" && canonicalHotkey(src.Hotkey) == canonicalHotkey(item.Hotkey) {
+				return nil, hotkeyConflictError(item.Hotkey, item.HotkeyLabel)
+			}
+			conflict, err := itemHotkeyConflicts(ctx, h.db, user.ID, item.Hotkey)
+			if err != nil {
+				return nil, err
+			}
+			if conflict {
+				return nil, hotkeyConflictError(item.Hotkey, item.HotkeyLabel)
+			}
+		}
+	}
 	name := src.Name
 	if namePrefix != "" {
 		name = namePrefix + name
@@ -502,6 +568,7 @@ func (h *DashboardHandler) importPayload(ctx context.Context, user *models.User,
 		ID: uuid.NewString(), OwnerID: user.ID, Name: name, Slug: slug,
 		Description: src.Description, Icon: src.Icon, IconDark: src.IconDark,
 		Layout: layout, Width: width, Privacy: privacy, CleanMode: src.CleanMode,
+		Hotkey: src.Hotkey, HotkeyLabel: src.HotkeyLabel,
 	}
 	if _, err := h.db.NewInsert().Model(d).Exec(ctx); err != nil {
 		return nil, err
@@ -527,7 +594,7 @@ func (h *DashboardHandler) importPayload(ctx context.Context, user *models.User,
 				Title: is.Title, Description: is.Description, URL: is.URL,
 				Icon: is.Icon, IconDark: is.IconDark, PingEnabled: is.PingEnabled,
 				PingOnlyDown: is.PingOnlyDown, PingURL: is.PingURL, PingSkipTLS: is.PingSkipTLS,
-				Hotkey: is.Hotkey, Position: is.Position,
+				Hotkey: is.Hotkey, HotkeyLabel: is.HotkeyLabel, Position: is.Position,
 			}
 			if it.Icon == "" {
 				it.Icon = "mdi:link"
@@ -556,6 +623,10 @@ func (h *DashboardHandler) Import(w http.ResponseWriter, r *http.Request) {
 	}
 	d, err := h.importPayload(r.Context(), user, payload, "")
 	if err != nil {
+		if errors.Is(err, errHotkeyConflict) {
+			writeError(w, http.StatusConflict, err.Error())
+			return
+		}
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -578,8 +649,14 @@ func (h *DashboardHandler) Clone(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	payload := dashboardToExport(src)
+	payload.Dashboard.Hotkey = ""
+	payload.Dashboard.HotkeyLabel = ""
 	d, err := h.importPayload(r.Context(), user, payload, "Copy of ")
 	if err != nil {
+		if errors.Is(err, errHotkeyConflict) {
+			writeError(w, http.StatusConflict, err.Error())
+			return
+		}
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}

@@ -9,13 +9,15 @@
     open = $bindable(false),
     form = $bindable(),
     editing = false,
-    usedHotkeys = [],
+    itemHotkeys = [],
+    dashboardHotkeys = [],
     onSave,
   }: {
     open?: boolean
     form: ItemForm
     editing?: boolean
-    usedHotkeys?: string[]
+    itemHotkeys?: string[]
+    dashboardHotkeys?: string[]
     onSave: () => void | Promise<void>
   } = $props()
 
@@ -24,7 +26,8 @@
   let availabilityExpanded = $state(false)
   let hotkeyError = $state('')
   let hotkeyPreview = $state('')
-  const hotkeyConflict = $derived(!!form.hotkey && usedHotkeys.some((hotkey) => hotkeysEquivalent(form.hotkey, hotkey)))
+  const itemHotkeyConflict = $derived(!!form.hotkey && itemHotkeys.some((hotkey) => hotkeysEquivalent(form.hotkey, hotkey)))
+  const dashboardHotkeyConflict = $derived(!!form.hotkey && dashboardHotkeys.some((hotkey) => hotkeysEquivalent(form.hotkey, hotkey)))
 
   $effect(() => {
     if (!open || !form.pingEnabled) {
@@ -49,6 +52,7 @@
     }
     if (event.key === 'Backspace' || event.key === 'Delete') {
       form.hotkey = ''
+      form.hotkeyLabel = ''
       hotkeyError = ''
       return
     }
@@ -59,6 +63,7 @@
       return
     }
     form.hotkey = hotkey
+    form.hotkeyLabel = event.key
     hotkeyPreview = ''
     hotkeyError = ''
   }
@@ -76,7 +81,7 @@
     e.preventDefault()
     titleErr = !form.title.trim()
     urlErr = !form.url.trim()
-    if (titleErr || urlErr) return
+    if (titleErr || urlErr || dashboardHotkeyConflict) return
     await onSave()
   }
 </script>
@@ -119,7 +124,7 @@
       <div class="flex gap-2">
         <input
           readonly
-          value={hotkeyPreview || formatHotkey(form.hotkey)}
+          value={hotkeyPreview || formatHotkey(form.hotkey, form.hotkeyLabel)}
           placeholder="Focus and press a combination"
           aria-label="Item hotkey"
           class="min-w-0 flex-1 cursor-default rounded-btn border border-border bg-bg-elevated px-3 py-2 text-sm outline-none placeholder:text-text-subtle focus:border-primary"
@@ -133,14 +138,20 @@
             class="rounded-btn border border-border px-3 text-sm text-text-muted hover:bg-surface-2 hover:text-text"
             onclick={() => {
               form.hotkey = ''
+              form.hotkeyLabel = ''
               hotkeyError = ''
             }}>Clear</button
           >
         {/if}
       </div>
-      {#if hotkeyConflict}
+      {#if dashboardHotkeyConflict}
+        <span class="mt-1 block text-xs text-danger">
+          This hotkey is already assigned to a dashboard. Choose another combination before saving.
+        </span>
+      {:else if itemHotkeyConflict}
         <span class="mt-1 block text-xs text-amber-600 dark:text-amber-400">
-          This hotkey is already used. All items assigned to it will open simultaneously. Your browser may ask for permission to open multiple tabs or block some of them.
+          This hotkey is already used. All items assigned to it will open simultaneously. Your browser may ask for permission to open multiple tabs or
+          block some of them.
         </span>
       {/if}
       <span class="mt-1 block text-xs {hotkeyError ? 'text-danger' : 'text-text-subtle'}">
@@ -235,7 +246,11 @@
     </div>
     <div class="flex justify-end gap-2 pt-2">
       <button type="button" class="rounded-btn px-3 py-2 text-sm text-text-muted" onclick={() => (open = false)}>Cancel</button>
-      <button type="submit" class="rounded-btn bg-primary px-3 py-2 text-sm font-medium text-white">Save</button>
+      <button
+        type="submit"
+        disabled={dashboardHotkeyConflict}
+        class="rounded-btn bg-primary px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50">Save</button
+      >
     </div>
   </form>
 </Modal>

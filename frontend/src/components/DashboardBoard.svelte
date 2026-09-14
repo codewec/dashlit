@@ -1,23 +1,27 @@
 <script lang="ts">
   import { DragDropProvider, DragOverlay, KeyboardSensor, PointerSensor } from '@dnd-kit-svelte/svelte'
   import { move } from '@dnd-kit/helpers'
+  import { push } from 'svelte-spa-router'
 
   import type { Dashboard, Group, Item } from '../lib/api'
-  import { editMode } from '../lib/stores'
-  import { filterGroups, itemsByGroupMap, groupsOuterClass, groupCellClass, reorderGroups, applyItemMove } from '../lib/dashboard-helpers'
+  import { editMode, user } from '../lib/stores'
+  import {
+    filterGroups,
+    itemsByGroupMap,
+    groupsOuterClass,
+    groupCellClass,
+    reorderGroups,
+    applyItemMove,
+    type DashListItem,
+  } from '../lib/dashboard-helpers'
   import GroupCard from './GroupCard.svelte'
   import ItemCard from './ItemCard.svelte'
   import { searchQuery } from '../lib/stores'
-  import {
-    hotkeyKeyLabel,
-    hotkeyMatches,
-    modifierStateFromEvent,
-    shouldShowHotkey,
-    type ModifierState,
-  } from '../lib/hotkeys'
+  import { hotkeyKeyLabel, hotkeyMatches, modifierStateFromEvent, shouldShowHotkey, type ModifierState } from '../lib/hotkeys'
 
   let {
     dashboard,
+    dashboards = [],
     groups = $bindable([]),
     canModify = true,
     onEditGroup,
@@ -32,6 +36,7 @@
     onCreateFirstGroup,
   }: {
     dashboard: Dashboard
+    dashboards?: DashListItem[]
     groups: Group[]
     canModify?: boolean
     onEditGroup: (g: Group) => void
@@ -59,6 +64,8 @@
   let activeItemId = $state('')
   let heldModifiers = $state<ModifierState>({ ctrl: false, alt: false, shift: false, meta: false })
   const hasHeldModifier = $derived(heldModifiers.ctrl || heldModifiers.alt || heldModifiers.shift || heldModifiers.meta)
+  const ownDashboards = $derived(dashboards.filter((candidate) => !!$user && candidate.ownerId === $user.id))
+  const matchingDashboards = $derived(ownDashboards.filter((candidate) => candidate.hotkey && shouldShowHotkey(candidate.hotkey, heldModifiers)))
   const heldModifierLabels = $derived.by(() => {
     const labels: string[] = []
     if (heldModifiers.ctrl) labels.push('Ctrl')
@@ -196,9 +203,18 @@
       target instanceof HTMLElement &&
       !isFilter &&
       target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]')
-    ) return
+    )
+      return
 
     if (!event.repeat && (event.ctrlKey || event.altKey || event.shiftKey || event.metaKey)) {
+      const targetDashboard = ownDashboards.find((candidate) => candidate.hotkey && hotkeyMatches(event, candidate.hotkey))
+      if (targetDashboard) {
+        event.preventDefault()
+        clearSelection()
+        if (targetDashboard.slug !== dashboard.slug) push('/' + targetDashboard.slug)
+        return
+      }
+
       const matchingIds = filtered.flatMap((group) =>
         (byGroup[group.id] || []).filter((item) => item.hotkey && hotkeyMatches(event, item.hotkey)).map((item) => item.id),
       )
@@ -271,17 +287,13 @@
   }
 </script>
 
-<svelte:window
-  onkeydown={handleWindowKeydown}
-  onkeyup={handleWindowKeyup}
-  onpointerdown={clearSelection}
-  onblur={clearHeldModifiers}
-/>
+<svelte:window onkeydown={handleWindowKeydown} onkeyup={handleWindowKeyup} onpointerdown={clearSelection} onblur={clearHeldModifiers} />
 
 <div
-  class="pointer-events-none fixed left-1/2 z-40 -translate-x-1/2 items-center gap-1.5 rounded-xl border border-border bg-bg-elevated/95 px-3 py-2 shadow-xl backdrop-blur-md {hasHeldModifier && !$editMode ? 'hidden sm:flex' : 'hidden'} {dashboard.cleanMode
-    ? 'bottom-5'
-    : 'bottom-16'}"
+  class="pointer-events-none fixed left-1/2 z-40 -translate-x-1/2 items-center gap-1.5 rounded-xl border border-border bg-bg-elevated/95 px-3 py-2 shadow-xl backdrop-blur-md {hasHeldModifier &&
+  !$editMode
+    ? 'hidden sm:flex'
+    : 'hidden'} {dashboard.cleanMode ? 'bottom-5' : 'bottom-16'}"
   aria-hidden="true"
 >
   {#each heldModifierLabels as label, index}
@@ -305,52 +317,76 @@
     {/if}
   </div>
 {:else}
-  <DragDropProvider {sensors} {onDragOver} {onDragEnd}>
-    <div class={outerClass}>
-      {#each filtered as group, gIndex (group.id)}
-        <div class={cellClass} data-dashboard-group={group.id}>
-          <GroupCard
-            {group}
-            index={gIndex}
-            layout={dashboard.layout}
-            wide={dashboard.width === 'wide'}
-            {canModify}
-            onEdit={onEditGroup}
-            onDelete={onDeleteGroup}
-            onClone={onCloneGroup}
-            onCopyTo={onCopyGroupToDashboard}
-            {onAddItem}
-          >
-            {#each byGroup[group.id] || [] as item, iIndex (item.id)}
-              <ItemCard
-                {item}
-                index={iIndex}
-                groupId={group.id}
-                itemSize={group.itemSize}
-                tabIndex={activeItemId ? (item.id === activeItemId ? 0 : -1) : (item.id === firstItemId ? 0 : -1)}
-                isKeyboardActive={!!activeItemId && item.id === activeItemId}
-                hotkeyHint={!$editMode && shouldShowHotkey(item.hotkey, heldModifiers) ? hotkeyKeyLabel(item.hotkey) : ''}
-                isHotkeyDimmed={!$editMode && hasHeldModifier && !shouldShowHotkey(item.hotkey, heldModifiers)}
-                {canModify}
-                onEdit={onEditItem}
-                onDelete={onDeleteItem}
-                onClone={onCloneItem}
-              />
-            {/each}
-          </GroupCard>
-        </div>
-      {/each}
-    </div>
+  <div>
+    <DragDropProvider {sensors} {onDragOver} {onDragEnd}>
+      <div class={outerClass}>
+        {#each filtered as group, gIndex (group.id)}
+          <div class={cellClass} data-dashboard-group={group.id}>
+            <GroupCard
+              {group}
+              index={gIndex}
+              layout={dashboard.layout}
+              wide={dashboard.width === 'wide'}
+              {canModify}
+              onEdit={onEditGroup}
+              onDelete={onDeleteGroup}
+              onClone={onCloneGroup}
+              onCopyTo={onCopyGroupToDashboard}
+              {onAddItem}
+            >
+              {#each byGroup[group.id] || [] as item, iIndex (item.id)}
+                <ItemCard
+                  {item}
+                  index={iIndex}
+                  groupId={group.id}
+                  itemSize={group.itemSize}
+                  tabIndex={activeItemId ? (item.id === activeItemId ? 0 : -1) : item.id === firstItemId ? 0 : -1}
+                  isKeyboardActive={!!activeItemId && item.id === activeItemId}
+                  hotkeyHint={!$editMode && shouldShowHotkey(item.hotkey, heldModifiers) ? hotkeyKeyLabel(item.hotkey, item.hotkeyLabel) : ''}
+                  isHotkeyDimmed={!$editMode && hasHeldModifier && !shouldShowHotkey(item.hotkey, heldModifiers)}
+                  {canModify}
+                  onEdit={onEditItem}
+                  onDelete={onDeleteItem}
+                  onClone={onCloneItem}
+                />
+              {/each}
+            </GroupCard>
+          </div>
+        {/each}
+      </div>
 
-    <DragOverlay>
-      {#snippet children(source)}
-        {#if source?.data?.item}
-          {@const g = groups.find((x) => x.id === source.data.group)}
-          <ItemCard item={source.data.item} index={0} groupId={source.data.group} itemSize={g?.itemSize ?? '1x1'} isOverlay />
-        {:else if source?.data?.group}
-          <GroupCard group={source.data.group} index={0} layout={dashboard.layout} wide={dashboard.width === 'wide'} isOverlay />
-        {/if}
-      {/snippet}
-    </DragOverlay>
-  </DragDropProvider>
+      <DragOverlay>
+        {#snippet children(source)}
+          {#if source?.data?.item}
+            {@const g = groups.find((x) => x.id === source.data.group)}
+            <ItemCard item={source.data.item} index={0} groupId={source.data.group} itemSize={g?.itemSize ?? '1x1'} isOverlay />
+          {:else if source?.data?.group}
+            <GroupCard group={source.data.group} index={0} layout={dashboard.layout} wide={dashboard.width === 'wide'} isOverlay />
+          {/if}
+        {/snippet}
+      </DragOverlay>
+    </DragDropProvider>
+    {#if matchingDashboards.length > 0 && !$editMode}
+      <aside class="fixed right-4 top-20 z-30 hidden w-60 sm:block">
+        <div class="rounded-card border border-border-soft bg-surface/95 p-3 shadow-xl backdrop-blur-md">
+          <div class="mb-2 text-[10px] font-semibold uppercase tracking-wider text-text-subtle">Dashboard shortcuts</div>
+          <div class="space-y-1.5">
+            {#each matchingDashboards as candidate}
+              <div
+                class="flex items-center gap-2 rounded-btn px-2.5 py-2 {candidate.slug === dashboard.slug
+                  ? 'bg-primary/10 text-primary'
+                  : 'bg-surface-2 text-text'}"
+              >
+                <kbd class="min-w-7 shrink-0 rounded border border-border bg-bg-elevated px-1.5 py-0.5 text-center text-xs font-semibold"
+                  >{hotkeyKeyLabel(candidate.hotkey, candidate.hotkeyLabel)}</kbd
+                >
+                <span class="min-w-0 flex-1 truncate text-xs font-medium">{candidate.name}</span>
+                {#if candidate.slug === dashboard.slug}<span class="text-[9px] text-text-subtle">current</span>{/if}
+              </div>
+            {/each}
+          </div>
+        </div>
+      </aside>
+    {/if}
+  </div>
 {/if}
