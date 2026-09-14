@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { onMount, tick } from 'svelte'
+  import { tick, untrack } from 'svelte'
+  import { derived } from 'svelte/store'
   import { push, replace } from 'svelte-spa-router'
   import { api, type Dashboard, type Group, type Item } from '../lib/api'
   import { user, editMode, currentDashboard, searchQuery } from '../lib/stores'
@@ -55,6 +56,7 @@
   let copyGroupOpen = $state(false)
   let groupToCopy = $state<Group | null>(null)
   let copyingDashboardId = $state('')
+  const authenticatedUserId = derived(user, (currentUser) => currentUser?.id ?? null)
 
   async function handleFilterKeydown(event: KeyboardEvent) {
     if (loading || !dashboard || event.defaultPrevented || event.isComposing || event.ctrlKey || event.metaKey || event.altKey) return
@@ -188,11 +190,10 @@
     }
   }
 
-  onMount(load)
   $effect(() => {
     void params?.slug
-    void $user
-    load()
+    void $authenticatedUserId
+    untrack(() => void load())
   })
 
   /* —— group —— */
@@ -221,13 +222,22 @@
       itemSize: groupForm.itemSize,
     }
     try {
-      if (editingGroup) await api.updateGroup(editingGroup.id, payload)
-      else await api.createGroup(dashboard.id, { ...payload, position: groups.length })
+      if (editingGroup) {
+        const updated = await api.updateGroup(editingGroup.id, payload)
+        groups = groups.map((group) => (group.id === updated.id ? { ...updated, items: group.items ?? [] } : group))
+      } else {
+        const created = await api.createGroup(dashboard.id, { ...payload, position: groups.length })
+        groups = [...groups, { ...created, items: created.items ?? [] }]
+      }
       groupOpen = false
-      await load()
     } catch (e: unknown) {
       toastError(e, editingGroup ? 'Could not update group' : 'Could not create group')
     }
+  }
+
+  async function deleteGroup(group: Group) {
+    await api.deleteGroup(group.id)
+    groups = groups.filter((candidate) => candidate.id !== group.id)
   }
 
   /* —— item —— */
@@ -256,16 +266,29 @@
       hotkeyLabel: itemForm.hotkeyLabel,
     }
     try {
-      if (editingItem) await api.updateItem(editingItem.id, payload)
+      let saved: Item
+      if (editingItem) saved = await api.updateItem(editingItem.id, payload)
       else {
         const pos = groups.find((g) => g.id === itemForm.groupId)?.items?.length ?? 0
-        await api.createItem(itemForm.groupId, { ...payload, position: pos })
+        saved = await api.createItem(itemForm.groupId, { ...payload, position: pos })
       }
+      groups = groups.map((group) => {
+        const items = group.items ?? []
+        if (group.id === saved.groupId) return { ...group, items: [...items.filter((item) => item.id !== saved.id), saved] }
+        if (items.some((item) => item.id === saved.id)) return { ...group, items: items.filter((item) => item.id !== saved.id) }
+        return group
+      })
       itemOpen = false
-      await load()
     } catch (e: unknown) {
       toastError(e, editingItem ? 'Could not update item' : 'Could not create item')
     }
+  }
+
+  async function deleteItem(item: Item) {
+    await api.deleteItem(item.id)
+    groups = groups.map((group) =>
+      group.id === item.groupId ? { ...group, items: (group.items ?? []).filter((candidate) => candidate.id !== item.id) } : group,
+    )
   }
 
   /* —— dashboard —— */
@@ -304,13 +327,32 @@
       }
       const prevSlug = dashboard.slug
       const wasDefault = dashboard.isDefault
-      await api.updateDashboard(dashboard.id, body)
+      const updated = await api.updateDashboard(dashboard.id, body)
       if (dashboard.ownerId === $user?.id && dashForm.isDefault !== wasDefault) {
         await api.setDefault(dashboard.id, dashForm.isDefault)
       }
+      const nextIsDefault = dashboard.ownerId === $user?.id ? dashForm.isDefault : wasDefault
+      const nextDashboard = { ...dashboard, ...updated, isDefault: nextIsDefault }
+      dashboard = nextDashboard
+      currentDashboard.set(nextDashboard)
+      dashList = dashList.map((candidate) => {
+        if (nextIsDefault && candidate.ownerId === nextDashboard.ownerId) candidate = { ...candidate, isDefault: false }
+        return candidate.id === nextDashboard.id
+          ? {
+              ...candidate,
+              name: nextDashboard.name,
+              slug: nextDashboard.slug,
+              description: nextDashboard.description,
+              icon: nextDashboard.icon,
+              iconDark: nextDashboard.iconDark,
+              hotkey: nextDashboard.hotkey,
+              hotkeyLabel: nextDashboard.hotkeyLabel,
+              isDefault: nextDashboard.isDefault,
+            }
+          : candidate
+      })
       dashOpen = false
       if (dashForm.slug !== prevSlug) push('/' + dashForm.slug)
-      else await load()
     } catch (e: unknown) {
       toastError(e, dashForm.creating ? 'Could not create dashboard' : 'Could not update dashboard')
     }
@@ -465,8 +507,7 @@
         onEditGroup={openEditGroup}
         onDeleteGroup={(g) =>
           askConfirm(`Delete group “${g.title}” and all its items?`, async () => {
-            await api.deleteGroup(g.id)
-            await load()
+            await deleteGroup(g)
           })}
         onCloneGroup={cloneGroup}
         onCopyGroupToDashboard={openCopyGroup}
@@ -474,8 +515,7 @@
         onEditItem={openEditItem}
         onDeleteItem={(it) =>
           askConfirm(`Delete “${it.title}”?`, async () => {
-            await api.deleteItem(it.id)
-            await load()
+            await deleteItem(it)
           })}
         onCloneItem={cloneItem}
         onLayoutChange={persistLayout}
@@ -506,8 +546,7 @@
         onEditGroup={openEditGroup}
         onDeleteGroup={(g) =>
           askConfirm(`Delete group “${g.title}” and all its items?`, async () => {
-            await api.deleteGroup(g.id)
-            await load()
+            await deleteGroup(g)
           })}
         onCloneGroup={cloneGroup}
         onCopyGroupToDashboard={openCopyGroup}
@@ -515,8 +554,7 @@
         onEditItem={openEditItem}
         onDeleteItem={(it) =>
           askConfirm(`Delete “${it.title}”?`, async () => {
-            await api.deleteItem(it.id)
-            await load()
+            await deleteItem(it)
           })}
         onCloneItem={cloneItem}
         onLayoutChange={persistLayout}
