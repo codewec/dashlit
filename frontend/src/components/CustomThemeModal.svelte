@@ -158,12 +158,15 @@
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
       {#each colorFields as field}
         <label class="flex items-center gap-3 rounded-xl border border-border-soft bg-bg-elevated/60 px-3 py-2.5">
-          <input
-            type="color"
-            class="h-9 w-9 shrink-0 cursor-pointer rounded-lg bg-transparent"
-            value={draft[field.key]}
-            oninput={(e) => onColorInput(field.key, (e.currentTarget as HTMLInputElement).value)}
-          />
+          <span class="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg" style:background-color={draft[field.key]}>
+            <input
+              type="color"
+              class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+              value={draft[field.key]}
+              aria-label={field.label}
+              oninput={(e) => onColorInput(field.key, (e.currentTarget as HTMLInputElement).value)}
+            />
+          </span>
           <span class="min-w-0 flex-1">
             <span class="block text-sm font-medium text-text">{field.label}</span>
             <span class="block truncate font-mono text-[11px] text-text-subtle">{draft[field.key]}</span>
