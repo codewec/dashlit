@@ -582,7 +582,28 @@
     <div class="flex flex-col items-center gap-3 py-20">
       <p class="text-sm text-text-muted">{error || 'No dashboards yet.'}</p>
       {#if $user}
-        <button type="button" class="rounded-btn bg-primary px-4 py-2 text-sm text-white" onclick={openCreateDashboard}> Create dashboard </button>
+        <div class="flex flex-wrap items-center justify-center gap-2">
+          <button
+            type="button"
+            class="flex items-center gap-2 rounded-btn bg-primary px-4 py-2 text-sm text-white hover:bg-primary-hover"
+            onclick={openCreateDashboard}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"
+              ><path d="M12 5v14M5 12h14" /></svg
+            >
+            Create dashboard
+          </button>
+          <button
+            type="button"
+            class="flex items-center gap-2 rounded-btn border border-border bg-surface px-4 py-2 text-sm text-text hover:bg-surface-2"
+            onclick={importDashboard}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"
+              ><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m17 8-5-5-5 5" /><path d="M12 3v12" /></svg
+            >
+            Import dashboard
+          </button>
+        </div>
       {/if}
     </div>
   </AppLayout>
