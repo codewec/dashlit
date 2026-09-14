@@ -117,6 +117,7 @@
                 <span class="block truncate text-[10px] text-text-subtle">{d.description}</span>
               {/if}
             </span>
+            {#if d.slug === currentSlug}<span class="shrink-0 text-primary">✓</span>{/if}
           </DropdownMenu.Item>
         {/each}
         {#if ownDashboards.length > 0 && otherDashboards.length > 0}
@@ -159,6 +160,7 @@
                   <span class="block truncate">{d.name}</span>
                   <span class="block truncate text-[10px] text-text-subtle">{d.description || d.ownerUsername}</span>
                 </span>
+                {#if d.slug === currentSlug}<span class="shrink-0 text-primary">✓</span>{/if}
               </DropdownMenu.Item>
             {/each}
           </div>
