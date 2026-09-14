@@ -3,6 +3,8 @@ import { api, type User, type Dashboard, type SystemInfo } from './api'
 import { iconSrc } from './icon-helpers'
 import {
   customThemeColorVars,
+  defaultCustomTheme,
+  guestHasCustomTheme,
   isLightResolvedTheme,
   loadGuestCustomTheme,
   loadGuestTheme,
@@ -20,6 +22,7 @@ export const editMode = writable(false)
 export const theme = writable<Theme>('system')
 export const resolvedTheme = writable<ResolvedTheme>('frappe')
 export const customTheme = writable<CustomThemeConfig>(loadGuestCustomTheme())
+export const hasCustomTheme = writable(guestHasCustomTheme())
 export const customThemeEditorOpen = writable(false)
 export const currentDashboard = writable<Dashboard | null>(null)
 export const searchQuery = writable('')
@@ -28,6 +31,7 @@ export const systemInfo = writable<SystemInfo | null>(null)
 let selectedTheme: Theme = 'system'
 let mediaListenerAttached = false
 let activeCustom: CustomThemeConfig = loadGuestCustomTheme()
+let activeHasCustomTheme = guestHasCustomTheme()
 let persistTimer: ReturnType<typeof setTimeout> | undefined
 
 function resolveTheme(mode: Theme): ResolvedTheme {
@@ -75,7 +79,7 @@ export function applyTheme(mode: Theme) {
   }
 
   resolvedTheme.set(resolved)
-  saveGuestTheme(mode, activeCustom)
+  saveGuestTheme(mode, activeCustom, activeHasCustomTheme)
 
   if (!mediaListenerAttached) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
@@ -90,7 +94,7 @@ async function persistThemeToServer(mode: Theme, config: CustomThemeConfig) {
   try {
     const updated = await api.updateTheme({
       theme: mode,
-      customTheme: mode === 'custom' ? config : null,
+      customTheme: activeHasCustomTheme ? config : null,
     })
     user.set(updated)
   } catch {
@@ -111,11 +115,13 @@ export function setTheme(mode: Theme, options?: { persist?: boolean }) {
   if (options?.persist !== false) schedulePersist(mode, activeCustom)
 }
 
-export function setCustomTheme(config: CustomThemeConfig, options?: { persist?: boolean; apply?: boolean }) {
+export function setCustomTheme(config: CustomThemeConfig, options?: { persist?: boolean; apply?: boolean; exists?: boolean }) {
   const next = normalizeCustomTheme(config)
   activeCustom = next
+  if (options?.exists) activeHasCustomTheme = true
   customTheme.set(next)
-  saveGuestTheme(selectedTheme, next)
+  hasCustomTheme.set(activeHasCustomTheme)
+  saveGuestTheme(selectedTheme, next, activeHasCustomTheme)
   if (options?.apply !== false && selectedTheme === 'custom') applyTheme('custom')
   if (options?.persist !== false) schedulePersist(selectedTheme, next)
 }
@@ -126,14 +132,30 @@ export function openCustomThemeEditor() {
 
 export function selectCustomTheme() {
   setTheme('custom')
-  openCustomThemeEditor()
+}
+
+export async function deleteCustomTheme() {
+  activeCustom = { ...defaultCustomTheme }
+  activeHasCustomTheme = false
+  customTheme.set(activeCustom)
+  hasCustomTheme.set(false)
+  setTheme('system', { persist: false })
+  if (!get(user)) return
+  try {
+    const updated = await api.updateTheme({ theme: 'system', customTheme: null })
+    user.set(updated)
+  } catch {
+    // The local theme stays reset when the server cannot be reached.
+  }
 }
 
 export function hydrateThemeFromUser(nextUser: User | null) {
   if (!nextUser) {
     const guestTheme = loadGuestTheme()
     activeCustom = loadGuestCustomTheme()
+    activeHasCustomTheme = guestHasCustomTheme()
     customTheme.set(activeCustom)
+    hasCustomTheme.set(activeHasCustomTheme)
     theme.set(guestTheme)
     applyTheme(guestTheme)
     return
@@ -142,7 +164,9 @@ export function hydrateThemeFromUser(nextUser: User | null) {
   const nextTheme = normalizeTheme(nextUser.theme)
   const nextCustom = parseCustomTheme(nextUser.customTheme)
   activeCustom = nextCustom
+  activeHasCustomTheme = !!nextUser.customTheme?.trim()
   customTheme.set(nextCustom)
+  hasCustomTheme.set(activeHasCustomTheme)
   theme.set(nextTheme)
   applyTheme(nextTheme)
 }

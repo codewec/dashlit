@@ -1,5 +1,6 @@
 <script lang="ts">
   import { api } from '../lib/api'
+  import { user } from '../lib/stores'
   import { detectIconSourceTab, iconSrc } from '../lib/icon-helpers'
   import { toastError } from '../lib/toasts'
 
@@ -18,11 +19,12 @@
   let initialized = $state(false)
 
   const previewSrc = $derived(value ? iconSrc(value) : '')
+  const sourceTabs = $derived($user ? (['url', 'upload'] as SourceTab[]) : (['url'] as SourceTab[]))
 
   $effect(() => {
     if (!initialized) {
       const detected = detectIconSourceTab(value)
-      sourceTab = detected === 'upload' ? 'upload' : 'url'
+      sourceTab = detected === 'upload' && $user ? 'upload' : 'url'
       if (sourceTab === 'url' && value) urlInput = value
       initialized = true
     }
@@ -57,18 +59,20 @@
     {/if}
   </div>
 
-  <div class="flex gap-1 rounded-lg bg-surface-2 p-1">
-    {#each ['url', 'upload'] as SourceTab[] as t}
-      <button
-        type="button"
-        class="flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition
-          {sourceTab === t ? 'bg-surface text-text shadow-sm' : 'text-text-muted hover:text-text'}"
-        onclick={() => (sourceTab = t)}
-      >
-        {t === 'url' ? 'URL' : 'Upload'}
-      </button>
-    {/each}
-  </div>
+  {#if $user}
+    <div class="flex gap-1 rounded-lg bg-surface-2 p-1">
+      {#each sourceTabs as t}
+        <button
+          type="button"
+          class="flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition
+            {sourceTab === t ? 'bg-surface text-text shadow-sm' : 'text-text-muted hover:text-text'}"
+          onclick={() => (sourceTab = t)}
+        >
+          {t === 'url' ? 'URL' : 'Upload'}
+        </button>
+      {/each}
+    </div>
+  {/if}
 
   <div class="flex items-center gap-2">
     <div class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border-soft bg-bg">
@@ -79,7 +83,7 @@
       {/if}
     </div>
 
-    {#if sourceTab === 'url'}
+    {#if sourceTab === 'url' || !$user}
       <input
         class="h-10 min-w-0 flex-1 rounded-btn border border-border bg-bg-elevated px-3 text-sm outline-none focus:border-primary"
         placeholder="https://…"

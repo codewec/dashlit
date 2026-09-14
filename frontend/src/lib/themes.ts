@@ -22,6 +22,7 @@ export type CustomThemeConfig = {
 
 export const THEME_STORAGE_KEY = 'bd_theme'
 export const CUSTOM_THEME_STORAGE_KEY = 'bd_custom_theme'
+export const CUSTOM_THEME_EXISTS_STORAGE_KEY = 'bd_custom_theme_exists'
 
 export const defaultCustomTheme: CustomThemeConfig = {
   scheme: 'dark',
@@ -116,9 +117,16 @@ export function loadGuestCustomTheme(): CustomThemeConfig {
   }
 }
 
-export function saveGuestTheme(theme: Theme, custom: CustomThemeConfig) {
+export function guestHasCustomTheme(): boolean {
+  if (localStorage.getItem(CUSTOM_THEME_EXISTS_STORAGE_KEY) === 'true') return true
+  return localStorage.getItem(THEME_STORAGE_KEY) === 'custom' && !!localStorage.getItem(CUSTOM_THEME_STORAGE_KEY)
+}
+
+export function saveGuestTheme(theme: Theme, custom: CustomThemeConfig, hasCustomTheme: boolean) {
   localStorage.setItem(THEME_STORAGE_KEY, theme)
   localStorage.setItem(CUSTOM_THEME_STORAGE_KEY, JSON.stringify(normalizeCustomTheme(custom)))
+  if (hasCustomTheme) localStorage.setItem(CUSTOM_THEME_EXISTS_STORAGE_KEY, 'true')
+  else localStorage.removeItem(CUSTOM_THEME_EXISTS_STORAGE_KEY)
 }
 
 export function customThemeSwatch(config: CustomThemeConfig): string {

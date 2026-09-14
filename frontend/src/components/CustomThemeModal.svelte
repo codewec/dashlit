@@ -1,8 +1,17 @@
 <script lang="ts">
   import Modal from './Modal.svelte'
   import ImageSourceField from './ImageSourceField.svelte'
-  import { customTheme, customThemeEditorOpen, setCustomTheme, setTheme } from '../lib/stores'
-  import { defaultCustomTheme, type CustomThemeConfig } from '../lib/themes'
+  import {
+    customTheme,
+    customThemeEditorOpen,
+    deleteCustomTheme,
+    hasCustomTheme,
+    resolvedTheme,
+    setCustomTheme,
+    setTheme,
+    theme,
+  } from '../lib/stores'
+  import { defaultCustomTheme, isLightResolvedTheme, type CustomThemeConfig } from '../lib/themes'
 
   let open = $state(false)
   let draft = $state<CustomThemeConfig>({ ...defaultCustomTheme })
@@ -10,6 +19,7 @@
   let applied = $state(false)
   let backgroundImage = $state('')
   let initializedForOpen = $state(false)
+  let previousTheme = $state($theme)
 
   const colorFields: {
     key: keyof Pick<CustomThemeConfig, 'bg' | 'surface' | 'text' | 'primary' | 'accent' | 'danger' | 'success'>
@@ -36,7 +46,21 @@
     if (initializedForOpen) return
     initializedForOpen = true
     applied = false
-    const current = { ...$customTheme }
+    previousTheme = $theme
+    const styles = getComputedStyle(document.documentElement)
+    const current: CustomThemeConfig = $hasCustomTheme
+      ? { ...$customTheme }
+      : {
+          scheme: isLightResolvedTheme($resolvedTheme) ? 'light' : 'dark',
+          bg: styles.getPropertyValue('--color-bg').trim(),
+          surface: styles.getPropertyValue('--color-surface').trim(),
+          text: styles.getPropertyValue('--color-text').trim(),
+          primary: styles.getPropertyValue('--color-primary').trim(),
+          accent: styles.getPropertyValue('--color-accent').trim(),
+          danger: styles.getPropertyValue('--color-danger').trim(),
+          success: styles.getPropertyValue('--color-success').trim(),
+          backgroundImage: '',
+        }
     snapshot = current
     draft = { ...current }
     backgroundImage = current.backgroundImage
@@ -65,7 +89,10 @@
   }
 
   function revertIfNeeded() {
-    if (!applied) setCustomTheme(snapshot, { persist: false, apply: true })
+    if (!applied) {
+      setCustomTheme(snapshot, { persist: false, apply: false })
+      setTheme(previousTheme, { persist: false })
+    }
   }
 
   function cancel() {
@@ -78,8 +105,15 @@
   function apply() {
     applied = true
     const next = { ...draft, backgroundImage }
-    setCustomTheme(next, { persist: true, apply: true })
+    setCustomTheme(next, { persist: true, apply: true, exists: true })
     setTheme('custom', { persist: true })
+    open = false
+    customThemeEditorOpen.set(false)
+  }
+
+  async function removeTheme() {
+    await deleteCustomTheme()
+    applied = true
     open = false
     customThemeEditorOpen.set(false)
   }
@@ -121,7 +155,7 @@
         <label class="flex items-center gap-3 rounded-xl border border-border-soft bg-bg-elevated/60 px-3 py-2.5">
           <input
             type="color"
-            class="h-9 w-9 shrink-0 cursor-pointer rounded-lg border border-border bg-transparent p-0.5"
+            class="h-9 w-9 shrink-0 cursor-pointer rounded-lg bg-transparent"
             value={draft[field.key]}
             oninput={(e) => onColorInput(field.key, (e.currentTarget as HTMLInputElement).value)}
           />
@@ -137,6 +171,9 @@
   </div>
 
   {#snippet footer()}
+    {#if $hasCustomTheme}
+      <button type="button" class="mr-auto rounded-btn px-3 py-2 text-sm text-danger hover:bg-danger-soft" onclick={removeTheme}>Delete theme</button>
+    {/if}
     <button type="button" class="rounded-btn px-3 py-2 text-sm text-text-muted" onclick={cancel}>Cancel</button>
     <button type="button" class="rounded-btn bg-primary px-3 py-2 text-sm font-medium text-primary-fg hover:bg-primary-hover" onclick={apply}
       >Apply</button
