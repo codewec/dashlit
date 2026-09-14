@@ -7,7 +7,7 @@
   const systemTheme = themeOptions[0]
   const lightThemes = themeOptions.filter((option) => option.mode === 'light')
   const darkThemes = themeOptions.filter((option) => option.mode === 'dark')
-  const customOption = themeOptions.find((option) => option.value === 'custom')!
+  const customOption = themeOptions.find((option) => option.value === 'custom')
 
   const customSwatch = $derived(customThemeSwatch($customTheme))
   const itemPad = $derived(inset ? 'pl-7' : 'pl-2.5')
@@ -39,7 +39,7 @@
   {@render optionItem(option)}
 {/each}
 <DropdownMenu.Separator class="my-1 h-px bg-border-soft" />
-{#if $hasCustomTheme}
+{#if $hasCustomTheme && customOption}
   {@render optionItem(customOption, customSwatch)}
 {/if}
 <DropdownMenu.Item

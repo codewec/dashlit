@@ -1,6 +1,7 @@
 import { get, writable } from 'svelte/store'
 import { api, type User, type Dashboard, type SystemInfo } from './api'
 import { iconSrc } from './icon-helpers'
+import { toastError } from './toasts'
 import {
   customThemeColorVars,
   defaultCustomTheme,
@@ -91,21 +92,17 @@ export function applyTheme(mode: Theme) {
 
 async function persistThemeToServer(mode: Theme, config: CustomThemeConfig) {
   if (!get(user)) return
-  try {
-    const updated = await api.updateTheme({
-      theme: mode,
-      customTheme: activeHasCustomTheme ? config : null,
-    })
-    user.set(updated)
-  } catch {
-    // Keep the local selection even if the network request fails.
-  }
+  const updated = await api.updateTheme({
+    theme: mode,
+    customTheme: activeHasCustomTheme ? config : null,
+  })
+  user.set(updated)
 }
 
 function schedulePersist(mode: Theme, config: CustomThemeConfig) {
   clearTimeout(persistTimer)
   persistTimer = setTimeout(() => {
-    void persistThemeToServer(mode, config)
+    void persistThemeToServer(mode, config).catch((error: unknown) => toastError(error, 'Could not save theme'))
   }, 250)
 }
 
@@ -135,18 +132,14 @@ export function selectCustomTheme() {
 }
 
 export async function deleteCustomTheme() {
+  const currentUser = get(user)
+  const updated = currentUser ? await api.updateTheme({ theme: 'system', customTheme: null }) : null
   activeCustom = { ...defaultCustomTheme }
   activeHasCustomTheme = false
   customTheme.set(activeCustom)
   hasCustomTheme.set(false)
   setTheme('system', { persist: false })
-  if (!get(user)) return
-  try {
-    const updated = await api.updateTheme({ theme: 'system', customTheme: null })
-    user.set(updated)
-  } catch {
-    // The local theme stays reset when the server cannot be reached.
-  }
+  if (updated) user.set(updated)
 }
 
 export function hydrateThemeFromUser(nextUser: User | null) {

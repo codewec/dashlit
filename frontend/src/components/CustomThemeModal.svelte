@@ -12,6 +12,7 @@
     theme,
   } from '../lib/stores'
   import { defaultCustomTheme, isLightResolvedTheme, type CustomThemeConfig } from '../lib/themes'
+  import { toastError } from '../lib/toasts'
 
   let open = $state(false)
   let draft = $state<CustomThemeConfig>({ ...defaultCustomTheme })
@@ -112,10 +113,14 @@
   }
 
   async function removeTheme() {
-    await deleteCustomTheme()
-    applied = true
-    open = false
-    customThemeEditorOpen.set(false)
+    try {
+      await deleteCustomTheme()
+      applied = true
+      open = false
+      customThemeEditorOpen.set(false)
+    } catch (error: unknown) {
+      toastError(error, 'Could not delete theme')
+    }
   }
 
   function handleOpenChange(next: boolean) {
