@@ -1,6 +1,47 @@
 # Changelog
 
 All notable changes to DashLit are documented in this file.
+## [1.1.0] - 2026-09-14
+
+### Features
+
+- Fast filter ([93a4454](https://github.com/codewec/dashlit/commit/93a445468ccf5e50da1198677136faeb3fa6cc94))
+- Add custom theme editor with DB persistence ([851b3d4](https://github.com/codewec/dashlit/commit/851b3d459a8fe62c51f3946a77584b2a4ba5b908))
+- Keyboard navigation ([4feefcf](https://github.com/codewec/dashlit/commit/4feefcfa14eaba277bd17bf169250836aca91fe7))
+- Item hotkeys ([df2ccbe](https://github.com/codewec/dashlit/commit/df2ccbe5fa116b7bd62dc0caac49d7162266414d))
+- Dashboard hotkey ([058d39f](https://github.com/codewec/dashlit/commit/058d39f5c467a215faa27164c817960b8c97787e))
+- Add Black theme ([0801413](https://github.com/codewec/dashlit/commit/080141310c74e2da0078086e40d5688df9d254b6))
+- **front:** Collapse other dashboards ([1867193](https://github.com/codewec/dashlit/commit/18671932b3d3f891663830ff5be3c73409a7c791))
+- **front:** History api ([da9d841](https://github.com/codewec/dashlit/commit/da9d841cc51931607872a2e50b2396d28fe9046b))
+- **front:** Import button on initial state #35 ([f0d9e16](https://github.com/codewec/dashlit/commit/f0d9e162db5a84bbfc981574a8129d53ba873575))
+- Link target #40 ([72c0ca3](https://github.com/codewec/dashlit/commit/72c0ca36e1fa35dbbb0a82f5f8875c87d6ca927f))
+- **front:** Menu icons ([03eb728](https://github.com/codewec/dashlit/commit/03eb728af467c0485043d142e03ea7fe779208cc))
+- Local fonts ([788bf68](https://github.com/codewec/dashlit/commit/788bf68adf4cdc7e1efe03377d921eb8c923fb99))
+
+
+### Fixes
+
+- Theme editor ([7a39403](https://github.com/codewec/dashlit/commit/7a39403053b1da260b6b5664a89cc5d573c397ed))
+- Custom themes handle errors ([5261d58](https://github.com/codewec/dashlit/commit/5261d580b42c8b84b43a5a2bbbda1b8639531627))
+- **front:** Color picker borders ([9506be5](https://github.com/codewec/dashlit/commit/9506be52c96b844d417a46ac6d85e8123085ed70))
+- **front:** Scroll for menu ([6f5229f](https://github.com/codewec/dashlit/commit/6f5229f5c2480f8e58bb77ddedc83c241fbc049e))
+- **front:** Selected dashboard icon ([9716d80](https://github.com/codewec/dashlit/commit/9716d8079b62ac441dd00a87a4d02bd48a6d25da))
+- **front:** Expand menu on selected other dashboard ([8089774](https://github.com/codewec/dashlit/commit/8089774ce6bbd65386bf7c50adf0e0957750cb44))
+- **front:** Prevent full update on edit ([6e923ed](https://github.com/codewec/dashlit/commit/6e923ed6671f936a425b746be94e31898a301c34))
+- **front:** Prepare colors ([2110d96](https://github.com/codewec/dashlit/commit/2110d9678f72efac68a10b254ff255d8ccc8c2a8))
+
+
+### Documentation
+
+- New features ([fd6d97b](https://github.com/codewec/dashlit/commit/fd6d97be56e80606dcad419cf06fe5cff12baf54))
+
+
+### Chores
+
+- **infra:** Gh actions on pr ([4d72f3c](https://github.com/codewec/dashlit/commit/4d72f3c86d1e47d88c4dcbf1c2f40905814ed624))
+- **infra:** Latest tag ([acb3c22](https://github.com/codewec/dashlit/commit/acb3c22e1bfe06c754da22d21b485d299a5396c6))
+- **front:** Lazy pages ([096c537](https://github.com/codewec/dashlit/commit/096c5379ce1c0eb69752159f48002c91a0dda436))
+
 ## [1.0.6] - 2026-09-01
 
 ### Features
