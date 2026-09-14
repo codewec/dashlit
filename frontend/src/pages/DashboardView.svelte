@@ -220,6 +220,7 @@
       icon: groupForm.icon,
       iconDark: groupForm.iconDark,
       itemSize: groupForm.itemSize,
+      openInNewTab: groupForm.openInNewTab,
     }
     try {
       if (editingGroup) {
@@ -264,6 +265,7 @@
       pingSkipTls: itemForm.pingSkipTls,
       hotkey: itemForm.hotkey,
       hotkeyLabel: itemForm.hotkeyLabel,
+      openInNewTab: itemForm.openInNewTab,
     }
     try {
       let saved: Item
@@ -312,6 +314,7 @@
       layout: dashForm.layout,
       width: dashForm.width,
       cleanMode: dashForm.cleanMode,
+      openInNewTab: dashForm.openInNewTab,
       hotkey: dashForm.hotkey,
       hotkeyLabel: dashForm.hotkeyLabel,
     }

@@ -48,6 +48,21 @@
       <span class="mb-1 block text-xs text-text-muted">Icon</span>
       <IconField bind:value={form.icon} bind:valueDark={form.iconDark} />
     </div>
+    <label class="block">
+      <span class="mb-1 block text-xs text-text-muted">Open links</span>
+      <select
+        class="h-10 w-full rounded-btn border border-border bg-bg-elevated px-3 text-sm"
+        value={form.openInNewTab === null ? 'inherit' : form.openInNewTab ? 'new' : 'current'}
+        onchange={(e) => {
+          const value = e.currentTarget.value
+          form.openInNewTab = value === 'inherit' ? null : value === 'new'
+        }}
+      >
+        <option value="inherit">Inherit dashboard setting</option><option value="new">In a new tab</option><option value="current"
+          >In the current tab</option
+        >
+      </select>
+    </label>
     <div>
       <span class="mb-1 block text-xs text-text-muted">Item size in this group</span>
       <div class="grid grid-cols-2 gap-2">

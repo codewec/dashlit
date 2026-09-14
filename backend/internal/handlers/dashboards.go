@@ -113,17 +113,18 @@ func hideForeignDashboardHotkeys(user *models.User, dashboards ...*models.Dashbo
 }
 
 type createDashboardReq struct {
-	Name        string         `json:"name"`
-	Slug        string         `json:"slug"`
-	Description string         `json:"description"`
-	Icon        string         `json:"icon"`
-	IconDark    string         `json:"iconDark"`
-	Layout      models.Layout  `json:"layout"`
-	Width       models.Width   `json:"width"`
-	Privacy     models.Privacy `json:"privacy"`
-	CleanMode   bool           `json:"cleanMode"`
-	Hotkey      string         `json:"hotkey"`
-	HotkeyLabel string         `json:"hotkeyLabel"`
+	Name         string         `json:"name"`
+	Slug         string         `json:"slug"`
+	Description  string         `json:"description"`
+	Icon         string         `json:"icon"`
+	IconDark     string         `json:"iconDark"`
+	Layout       models.Layout  `json:"layout"`
+	Width        models.Width   `json:"width"`
+	Privacy      models.Privacy `json:"privacy"`
+	CleanMode    bool           `json:"cleanMode"`
+	OpenInNewTab *bool          `json:"openInNewTab"`
+	Hotkey       string         `json:"hotkey"`
+	HotkeyLabel  string         `json:"hotkeyLabel"`
 }
 
 func (h *DashboardHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -166,19 +167,20 @@ func (h *DashboardHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	d := &models.Dashboard{
-		ID:          uuid.NewString(),
-		OwnerID:     user.ID,
-		Name:        req.Name,
-		Slug:        req.Slug,
-		Description: req.Description,
-		Icon:        req.Icon,
-		IconDark:    req.IconDark,
-		Layout:      req.Layout,
-		Width:       req.Width,
-		Privacy:     req.Privacy,
-		CleanMode:   req.CleanMode,
-		Hotkey:      req.Hotkey,
-		HotkeyLabel: req.HotkeyLabel,
+		ID:           uuid.NewString(),
+		OwnerID:      user.ID,
+		Name:         req.Name,
+		Slug:         req.Slug,
+		Description:  req.Description,
+		Icon:         req.Icon,
+		IconDark:     req.IconDark,
+		Layout:       req.Layout,
+		Width:        req.Width,
+		Privacy:      req.Privacy,
+		CleanMode:    req.CleanMode,
+		OpenInNewTab: req.OpenInNewTab == nil || *req.OpenInNewTab,
+		Hotkey:       req.Hotkey,
+		HotkeyLabel:  req.HotkeyLabel,
 	}
 	if _, err := h.db.NewInsert().Model(d).Exec(r.Context()); err != nil {
 		writeError(w, http.StatusConflict, "slug already exists")
@@ -236,6 +238,9 @@ func (h *DashboardHandler) Update(w http.ResponseWriter, r *http.Request) {
 		d.Privacy = req.Privacy
 	}
 	d.CleanMode = req.CleanMode
+	if req.OpenInNewTab != nil {
+		d.OpenInNewTab = *req.OpenInNewTab
+	}
 	d.Hotkey = normalizeHotkey(req.Hotkey)
 	d.HotkeyLabel = req.HotkeyLabel
 	conflict, err := dashboardHotkeyConflicts(r.Context(), h.db, d.OwnerID, d.Hotkey, d.ID)
@@ -388,7 +393,7 @@ func (h *DashboardHandler) SetDefault(w http.ResponseWriter, r *http.Request) {
 }
 
 // ExportFormatVersion is bumped when the export JSON schema changes.
-const ExportFormatVersion = 2
+const ExportFormatVersion = 3
 
 type exportPayload struct {
 	Version   int             `json:"version"`
@@ -396,28 +401,30 @@ type exportPayload struct {
 }
 
 type exportDashboard struct {
-	Name        string         `json:"name"`
-	Slug        string         `json:"slug"`
-	Description string         `json:"description"`
-	Icon        string         `json:"icon"`
-	IconDark    string         `json:"iconDark"`
-	Layout      models.Layout  `json:"layout"`
-	Width       models.Width   `json:"width"`
-	Privacy     models.Privacy `json:"privacy"`
-	CleanMode   bool           `json:"cleanMode"`
-	Hotkey      string         `json:"hotkey"`
-	HotkeyLabel string         `json:"hotkeyLabel"`
-	Groups      []exportGroup  `json:"groups"`
+	Name         string         `json:"name"`
+	Slug         string         `json:"slug"`
+	Description  string         `json:"description"`
+	Icon         string         `json:"icon"`
+	IconDark     string         `json:"iconDark"`
+	Layout       models.Layout  `json:"layout"`
+	Width        models.Width   `json:"width"`
+	Privacy      models.Privacy `json:"privacy"`
+	CleanMode    bool           `json:"cleanMode"`
+	Hotkey       string         `json:"hotkey"`
+	HotkeyLabel  string         `json:"hotkeyLabel"`
+	OpenInNewTab *bool          `json:"openInNewTab,omitempty"`
+	Groups       []exportGroup  `json:"groups"`
 }
 
 type exportGroup struct {
-	Title       string          `json:"title"`
-	Description string          `json:"description"`
-	Icon        string          `json:"icon"`
-	IconDark    string          `json:"iconDark"`
-	ItemSize    models.ItemSize `json:"itemSize"`
-	Position    int             `json:"position"`
-	Items       []exportItem    `json:"items"`
+	Title        string          `json:"title"`
+	Description  string          `json:"description"`
+	Icon         string          `json:"icon"`
+	IconDark     string          `json:"iconDark"`
+	ItemSize     models.ItemSize `json:"itemSize"`
+	Position     int             `json:"position"`
+	Items        []exportItem    `json:"items"`
+	OpenInNewTab *bool           `json:"openInNewTab"`
 }
 
 type exportItem struct {
@@ -433,6 +440,7 @@ type exportItem struct {
 	Hotkey       string `json:"hotkey"`
 	HotkeyLabel  string `json:"hotkeyLabel"`
 	Position     int    `json:"position"`
+	OpenInNewTab *bool  `json:"openInNewTab"`
 }
 
 func (h *DashboardHandler) loadFull(ctx context.Context, idOrSlug string) (*models.Dashboard, error) {
@@ -459,11 +467,12 @@ func dashboardToExport(d *models.Dashboard) exportPayload {
 				Icon: it.Icon, IconDark: it.IconDark, PingEnabled: it.PingEnabled,
 				PingOnlyDown: it.PingOnlyDown, PingURL: it.PingURL, PingSkipTLS: it.PingSkipTLS,
 				Hotkey: it.Hotkey, HotkeyLabel: it.HotkeyLabel, Position: it.Position,
+				OpenInNewTab: it.OpenInNewTab,
 			})
 		}
 		eg = append(eg, exportGroup{
 			Title: g.Title, Description: g.Description, Icon: g.Icon, IconDark: g.IconDark,
-			ItemSize: g.ItemSize, Position: g.Position, Items: ei,
+			ItemSize: g.ItemSize, Position: g.Position, Items: ei, OpenInNewTab: g.OpenInNewTab,
 		})
 	}
 	return exportPayload{
@@ -472,7 +481,7 @@ func dashboardToExport(d *models.Dashboard) exportPayload {
 			Name: d.Name, Slug: d.Slug, Description: d.Description,
 			Icon: d.Icon, IconDark: d.IconDark, Layout: d.Layout, Width: d.Width,
 			Privacy: d.Privacy, CleanMode: d.CleanMode,
-			Hotkey: d.Hotkey, HotkeyLabel: d.HotkeyLabel, Groups: eg,
+			Hotkey: d.Hotkey, HotkeyLabel: d.HotkeyLabel, Groups: eg, OpenInNewTab: &d.OpenInNewTab,
 		},
 	}
 }
@@ -570,6 +579,11 @@ func (h *DashboardHandler) importPayload(ctx context.Context, user *models.User,
 		Layout: layout, Width: width, Privacy: privacy, CleanMode: src.CleanMode,
 		Hotkey: src.Hotkey, HotkeyLabel: src.HotkeyLabel,
 	}
+	if src.OpenInNewTab == nil {
+		d.OpenInNewTab = true
+	} else {
+		d.OpenInNewTab = *src.OpenInNewTab
+	}
 	if _, err := h.db.NewInsert().Model(d).Exec(ctx); err != nil {
 		return nil, err
 	}
@@ -577,7 +591,7 @@ func (h *DashboardHandler) importPayload(ctx context.Context, user *models.User,
 		g := &models.Group{
 			ID: uuid.NewString(), DashboardID: d.ID,
 			Title: gs.Title, Description: gs.Description, Icon: gs.Icon, IconDark: gs.IconDark,
-			ItemSize: gs.ItemSize, Position: gs.Position,
+			ItemSize: gs.ItemSize, Position: gs.Position, OpenInNewTab: gs.OpenInNewTab,
 		}
 		if g.ItemSize == "" {
 			g.ItemSize = models.Size1x1
@@ -594,7 +608,7 @@ func (h *DashboardHandler) importPayload(ctx context.Context, user *models.User,
 				Title: is.Title, Description: is.Description, URL: is.URL,
 				Icon: is.Icon, IconDark: is.IconDark, PingEnabled: is.PingEnabled,
 				PingOnlyDown: is.PingOnlyDown, PingURL: is.PingURL, PingSkipTLS: is.PingSkipTLS,
-				Hotkey: is.Hotkey, HotkeyLabel: is.HotkeyLabel, Position: is.Position,
+				Hotkey: is.Hotkey, HotkeyLabel: is.HotkeyLabel, Position: is.Position, OpenInNewTab: is.OpenInNewTab,
 			}
 			if it.Icon == "" {
 				it.Icon = "mdi:link"

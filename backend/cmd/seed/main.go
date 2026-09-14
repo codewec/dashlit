@@ -77,6 +77,7 @@ func main() {
 		Layout: models.LayoutMasonry, Width: models.WidthWide, Privacy: models.PrivacyPrivate, CleanMode: true,
 	}
 	for _, d := range []*models.Dashboard{home, media, knowledge, dev, work, homelab} {
+		d.OpenInNewTab = true
 		if _, err := database.NewInsert().Model(d).Exec(ctx); err != nil {
 			log.Fatal(err)
 		}

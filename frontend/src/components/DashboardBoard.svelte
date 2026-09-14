@@ -122,6 +122,13 @@
     heldModifiers = { ctrl: false, alt: false, shift: false, meta: false }
   }
 
+  function shouldOpenInNewTab(item: Item): boolean {
+    if (item.openInNewTab !== null && item.openInNewTab !== undefined) return item.openInNewTab
+    const group = groups.find((candidate) => candidate.id === item.groupId)
+    if (group?.openInNewTab !== null && group?.openInNewTab !== undefined) return group.openInNewTab
+    return dashboard.openInNewTab ?? true
+  }
+
   function handleWindowKeyup(event: KeyboardEvent) {
     if ($editMode) {
       clearHeldModifiers()
@@ -224,7 +231,10 @@
         event.stopPropagation()
         clearSelection()
         window.getSelection()?.removeAllRanges()
-        for (const item of matchingItems) window.open(item.url, '_blank', 'noopener')
+        for (const item of matchingItems) {
+          const newTab = shouldOpenInNewTab(item)
+          window.open(item.url, newTab ? '_blank' : '_self', newTab ? 'noopener' : undefined)
+        }
         requestAnimationFrame(() => window.getSelection()?.removeAllRanges())
         return
       }
@@ -344,6 +354,7 @@
                   isKeyboardActive={!!activeItemId && item.id === activeItemId}
                   hotkeyHint={!$editMode && shouldShowHotkey(item.hotkey, heldModifiers) ? hotkeyKeyLabel(item.hotkey, item.hotkeyLabel) : ''}
                   isHotkeyDimmed={!$editMode && hasHeldModifier && !shouldShowHotkey(item.hotkey, heldModifiers)}
+                  openInNewTab={shouldOpenInNewTab(item)}
                   {canModify}
                   onEdit={onEditItem}
                   onDelete={onDeleteItem}

@@ -97,6 +97,7 @@ export function applyItemMove(groups: Group[], bag: Record<string, Item[]>): Gro
 /* —— form drafts —— */
 
 export type GroupForm = {
+  openInNewTab: boolean | null
   title: string
   description: string
   icon: string
@@ -105,6 +106,7 @@ export type GroupForm = {
 }
 
 export type ItemForm = {
+  openInNewTab: boolean | null
   title: string
   description: string
   url: string
@@ -120,6 +122,7 @@ export type ItemForm = {
 }
 
 export type DashboardForm = {
+  openInNewTab: boolean
   name: string
   slug: string
   description: string
@@ -136,7 +139,7 @@ export type DashboardForm = {
 }
 
 export function emptyGroupForm(): GroupForm {
-  return { title: '', description: '', icon: '', iconDark: '', itemSize: '1x2' }
+  return { title: '', description: '', icon: '', iconDark: '', itemSize: '1x2', openInNewTab: null }
 }
 
 export function groupToForm(g: Group): GroupForm {
@@ -146,6 +149,7 @@ export function groupToForm(g: Group): GroupForm {
     icon: g.icon || '',
     iconDark: g.iconDark || '',
     itemSize: g.itemSize || '1x1',
+    openInNewTab: g.openInNewTab ?? null,
   }
 }
 
@@ -163,6 +167,7 @@ export function emptyItemForm(groupId = ''): ItemForm {
     pingSkipTls: false,
     hotkey: '',
     hotkeyLabel: '',
+    openInNewTab: null,
   }
 }
 
@@ -180,6 +185,7 @@ export function itemToForm(item: Item): ItemForm {
     pingSkipTls: item.pingSkipTls ?? false,
     hotkey: item.hotkey || '',
     hotkeyLabel: item.hotkeyLabel || '',
+    openInNewTab: item.openInNewTab ?? null,
   }
 }
 
@@ -194,6 +200,7 @@ export function emptyDashboardForm(creating = true): DashboardForm {
     layout: 'rows',
     width: 'default',
     cleanMode: false,
+    openInNewTab: true,
     hotkey: '',
     hotkeyLabel: '',
     isDefault: false,
@@ -212,6 +219,7 @@ export function dashboardToForm(d: Dashboard): DashboardForm {
     layout: d.layout,
     width: d.width || 'default',
     cleanMode: !!d.cleanMode,
+    openInNewTab: d.openInNewTab ?? true,
     hotkey: d.hotkey || '',
     hotkeyLabel: d.hotkeyLabel || '',
     isDefault: !!d.isDefault,

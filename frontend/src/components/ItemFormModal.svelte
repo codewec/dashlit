@@ -119,6 +119,21 @@
       <span class="mb-1 block text-xs text-text-muted">Icon</span>
       <IconField bind:value={form.icon} bind:valueDark={form.iconDark} defaultIcon="mdi:link" />
     </div>
+    <label class="block">
+      <span class="mb-1 block text-xs text-text-muted">Open link</span>
+      <select
+        class="h-10 w-full rounded-btn border border-border bg-bg-elevated px-3 text-sm"
+        value={form.openInNewTab === null ? 'inherit' : form.openInNewTab ? 'new' : 'current'}
+        onchange={(e) => {
+          const value = e.currentTarget.value
+          form.openInNewTab = value === 'inherit' ? null : value === 'new'
+        }}
+      >
+        <option value="inherit">Inherit group or dashboard setting</option><option value="new">In a new tab</option><option value="current"
+          >In the current tab</option
+        >
+      </select>
+    </label>
     <div class="hidden sm:block">
       <span class="mb-1 block text-xs text-text-muted">Hotkey</span>
       <div class="flex gap-2">

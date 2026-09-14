@@ -18,6 +18,7 @@
     isKeyboardActive = false,
     hotkeyHint = '',
     isHotkeyDimmed = false,
+    openInNewTab = true,
     onEdit,
     onDelete,
     onClone,
@@ -32,6 +33,7 @@
     isKeyboardActive?: boolean
     hotkeyHint?: string
     isHotkeyDimmed?: boolean
+    openInNewTab?: boolean
     onEdit?: (item: Item) => void
     onDelete?: (item: Item) => void
     onClone?: (item: Item) => void
@@ -75,10 +77,11 @@
 <div class="relative h-full w-full" {@attach ref}>
   <a
     href={$editMode ? undefined : item.url}
-    target={$editMode ? undefined : '_blank'}
-    rel="noopener"
+    target={$editMode ? undefined : openInNewTab ? '_blank' : undefined}
+    rel={openInNewTab ? 'noopener' : undefined}
     tabindex={isOverlay ? undefined : (tabIndex ?? 0)}
     data-dashboard-item
+    data-native-navigation
     data-group-id={groupId}
     data-item-id={item.id}
     data-item-size={itemSize}

@@ -104,7 +104,7 @@ func (m *Migrator) ImportForFirstUser(ctx context.Context, user *models.User) er
 
 	dashboard := &models.Dashboard{
 		ID: uuid.NewString(), OwnerID: user.ID, Name: "Legacy dashboard", Slug: "legacy-dashboard",
-		Layout: models.LayoutRows, Width: models.WidthDefault, Privacy: models.PrivacyPrivate, IsDefault: true,
+		Layout: models.LayoutRows, Width: models.WidthDefault, Privacy: models.PrivacyPrivate, IsDefault: true, OpenInNewTab: true,
 	}
 	if _, err := tx.NewInsert().Model(dashboard).Exec(ctx); err != nil {
 		return err

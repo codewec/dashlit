@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/url"
@@ -54,12 +55,13 @@ func (h *GroupItemHandler) canEditDashboard(r *http.Request, dashboardID string)
 }
 
 type createGroupReq struct {
-	Title       string          `json:"title"`
-	Description string          `json:"description"`
-	Icon        string          `json:"icon"`
-	IconDark    string          `json:"iconDark"`
-	ItemSize    models.ItemSize `json:"itemSize"`
-	Position    int             `json:"position"`
+	Title        string          `json:"title"`
+	Description  string          `json:"description"`
+	Icon         string          `json:"icon"`
+	IconDark     string          `json:"iconDark"`
+	ItemSize     models.ItemSize `json:"itemSize"`
+	Position     int             `json:"position"`
+	OpenInNewTab *bool           `json:"openInNewTab"`
 }
 
 func (h *GroupItemHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
@@ -77,14 +79,15 @@ func (h *GroupItemHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		req.ItemSize = models.Size1x1
 	}
 	g := &models.Group{
-		ID:          uuid.NewString(),
-		DashboardID: dashboardID,
-		Title:       req.Title,
-		Description: req.Description,
-		Icon:        req.Icon,
-		IconDark:    req.IconDark,
-		ItemSize:    req.ItemSize,
-		Position:    req.Position,
+		ID:           uuid.NewString(),
+		DashboardID:  dashboardID,
+		Title:        req.Title,
+		Description:  req.Description,
+		Icon:         req.Icon,
+		IconDark:     req.IconDark,
+		ItemSize:     req.ItemSize,
+		Position:     req.Position,
+		OpenInNewTab: req.OpenInNewTab,
 	}
 	if _, err := h.db.NewInsert().Model(g).Exec(r.Context()); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
@@ -111,6 +114,8 @@ func (h *GroupItemHandler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 		IconDark    *string          `json:"iconDark"`
 		ItemSize    *models.ItemSize `json:"itemSize"`
 		Position    *int             `json:"position"`
+		// RawMessage distinguishes an omitted field from an explicit null (inherit).
+		OpenInNewTab json.RawMessage `json:"openInNewTab"`
 	}
 	if err := decodeJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid body")
@@ -133,6 +138,14 @@ func (h *GroupItemHandler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 	if req.Position != nil {
 		g.Position = *req.Position
+	}
+	if req.OpenInNewTab != nil {
+		if string(req.OpenInNewTab) == "null" {
+			g.OpenInNewTab = nil
+		} else if err := json.Unmarshal(req.OpenInNewTab, &g.OpenInNewTab); err != nil {
+			writeError(w, http.StatusBadRequest, "openInNewTab must be boolean or null")
+			return
+		}
 	}
 	if _, err := h.db.NewUpdate().Model(g).WherePK().Exec(r.Context()); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
@@ -172,6 +185,7 @@ type createItemReq struct {
 	Hotkey       string `json:"hotkey"`
 	HotkeyLabel  string `json:"hotkeyLabel"`
 	Position     int    `json:"position"`
+	OpenInNewTab *bool  `json:"openInNewTab"`
 }
 
 func (h *GroupItemHandler) CreateItem(w http.ResponseWriter, r *http.Request) {
@@ -219,6 +233,7 @@ func (h *GroupItemHandler) CreateItem(w http.ResponseWriter, r *http.Request) {
 		Hotkey:       req.Hotkey,
 		HotkeyLabel:  req.HotkeyLabel,
 		Position:     req.Position,
+		OpenInNewTab: req.OpenInNewTab,
 	}
 	if _, err := h.db.NewInsert().Model(item).Exec(r.Context()); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
@@ -258,6 +273,8 @@ func (h *GroupItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		HotkeyLabel  *string `json:"hotkeyLabel"`
 		Position     *int    `json:"position"`
 		GroupID      *string `json:"groupId"`
+		// RawMessage distinguishes an omitted field from an explicit null (inherit).
+		OpenInNewTab json.RawMessage `json:"openInNewTab"`
 	}
 	if err := decodeJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid body")
@@ -332,6 +349,14 @@ func (h *GroupItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 	if req.GroupID != nil {
 		item.GroupID = *req.GroupID
+	}
+	if req.OpenInNewTab != nil {
+		if string(req.OpenInNewTab) == "null" {
+			item.OpenInNewTab = nil
+		} else if err := json.Unmarshal(req.OpenInNewTab, &item.OpenInNewTab); err != nil {
+			writeError(w, http.StatusBadRequest, "openInNewTab must be boolean or null")
+			return
+		}
 	}
 	if _, err := h.db.NewUpdate().Model(item).WherePK().Exec(r.Context()); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
@@ -449,7 +474,7 @@ func (h *GroupItemHandler) CloneGroup(w http.ResponseWriter, r *http.Request) {
 	ng := &models.Group{
 		ID: uuid.NewString(), DashboardID: g.DashboardID,
 		Title: g.Title + " (copy)", Description: g.Description, Icon: g.Icon, IconDark: g.IconDark,
-		ItemSize: g.ItemSize, Position: maxPos + 1,
+		ItemSize: g.ItemSize, Position: maxPos + 1, OpenInNewTab: g.OpenInNewTab,
 	}
 	if _, err := h.db.NewInsert().Model(ng).Exec(r.Context()); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
@@ -461,7 +486,7 @@ func (h *GroupItemHandler) CloneGroup(w http.ResponseWriter, r *http.Request) {
 			Title: it.Title, Description: it.Description, URL: it.URL,
 			Icon: it.Icon, IconDark: it.IconDark, PingEnabled: it.PingEnabled,
 			PingOnlyDown: it.PingOnlyDown, PingURL: it.PingURL, PingSkipTLS: it.PingSkipTLS,
-			Hotkey: it.Hotkey, HotkeyLabel: it.HotkeyLabel, Position: i,
+			Hotkey: it.Hotkey, HotkeyLabel: it.HotkeyLabel, Position: i, OpenInNewTab: it.OpenInNewTab,
 		}
 		if _, err := h.db.NewInsert().Model(ni).Exec(r.Context()); err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())
@@ -542,14 +567,15 @@ func (h *GroupItemHandler) cloneGroupToDashboard(ctx context.Context, source *mo
 		return nil, err
 	}
 	clone := &models.Group{
-		ID:          uuid.NewString(),
-		DashboardID: dashboardID,
-		Title:       source.Title,
-		Description: source.Description,
-		Icon:        source.Icon,
-		IconDark:    source.IconDark,
-		ItemSize:    source.ItemSize,
-		Position:    maxPosition + 1,
+		ID:           uuid.NewString(),
+		DashboardID:  dashboardID,
+		Title:        source.Title,
+		Description:  source.Description,
+		Icon:         source.Icon,
+		IconDark:     source.IconDark,
+		ItemSize:     source.ItemSize,
+		Position:     maxPosition + 1,
+		OpenInNewTab: source.OpenInNewTab,
 	}
 	if _, err := tx.NewInsert().Model(clone).Exec(ctx); err != nil {
 		return nil, err
@@ -570,6 +596,7 @@ func (h *GroupItemHandler) cloneGroupToDashboard(ctx context.Context, source *mo
 			Hotkey:       item.Hotkey,
 			HotkeyLabel:  item.HotkeyLabel,
 			Position:     item.Position,
+			OpenInNewTab: item.OpenInNewTab,
 		}
 		if _, err := tx.NewInsert().Model(copy).Exec(ctx); err != nil {
 			return nil, err
@@ -608,7 +635,7 @@ func (h *GroupItemHandler) CloneItem(w http.ResponseWriter, r *http.Request) {
 		Title: item.Title + " (copy)", Description: item.Description, URL: item.URL,
 		Icon: item.Icon, IconDark: item.IconDark, PingEnabled: item.PingEnabled,
 		PingOnlyDown: item.PingOnlyDown, PingURL: item.PingURL, PingSkipTLS: item.PingSkipTLS,
-		Hotkey: item.Hotkey, HotkeyLabel: item.HotkeyLabel, Position: maxPos + 1,
+		Hotkey: item.Hotkey, HotkeyLabel: item.HotkeyLabel, Position: maxPos + 1, OpenInNewTab: item.OpenInNewTab,
 	}
 	if _, err := h.db.NewInsert().Model(ni).Exec(r.Context()); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())

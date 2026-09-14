@@ -62,21 +62,22 @@ type User struct {
 type Dashboard struct {
 	bun.BaseModel `bun:"table:dashboards,alias:d"`
 
-	ID          string  `bun:"id,pk,type:text" json:"id"`
-	OwnerID     string  `bun:"owner_id,notnull" json:"ownerId"`
-	Name        string  `bun:"name,notnull" json:"name"`
-	Slug        string  `bun:"slug,unique,notnull" json:"slug"`
-	Description string  `bun:"description,notnull,default:''" json:"description"`
-	Icon        string  `bun:"icon,notnull,default:''" json:"icon"`
-	IconDark    string  `bun:"icon_dark,notnull,default:''" json:"iconDark"`
-	Layout      Layout  `bun:"layout,notnull,default:'rows'" json:"layout"`
-	Width       Width   `bun:"width,notnull,default:'default'" json:"width"`
-	Privacy     Privacy `bun:"privacy,notnull,default:'private'" json:"privacy"`
-	CleanMode   bool    `bun:"clean_mode,notnull,default:false" json:"cleanMode"`
-	Hotkey      string  `bun:"hotkey,notnull,default:''" json:"hotkey"`
-	HotkeyLabel string  `bun:"hotkey_label,notnull,default:''" json:"hotkeyLabel"`
-	IsMain      bool    `bun:"is_main,notnull,default:false" json:"isMain"`
-	IsDefault   bool    `bun:"is_default,notnull,default:false" json:"isDefault"`
+	ID           string  `bun:"id,pk,type:text" json:"id"`
+	OwnerID      string  `bun:"owner_id,notnull" json:"ownerId"`
+	Name         string  `bun:"name,notnull" json:"name"`
+	Slug         string  `bun:"slug,unique,notnull" json:"slug"`
+	Description  string  `bun:"description,notnull,default:''" json:"description"`
+	Icon         string  `bun:"icon,notnull,default:''" json:"icon"`
+	IconDark     string  `bun:"icon_dark,notnull,default:''" json:"iconDark"`
+	Layout       Layout  `bun:"layout,notnull,default:'rows'" json:"layout"`
+	Width        Width   `bun:"width,notnull,default:'default'" json:"width"`
+	Privacy      Privacy `bun:"privacy,notnull,default:'private'" json:"privacy"`
+	CleanMode    bool    `bun:"clean_mode,notnull,default:false" json:"cleanMode"`
+	OpenInNewTab bool    `bun:"open_in_new_tab,notnull,default:true" json:"openInNewTab"`
+	Hotkey       string  `bun:"hotkey,notnull,default:''" json:"hotkey"`
+	HotkeyLabel  string  `bun:"hotkey_label,notnull,default:''" json:"hotkeyLabel"`
+	IsMain       bool    `bun:"is_main,notnull,default:false" json:"isMain"`
+	IsDefault    bool    `bun:"is_default,notnull,default:false" json:"isDefault"`
 
 	Owner  *User    `bun:"rel:belongs-to,join:owner_id=id" json:"owner,omitempty"`
 	Groups []*Group `bun:"rel:has-many,join:id=dashboard_id" json:"groups,omitempty"`
@@ -85,14 +86,15 @@ type Dashboard struct {
 type Group struct {
 	bun.BaseModel `bun:"table:groups,alias:g"`
 
-	ID          string   `bun:"id,pk,type:text" json:"id"`
-	DashboardID string   `bun:"dashboard_id,notnull" json:"dashboardId"`
-	Title       string   `bun:"title,notnull" json:"title"`
-	Description string   `bun:"description,notnull,default:''" json:"description"`
-	Icon        string   `bun:"icon,notnull,default:''" json:"icon"`
-	IconDark    string   `bun:"icon_dark,notnull,default:''" json:"iconDark"`
-	ItemSize    ItemSize `bun:"item_size,notnull,default:'1x1'" json:"itemSize"`
-	Position    int      `bun:"position,notnull,default:0" json:"position"`
+	ID           string   `bun:"id,pk,type:text" json:"id"`
+	DashboardID  string   `bun:"dashboard_id,notnull" json:"dashboardId"`
+	Title        string   `bun:"title,notnull" json:"title"`
+	Description  string   `bun:"description,notnull,default:''" json:"description"`
+	Icon         string   `bun:"icon,notnull,default:''" json:"icon"`
+	IconDark     string   `bun:"icon_dark,notnull,default:''" json:"iconDark"`
+	ItemSize     ItemSize `bun:"item_size,notnull,default:'1x1'" json:"itemSize"`
+	Position     int      `bun:"position,notnull,default:0" json:"position"`
+	OpenInNewTab *bool    `bun:"open_in_new_tab" json:"openInNewTab"`
 
 	Items []*Item `bun:"rel:has-many,join:id=group_id" json:"items,omitempty"`
 }
@@ -114,6 +116,7 @@ type Item struct {
 	Hotkey       string `bun:"hotkey,notnull,default:''" json:"hotkey"`
 	HotkeyLabel  string `bun:"hotkey_label,notnull,default:''" json:"hotkeyLabel"`
 	Position     int    `bun:"position,notnull,default:0" json:"position"`
+	OpenInNewTab *bool  `bun:"open_in_new_tab" json:"openInNewTab"`
 }
 
 type UploadedIcon struct {

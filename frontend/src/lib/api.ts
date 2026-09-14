@@ -45,6 +45,7 @@ export type Layout = 'rows' | 'columns' | 'masonry'
 export type Width = 'default' | 'wide'
 
 export type Item = {
+  openInNewTab: boolean | null
   id: string
   groupId: string
   title: string
@@ -61,6 +62,7 @@ export type Item = {
   position: number
 }
 export type Group = {
+  openInNewTab: boolean | null
   id: string
   dashboardId: string
   title: string
@@ -72,6 +74,7 @@ export type Group = {
   items?: Item[]
 }
 export type Dashboard = {
+  openInNewTab: boolean
   id: string
   ownerId: string
   name: string
