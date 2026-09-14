@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store'
+import { searchQuery } from './stores'
 
 function normalizePath(pathname: string): string {
   if (!pathname || pathname === '/') return '/'
@@ -16,6 +17,7 @@ function migrateLegacyHash(): string {
 export const routePath = writable(migrateLegacyHash())
 
 function navigate(to: string, replaceState: boolean) {
+  searchQuery.set('')
   const url = new URL(to, window.location.origin)
   if (url.origin !== window.location.origin) {
     window.location.assign(url)
@@ -38,7 +40,10 @@ export function replace(to: string) {
 }
 
 export function startRouter() {
-  const handlePopState = () => routePath.set(normalizePath(window.location.pathname))
+  const handlePopState = () => {
+    searchQuery.set('')
+    routePath.set(normalizePath(window.location.pathname))
+  }
   const handleClick = (event: MouseEvent) => {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
 

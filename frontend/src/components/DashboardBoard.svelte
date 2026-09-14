@@ -230,6 +230,7 @@
         event.preventDefault()
         event.stopPropagation()
         clearSelection()
+        searchQuery.set('')
         window.getSelection()?.removeAllRanges()
         for (const item of matchingItems) {
           const newTab = shouldOpenInNewTab(item)
@@ -312,7 +313,12 @@
   {/each}
 </div>
 
-{#if groups.length === 0}
+{#if $searchQuery.trim() && filtered.length === 0}
+  <div class="flex flex-col items-center gap-2 py-20 text-center">
+    <p class="text-sm font-medium text-text">No matching items.</p>
+    <p class="max-w-sm text-sm text-text-muted">Try a different filter or press Esc to clear it.</p>
+  </div>
+{:else if groups.length === 0}
   <div class="flex flex-col items-center gap-3 py-20 text-center">
     <p class="text-sm font-medium text-text">This dashboard is empty.</p>
     <p class="max-w-sm text-sm text-text-muted">Create the first group to start adding services and links.</p>

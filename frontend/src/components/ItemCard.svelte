@@ -3,7 +3,7 @@
   import { DropdownMenu } from 'bits-ui'
   import Icon from './Icon.svelte'
   import type { Item, ItemSize } from '../lib/api'
-  import { editMode } from '../lib/stores'
+  import { editMode, searchQuery } from '../lib/stores'
   import { cn } from '../lib/cn'
   import { api } from '../lib/api'
 
@@ -97,7 +97,10 @@
       hotkeyHint && itemSize === '1x2' && 'pr-14',
       isHotkeyDimmed && 'sm:opacity-35 sm:saturate-50',
     )}
-    onclick={(e) => $editMode && e.preventDefault()}
+    onclick={(event) => {
+      if ($editMode) event.preventDefault()
+      else searchQuery.set('')
+    }}
     title={itemSize === '1x1' ? item.title : undefined}
   >
     {#if $editMode}

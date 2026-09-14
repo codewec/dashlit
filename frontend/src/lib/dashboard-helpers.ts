@@ -38,7 +38,7 @@ export function filterGroups(groups: Group[], query: string): Group[] {
       ...g,
       items: (g.items ?? []).filter((it) => it.title.toLowerCase().includes(q) || (it.description || '').toLowerCase().includes(q)),
     }))
-    .filter((g) => (g.items?.length ?? 0) > 0 || g.title.toLowerCase().includes(q))
+    .filter((g) => (g.items?.length ?? 0) > 0)
 }
 
 export function itemsByGroupMap(groups: Group[]): Record<string, Item[]> {
