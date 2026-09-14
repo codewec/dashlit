@@ -15,20 +15,26 @@
     currentSlug = '',
     showEdit = false,
     constrainHeight = false,
+    collapseOtherDashboards = false,
   }: {
     dashboards?: DashListItem[]
     currentSlug?: string
     showEdit?: boolean
     constrainHeight?: boolean
+    collapseOtherDashboards?: boolean
   } = $props()
 
   const ownDashboards = $derived(dashboards.filter((d) => d.ownerId === $user?.id))
   const otherDashboards = $derived(dashboards.filter((d) => d.ownerId !== $user?.id))
   let menuOpen = $state(false)
   let themeExpanded = $state(false)
+  let otherDashboardsExpanded = $state(false)
 
   $effect(() => {
-    if (!menuOpen) themeExpanded = false
+    if (!menuOpen) {
+      themeExpanded = false
+      otherDashboardsExpanded = false
+    }
   })
 
   async function logout() {
@@ -116,28 +122,47 @@
         {#if ownDashboards.length > 0 && otherDashboards.length > 0}
           <DropdownMenu.Separator class="my-1 h-px bg-border-soft" />
         {/if}
-        {#if otherDashboards.length > 0}
+        {#if collapseOtherDashboards && otherDashboards.length > 0}
+          <DropdownMenu.Item
+            class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-text outline-none data-highlighted:bg-surface-2"
+            aria-expanded={otherDashboardsExpanded}
+            onSelect={(event) => {
+              event.preventDefault()
+              otherDashboardsExpanded = !otherDashboardsExpanded
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"
+              ><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M8 9h8M8 15h5" /></svg
+            >
+            <span class="flex-1">Other dashboards</span>
+            <span class="transition-transform {otherDashboardsExpanded ? 'rotate-90' : ''}" aria-hidden="true">›</span>
+          </DropdownMenu.Item>
+        {:else if otherDashboards.length > 0}
           <div class="px-2 py-1.5 text-[10px] font-medium uppercase tracking-wide text-text-subtle">Other dashboards</div>
         {/if}
-        {#each otherDashboards as d}
-          <DropdownMenu.Item
-            class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm outline-none data-highlighted:bg-surface-2 {d.slug ===
-            currentSlug
-              ? 'text-primary'
-              : 'text-text'}"
-            onSelect={() => push('/' + d.slug)}
-          >
-            {#if d.icon}
-              <Icon icon={d.icon} iconDark={d.iconDark} size={16} />
-            {:else}
-              <img src={logoUrl} alt="" class="h-4 w-4" width="16" height="16" />
-            {/if}
-            <span class="min-w-0 flex-1">
-              <span class="block truncate">{d.name}</span>
-              <span class="block truncate text-[10px] text-text-subtle">{d.description || d.ownerUsername}</span>
-            </span>
-          </DropdownMenu.Item>
-        {/each}
+        {#if otherDashboards.length > 0 && (!collapseOtherDashboards || otherDashboardsExpanded)}
+          <div class={collapseOtherDashboards ? 'ml-3 border-l border-border-soft pl-1' : ''}>
+            {#each otherDashboards as d}
+              <DropdownMenu.Item
+                class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm outline-none data-highlighted:bg-surface-2 {d.slug ===
+                currentSlug
+                  ? 'text-primary'
+                  : 'text-text'}"
+                onSelect={() => push('/' + d.slug)}
+              >
+                {#if d.icon}
+                  <Icon icon={d.icon} iconDark={d.iconDark} size={16} />
+                {:else}
+                  <img src={logoUrl} alt="" class="h-4 w-4" width="16" height="16" />
+                {/if}
+                <span class="min-w-0 flex-1">
+                  <span class="block truncate">{d.name}</span>
+                  <span class="block truncate text-[10px] text-text-subtle">{d.description || d.ownerUsername}</span>
+                </span>
+              </DropdownMenu.Item>
+            {/each}
+          </div>
+        {/if}
         <DropdownMenu.Separator class="my-1 h-px bg-border-soft" />
       {/if}
 
