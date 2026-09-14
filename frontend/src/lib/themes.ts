@@ -1,4 +1,4 @@
-export type Theme = 'system' | 'crema' | 'latte' | 'frappe' | 'macchiato' | 'mocha'
+export type Theme = 'system' | 'crema' | 'latte' | 'frappe' | 'macchiato' | 'mocha' | 'black'
 export type ResolvedTheme = Exclude<Theme, 'system'>
 
 export type ThemeOption = {
@@ -15,6 +15,7 @@ export const themeOptions: ThemeOption[] = [
   { value: 'frappe', label: 'Frappé', mode: 'dark', swatch: '#303446' },
   { value: 'macchiato', label: 'Macchiato', mode: 'dark', swatch: '#24273a' },
   { value: 'mocha', label: 'Mocha', mode: 'dark', swatch: '#1e1e2e' },
+  { value: 'black', label: 'Black', mode: 'dark', swatch: '#000000' },
 ]
 
 export function normalizeTheme(value: string | null): Theme {
