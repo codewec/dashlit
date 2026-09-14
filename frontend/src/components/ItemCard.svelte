@@ -14,6 +14,10 @@
     itemSize = '1x1',
     isOverlay = false,
     canModify = true,
+    tabIndex = undefined,
+    isKeyboardActive = false,
+    hotkeyHint = '',
+    isHotkeyDimmed = false,
     onEdit,
     onDelete,
     onClone,
@@ -24,6 +28,10 @@
     itemSize?: ItemSize
     isOverlay?: boolean
     canModify?: boolean
+    tabIndex?: number
+    isKeyboardActive?: boolean
+    hotkeyHint?: string
+    isHotkeyDimmed?: boolean
     onEdit?: (item: Item) => void
     onDelete?: (item: Item) => void
     onClone?: (item: Item) => void
@@ -69,14 +77,22 @@
     href={$editMode ? undefined : item.url}
     target={$editMode ? undefined : '_blank'}
     rel="noopener"
+    tabindex={isOverlay ? undefined : (tabIndex ?? 0)}
+    data-dashboard-item
+    data-group-id={groupId}
+    data-item-id={item.id}
+    data-item-size={itemSize}
     class={cn(
-      'group relative flex border border-border-soft bg-surface transition',
+      'group relative flex border border-border-soft bg-surface transition focus:outline-none',
       'hover:border-primary/40 hover:bg-surface-2',
       itemSize === '1x1'
         ? 'aspect-square w-full flex-col items-center justify-center rounded-2xl p-2'
         : 'min-h-17 w-full items-center gap-3 rounded-2xl p-3',
       isDragging.current && !isOverlay && 'invisible',
       isOverlay && 'shadow-xl ring-2 ring-primary/30',
+      isKeyboardActive && !isOverlay && 'border-primary ring-2 ring-primary/35',
+      hotkeyHint && itemSize === '1x2' && 'pr-14',
+      isHotkeyDimmed && 'sm:opacity-35 sm:saturate-50',
     )}
     onclick={(e) => $editMode && e.preventDefault()}
     title={itemSize === '1x1' ? item.title : undefined}
@@ -97,6 +113,15 @@
           /><circle cx="15" cy="17" r="1.5" /></svg
         >
       </button>
+    {/if}
+
+    {#if hotkeyHint}
+      <kbd
+        class={cn(
+          'pointer-events-none absolute z-10 hidden min-w-7 items-center justify-center rounded-md border border-primary/40 bg-bg-elevated/95 px-1.5 py-1 text-xs font-semibold text-primary shadow-md backdrop-blur-sm sm:flex',
+          itemSize === '1x1' ? 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2' : 'right-3 top-1/2 -translate-y-1/2',
+        )}>{hotkeyHint}</kbd
+      >
     {/if}
 
     {#if item.pingEnabled && pingReachable !== null && (!item.pingOnlyDown || !pingReachable)}
@@ -143,6 +168,7 @@
             disabled={!canModify}
             class="rounded-md bg-surface/95 p-1 text-text-muted shadow-sm ring-1 ring-border hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Item actions"
+            tabindex={-1}
             onclick={(e) => e.preventDefault()}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"

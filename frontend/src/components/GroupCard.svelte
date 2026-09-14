@@ -169,7 +169,7 @@
         {/if}
       </div>
     {:else}
-      <div class={itemsClass}>
+      <div class={itemsClass} data-dashboard-items-grid>
         {@render children?.()}
       </div>
     {/if}

@@ -56,6 +56,8 @@ export type Item = {
   pingOnlyDown: boolean
   pingUrl: string
   pingSkipTls: boolean
+  hotkey: string
+  hotkeyLabel: string
   position: number
 }
 export type Group = {
@@ -81,6 +83,8 @@ export type Dashboard = {
   width: Width
   privacy: 'public' | 'private' | 'users'
   cleanMode: boolean
+  hotkey: string
+  hotkeyLabel: string
   isMain: boolean
   isDefault: boolean
   groups?: Group[]

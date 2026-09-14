@@ -73,6 +73,8 @@ type Dashboard struct {
 	Width       Width   `bun:"width,notnull,default:'default'" json:"width"`
 	Privacy     Privacy `bun:"privacy,notnull,default:'private'" json:"privacy"`
 	CleanMode   bool    `bun:"clean_mode,notnull,default:false" json:"cleanMode"`
+	Hotkey      string  `bun:"hotkey,notnull,default:''" json:"hotkey"`
+	HotkeyLabel string  `bun:"hotkey_label,notnull,default:''" json:"hotkeyLabel"`
 	IsMain      bool    `bun:"is_main,notnull,default:false" json:"isMain"`
 	IsDefault   bool    `bun:"is_default,notnull,default:false" json:"isDefault"`
 
@@ -109,6 +111,8 @@ type Item struct {
 	PingOnlyDown bool   `bun:"ping_only_down,notnull,default:false" json:"pingOnlyDown"`
 	PingURL      string `bun:"ping_url,notnull,default:''" json:"pingUrl"`
 	PingSkipTLS  bool   `bun:"ping_skip_tls,notnull,default:false" json:"pingSkipTls"`
+	Hotkey       string `bun:"hotkey,notnull,default:''" json:"hotkey"`
+	HotkeyLabel  string `bun:"hotkey_label,notnull,default:''" json:"hotkeyLabel"`
 	Position     int    `bun:"position,notnull,default:0" json:"position"`
 }
 

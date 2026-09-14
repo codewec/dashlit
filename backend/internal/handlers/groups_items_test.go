@@ -41,7 +41,7 @@ func TestCloneGroupToDashboardCopiesItemsAndAppendsGroup(t *testing.T) {
 	item := &models.Item{
 		ID: "source-item", GroupID: source.ID, Title: "Status", Description: "Health", URL: "https://status.example.com",
 		Icon: "mdi:heart", IconDark: "mdi:heart-outline", PingEnabled: true, PingOnlyDown: true,
-		PingURL: "https://health.example.com", PingSkipTLS: true, Position: 3,
+		PingURL: "https://health.example.com", PingSkipTLS: true, Hotkey: "Ctrl+KeyH", HotkeyLabel: "р", Position: 3,
 	}
 	if _, err := database.NewInsert().Model(item).Exec(ctx); err != nil {
 		t.Fatal(err)
@@ -59,7 +59,7 @@ func TestCloneGroupToDashboardCopiesItemsAndAppendsGroup(t *testing.T) {
 		t.Fatalf("cloned items = %d", len(clone.Items))
 	}
 	clonedItem := clone.Items[0]
-	if clonedItem.ID == item.ID || clonedItem.GroupID != clone.ID || clonedItem.Title != item.Title || clonedItem.PingURL != item.PingURL || !clonedItem.PingSkipTLS || clonedItem.Position != item.Position {
+	if clonedItem.ID == item.ID || clonedItem.GroupID != clone.ID || clonedItem.Title != item.Title || clonedItem.PingURL != item.PingURL || !clonedItem.PingSkipTLS || clonedItem.Hotkey != item.Hotkey || clonedItem.HotkeyLabel != item.HotkeyLabel || clonedItem.Position != item.Position {
 		t.Fatalf("unexpected cloned item: %#v", clonedItem)
 	}
 }

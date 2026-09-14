@@ -137,6 +137,25 @@
   --color-danger-soft: color-mix(in srgb, var(--color-danger) 14%, transparent);
 }
 
+[data-theme='black'] {
+  --color-bg: #000000;
+  --color-bg-elevated: #0a0a0a;
+  --color-surface: #1a1a1a;
+  --color-surface-2: #2a2a2a;
+  --color-border: #333333;
+  --color-border-soft: #262626;
+  --color-text: #e8e8e8;
+  --color-text-muted: #a0a0a0;
+  --color-text-subtle: #6b6b6b;
+  --color-primary: #8aadf4;
+  --color-primary-hover: #7dc4e4;
+  --color-primary-fg: #000000;
+  --color-accent: #c6a0f6;
+  --color-danger: #ed8796;
+  --color-danger-soft: color-mix(in srgb, #ed8796 14%, transparent);
+  --color-success: #a6da95;
+}
+
 @layer base {
   html {
     font-family: var(--font-sans);

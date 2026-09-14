@@ -8,6 +8,7 @@
   import type { DashListItem } from '../lib/dashboard-helpers'
   import { toastError } from '../lib/toasts'
   import ThemeItems from './ThemeItems.svelte'
+  import { formatHotkey } from '../lib/hotkeys'
 
   let {
     dashboards = [],
@@ -97,7 +98,15 @@
             {:else}
               <img src={logoUrl} alt="" class="h-4 w-4" width="16" height="16" />
             {/if}
-            <span class="truncate">{d.name}</span>
+            <span class="min-w-0 flex-1">
+              <span class="flex min-w-0 items-center gap-2">
+                <span class="min-w-0 flex-1 truncate">{d.name}</span>
+                {#if d.hotkey}<kbd class="shrink-0 text-[9px] text-text-subtle">{formatHotkey(d.hotkey, d.hotkeyLabel)}</kbd>{/if}
+              </span>
+              {#if d.description || d.hotkey}
+                <span class="block truncate text-[10px] text-text-subtle">{d.description}</span>
+              {/if}
+            </span>
           </DropdownMenu.Item>
         {/each}
         {#if ownDashboards.length > 0 && otherDashboards.length > 0}
@@ -119,9 +128,9 @@
             {:else}
               <img src={logoUrl} alt="" class="h-4 w-4" width="16" height="16" />
             {/if}
-            <span class="min-w-0">
+            <span class="min-w-0 flex-1">
               <span class="block truncate">{d.name}</span>
-              <span class="block truncate text-[10px] text-text-subtle">{d.ownerUsername}</span>
+              <span class="block truncate text-[10px] text-text-subtle">{d.description || d.ownerUsername}</span>
             </span>
           </DropdownMenu.Item>
         {/each}
