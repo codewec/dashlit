@@ -68,7 +68,7 @@ Create `docker-compose.yml`:
 ```yaml
 services:
   dashlit:
-    image: ghcr.io/codewec/dashlit:main
+    image: ghcr.io/codewec/dashlit:latest
     ports:
       - '3000:8080'
     environment:

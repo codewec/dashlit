@@ -7,8 +7,8 @@ This document describes the release process for maintainers. DashLit uses Conven
 - Development happens on the `main` branch.
 - Stable versions use tags such as `v1.0.0`.
 - Every push to `main` updates `ghcr.io/codewec/dashlit:dev`.
-- Every release tag publishes both `ghcr.io/codewec/dashlit:main` and `ghcr.io/codewec/dashlit:<version>`.
-- The `latest` image tag remains on the legacy generation and is intentionally not published by the current workflow.
+- Every release tag publishes `ghcr.io/codewec/dashlit:latest`, `ghcr.io/codewec/dashlit:main`, and `ghcr.io/codewec/dashlit:<version>`.
+- `latest` is the recommended floating stable tag; `main` is retained as a compatibility alias.
 - Git tags are the source of truth for release versions.
 
 ## Prerequisites
@@ -119,6 +119,7 @@ Pushing the tag starts two workflows:
 1. The container workflow publishes `linux/amd64`, `linux/arm64`, and `linux/arm/v7` images:
 
    ```text
+   ghcr.io/codewec/dashlit:latest
    ghcr.io/codewec/dashlit:main
    ghcr.io/codewec/dashlit:v1.0.0
    ```
@@ -132,16 +133,16 @@ Pushing the tag starts two workflows:
    checksums.txt
    ```
 
-The tag workflow promotes the release commit to `main` and publishes its immutable version tag. It does not publish or change `latest`.
+The tag workflow promotes the release commit to `latest` and `main`, then publishes its immutable version tag.
 
 ### 7. Verify the release
 
 ```bash
 docker pull ghcr.io/codewec/dashlit:v1.0.0
-docker pull ghcr.io/codewec/dashlit:main
+docker pull ghcr.io/codewec/dashlit:latest
 ```
 
-Confirm that both images report the expected version and architecture, the GitHub Release contains the expected notes, and the documentation shows the new changelog entry.
+Confirm that the versioned and `latest` images report the expected version and architecture, the GitHub Release contains the expected notes, and the documentation shows the new changelog entry.
 
 Download a standalone archive and verify it against `checksums.txt`. Each archive contains the `dashlit` binary and `LICENSE`.
 
@@ -156,6 +157,5 @@ Choose the next version according to Semantic Versioning:
 ## Important notes
 
 - Never move or overwrite a published version tag. Create a new version instead.
-- Do not publish or retarget `latest`; legacy users rely on it remaining on the previous generation.
 - Create release tags only from commits already present on `main`.
 - Back up persistent application data before testing an upgrade.

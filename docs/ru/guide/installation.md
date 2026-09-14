@@ -20,7 +20,7 @@ docker compose up -d
 ```yaml
 services:
   dashlit:
-    image: ghcr.io/codewec/dashlit:main
+    image: ghcr.io/codewec/dashlit:latest
     container_name: dashlit
     restart: unless-stopped
     ports:
@@ -81,14 +81,14 @@ docker compose restart dashlit
 ## Docker CLI
 
 ```bash
-docker pull ghcr.io/codewec/dashlit:main
+docker pull ghcr.io/codewec/dashlit:latest
 docker run -d \
   --name dashlit \
   --restart unless-stopped \
   -p 3000:8080 \
   -e JWT_SECRET='replace-with-a-long-random-secret' \
   -v dashlit-data:/data \
-  ghcr.io/codewec/dashlit:main
+  ghcr.io/codewec/dashlit:latest
 ```
 
 ## Существующая Linux-система
@@ -206,7 +206,7 @@ OIDC_REDIRECT_URL=https://dash.example.com/api/auth/oidc/callback
 
 ## Фиксация версии
 
-Тег `main` указывает на последний релиз текущего поколения DashLit. Для предсказуемых обновлений используйте конкретный тег релиза, например:
+Тег `latest` указывает на последний стабильный релиз DashLit. Для предсказуемых обновлений используйте конкретный тег релиза, например:
 
 ```yaml
 image: ghcr.io/codewec/dashlit:v1.0.0
@@ -214,7 +214,7 @@ image: ghcr.io/codewec/dashlit:v1.0.0
 
 Тег `dev` пересобирается после каждого push в ветку `main`. Он может содержать изменения, которые ещё не вошли в релиз, и предназначен для тестирования.
 
-Тег `latest` намеренно не используется для текущего поколения, чтобы существующие установки старой версии не обновились автоматически.
+Тег `main` сохранён как совместимый псевдоним для `latest`.
 
 Перед обновлением прочитайте [историю изменений](/ru/changelog), сохраните `/data`, загрузите новый образ и пересоздайте контейнер.
 

@@ -45,17 +45,17 @@
 
 ## Run with Docker
 
-The current release is published for `linux/amd64`, `linux/arm64`, and `linux/arm/v7` (armhf) under the `main` tag.
+The current release is published for `linux/amd64`, `linux/arm64`, and `linux/arm/v7` (armhf) under the `latest` tag.
 
 ```bash
-docker pull ghcr.io/codewec/dashlit:main
+docker pull ghcr.io/codewec/dashlit:latest
 docker run -d \
   --name dashlit \
   --restart unless-stopped \
   -p 3000:8080 \
   -e JWT_SECRET='replace-with-a-long-random-secret' \
   -v dashlit-data:/data \
-  ghcr.io/codewec/dashlit:main
+  ghcr.io/codewec/dashlit:latest
 ```
 
 Open [http://localhost:3000](http://localhost:3000). The first account created with password authentication becomes an administrator.
@@ -71,7 +71,7 @@ printf 'JWT_SECRET=%s\n' "$(openssl rand -hex 32)" > .env
 docker compose up -d
 ```
 
-The production compose file pulls `ghcr.io/codewec/dashlit:main`. Pin a release by setting `DASHLIT_TAG`, for example:
+The production compose file pulls `ghcr.io/codewec/dashlit:latest`. Pin a release by setting `DASHLIT_TAG`, for example:
 
 ```dotenv
 DASHLIT_TAG=v1.0.0
@@ -229,7 +229,7 @@ make git-cliff-install
 make changelog-preview
 ```
 
-Releases use tags such as `v1.0.0`. Each release publishes both the matching versioned container image and the stable `main` image, then creates a GitHub Release. Pushes to the `main` branch publish the development image as `dev`. The `latest` tag remains on the legacy generation and is intentionally not published by these workflows.
+Releases use tags such as `v1.0.0`. Each release publishes the matching versioned container image and updates the stable `latest` image; `main` is also published as a compatibility alias. Pushes to the `main` branch publish the development image as `dev`.
 
 See [RELEASING.md](RELEASING.md) for the complete maintainer release procedure.
 

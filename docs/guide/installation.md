@@ -20,7 +20,7 @@ Alternatively, create the deployment files manually. Save the following as `dock
 ```yaml
 services:
   dashlit:
-    image: ghcr.io/codewec/dashlit:main
+    image: ghcr.io/codewec/dashlit:latest
     container_name: dashlit
     restart: unless-stopped
     ports:
@@ -81,14 +81,14 @@ docker compose restart dashlit
 ## Docker CLI
 
 ```bash
-docker pull ghcr.io/codewec/dashlit:main
+docker pull ghcr.io/codewec/dashlit:latest
 docker run -d \
   --name dashlit \
   --restart unless-stopped \
   -p 3000:8080 \
   -e JWT_SECRET='replace-with-a-long-random-secret' \
   -v dashlit-data:/data \
-  ghcr.io/codewec/dashlit:main
+  ghcr.io/codewec/dashlit:latest
 ```
 
 ## Existing Linux system
@@ -206,7 +206,7 @@ OIDC_REDIRECT_URL=https://dash.example.com/api/auth/oidc/callback
 
 ## Pinning a release
 
-The `main` tag follows the newest release of the current DashLit generation. For predictable upgrades, replace it with a versioned release tag, for example:
+The `latest` tag follows the newest stable DashLit release. For predictable upgrades, replace it with a versioned release tag, for example:
 
 ```yaml
 image: ghcr.io/codewec/dashlit:v1.0.0
@@ -214,7 +214,7 @@ image: ghcr.io/codewec/dashlit:v1.0.0
 
 The `dev` tag is rebuilt after every push to the `main` branch. It may contain changes that have not been included in a release yet and is intended for testing.
 
-The `latest` tag is intentionally not used for the current generation so existing legacy installations are not upgraded automatically.
+The `main` tag is retained as a compatibility alias for `latest`.
 
 Read the [changelog](/changelog), back up `/data`, pull the new image, and recreate the container.
 

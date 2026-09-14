@@ -32,7 +32,7 @@ For example, if the legacy data is stored in `./data`:
 ```yaml
 services:
   dashlit:
-    image: ghcr.io/codewec/dashlit:main
+    image: ghcr.io/codewec/dashlit:latest
     container_name: dashlit
     restart: unless-stopped
     ports:
