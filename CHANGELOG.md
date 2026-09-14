@@ -1,6 +1,17 @@
 # Changelog
 
 All notable changes to DashLit are documented in this file.
+## [1.1.1] - 2026-09-14
+
+### Fixes
+
+- **front:** Filter ([d172b6d](https://github.com/codewec/dashlit/commit/d172b6db849a6d29fa14989e5a4fb61744cef3a3))
+
+
+### Chores
+
+- Update examples ([169fb1c](https://github.com/codewec/dashlit/commit/169fb1c5cde4cd1a2dc86fcc235a5278a61cf46b))
+
 ## [1.1.0] - 2026-09-14
 
 ### Features
