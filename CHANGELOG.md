@@ -1,6 +1,12 @@
 # Changelog
 
 All notable changes to DashLit are documented in this file.
+## [1.1.2] - 2026-09-24
+
+### Features
+
+- Iconify batch request ([480a833](https://github.com/codewec/dashlit/commit/480a8330fe126713a8c23b273688dc72a2f3e8e3))
+
 ## [1.1.1] - 2026-09-14
 
 ### Fixes
