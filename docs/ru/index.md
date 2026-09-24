@@ -15,9 +15,6 @@ hero:
     - theme: alt
       text: Открыть руководство
       link: /ru/guide/getting-started
-    - theme: alt
-      text: Присоединиться к обсуждению
-      link: https://github.com/codewec/dashlit/discussions
 
 features:
   - icon: 🧭
@@ -92,4 +89,4 @@ docker compose up -d
 
 ## Помогите сделать DashLit лучше
 
-Есть вопрос по настройке или хотите показать свой вариант использования? [Начните обсуждение](https://github.com/codewec/dashlit/discussions). Если вы нашли ошибку или хотите предложить конкретную функцию, [создайте issue](https://github.com/codewec/dashlit/issues).
+Есть вопрос по настройке или хотите показать свой вариант использования? Если вы нашли ошибку или хотите предложить конкретную функцию, [создайте issue](https://github.com/codewec/dashlit/issues).

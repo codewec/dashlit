@@ -15,9 +15,6 @@ hero:
     - theme: alt
       text: Explore the guide
       link: /guide/getting-started
-    - theme: alt
-      text: Join the discussion
-      link: https://github.com/codewec/dashlit/discussions
 
 features:
   - icon: 🧭
@@ -92,4 +89,4 @@ Open `http://localhost:3000`, create the first account, and begin building your 
 
 ## Help shape DashLit
 
-Have a setup question or want to show how you use DashLit? [Start a discussion](https://github.com/codewec/dashlit/discussions). If you found a bug or have a concrete feature proposal, [open an issue](https://github.com/codewec/dashlit/issues).
+Have a setup question or want to show how you use DashLit? If you found a bug or have a concrete feature proposal, [open an issue](https://github.com/codewec/dashlit/issues).

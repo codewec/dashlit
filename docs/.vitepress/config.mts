@@ -25,13 +25,6 @@ export default defineConfig({
           { text: 'Настройка', link: '/ru/guide/configuration' },
           { text: 'Миграция', link: '/ru/guide/migration' },
           { text: 'Изменения', link: '/ru/changelog' },
-          {
-            text: 'Сообщество',
-            items: [
-              { text: 'Обсуждения', link: 'https://github.com/codewec/dashlit/discussions' },
-              { text: 'Предложения и ошибки', link: 'https://github.com/codewec/dashlit/issues' },
-            ],
-          },
         ],
         sidebar: {
           '/ru/guide/': [
@@ -105,13 +98,6 @@ export default defineConfig({
       { text: 'Configuration', link: '/guide/configuration' },
       { text: 'Migration', link: '/guide/migration' },
       { text: 'Changelog', link: '/changelog' },
-      {
-        text: 'Community',
-        items: [
-          { text: 'Discussions', link: 'https://github.com/codewec/dashlit/discussions' },
-          { text: 'Ideas and bug reports', link: 'https://github.com/codewec/dashlit/issues' },
-        ],
-      },
     ],
     sidebar: {
       '/guide/': [

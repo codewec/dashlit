@@ -261,7 +261,83 @@ func (h *IconHandler) Serve(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path)
 }
 
-// Proxy Iconify SVG and cache to disk
+type iconifyIconData struct {
+	Body   string `json:"body"`
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+}
+
+type iconifyAlias struct {
+	Parent string `json:"parent"`
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+	HFlip  bool   `json:"hFlip"`
+	VFlip  bool   `json:"vFlip"`
+}
+
+type iconifySet struct {
+	Prefix  string                     `json:"prefix"`
+	Icons   map[string]iconifyIconData `json:"icons"`
+	Aliases map[string]iconifyAlias    `json:"aliases"`
+	Width   int                        `json:"width"`
+	Height int                         `json:"height"`
+}
+
+func firstPositive(values ...int) int {
+	for _, v := range values {
+		if v > 0 {
+			return v
+		}
+	}
+	return 0
+}
+
+func (s *iconifySet) renderSVG(name string) (string, bool) {
+	hFlip, vFlip := false, false
+	widthOverride, heightOverride := 0, 0
+	for hops := 0; ; hops++ {
+		if icon, ok := s.Icons[name]; ok {
+			width := firstPositive(widthOverride, icon.Width, s.Width, 16)
+			height := firstPositive(heightOverride, icon.Height, s.Height, 16)
+			body := icon.Body
+			if hFlip || vFlip {
+				var b strings.Builder
+				b.WriteString(`<g transform="`)
+				if hFlip {
+					fmt.Fprintf(&b, "translate(%d 0) scale(-1 1) ", width)
+				}
+				if vFlip {
+					fmt.Fprintf(&b, "translate(0 %d) scale(1 -1) ", height)
+				}
+				b.WriteString(`">`)
+				b.WriteString(body)
+				b.WriteString("</g>")
+				body = b.String()
+			}
+			return fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d">%s</svg>`, width, height, width, height, body), true
+		}
+		if hops >= 8 {
+			return "", false
+		}
+		alias, ok := s.Aliases[name]
+		if !ok {
+			return "", false
+		}
+		hFlip = hFlip != alias.HFlip
+		vFlip = vFlip != alias.VFlip
+		if alias.Width > 0 && widthOverride == 0 {
+			widthOverride = alias.Width
+		}
+		if alias.Height > 0 && heightOverride == 0 {
+			heightOverride = alias.Height
+		}
+		name = alias.Parent
+	}
+}
+
+// ProxyIconify renders Iconify icons locally from the batch JSON API.
+// The per-icon SVG endpoint is heavily rate-limited (HTTP 429), while the
+// JSON endpoint is not, so icons are fetched as JSON and wrapped in an SVG.
 func (h *IconHandler) ProxyIconify(w http.ResponseWriter, r *http.Request) {
 	prefix := chi.URLParam(r, "prefix")
 	name := chi.URLParam(r, "name")
@@ -276,18 +352,28 @@ func (h *IconHandler) ProxyIconify(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write(data)
 		return
 	}
-	url := fmt.Sprintf("https://api.iconify.design/%s/%s.svg", prefix, name)
-	resp, err := h.client.Get(url)
-	if err != nil || resp.StatusCode != 200 {
-		http.NotFound(w, r)
-		return
-	}
-	defer resp.Body.Close()
-	data, err := io.ReadAll(resp.Body)
+	apiURL := fmt.Sprintf("https://api.iconify.design/%s.json?icons=%s", prefix, name)
+	resp, err := h.client.Get(apiURL)
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		http.NotFound(w, r)
+		return
+	}
+	var set iconifySet
+	if err := json.NewDecoder(io.LimitReader(resp.Body, 4<<20)).Decode(&set); err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	svg, ok := set.renderSVG(name)
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	data := []byte(svg)
 	_ = os.MkdirAll(filepath.Dir(cachePath), 0755)
 	_ = os.WriteFile(cachePath, data, 0644)
 	w.Header().Set("Content-Type", "image/svg+xml")

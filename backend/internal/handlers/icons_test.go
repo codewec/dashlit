@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/bookmarks-dashboard/backend/internal/config"
@@ -50,6 +51,60 @@ func TestProxySelfhstServesCachedIcon(t *testing.T) {
 	router.ServeHTTP(response, request)
 	if response.Code != http.StatusOK || response.Header().Get("Content-Type") != "image/svg+xml" {
 		t.Fatalf("status = %d, content-type = %q, body = %s", response.Code, response.Header().Get("Content-Type"), response.Body.String())
+	}
+}
+
+func TestProxyIconifyServesCachedIcon(t *testing.T) {
+	cacheDir := t.TempDir()
+	path := filepath.Join(cacheDir, "uim", "google.svg")
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte(`<svg xmlns="http://www.w3.org/2000/svg"/>`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	handler := NewIconHandler(nil, &config.Config{IconCacheDir: cacheDir})
+	router := chi.NewRouter()
+	router.Get("/api/icons/iconify/{prefix}/{name}", handler.ProxyIconify)
+	request := httptest.NewRequest(http.MethodGet, "/api/icons/iconify/uim/google", nil)
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+	if response.Code != http.StatusOK || response.Header().Get("Content-Type") != "image/svg+xml" {
+		t.Fatalf("status = %d, content-type = %q, body = %s", response.Code, response.Header().Get("Content-Type"), response.Body.String())
+	}
+}
+
+func TestIconifySetRenderSVG(t *testing.T) {
+	set := iconifySet{
+		Width:  24,
+		Height: 24,
+		Icons: map[string]iconifyIconData{
+			"arrow-right": {Body: `<path d="right"/>`},
+			"square":      {Body: `<path d="square"/>`, Width: 32, Height: 32},
+		},
+		Aliases: map[string]iconifyAlias{
+			"arrow-left": {Parent: "arrow-right", HFlip: true},
+			"double":     {Parent: "arrow-left", HFlip: true},
+		},
+	}
+	svg, ok := set.renderSVG("arrow-right")
+	if !ok || svg != `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="right"/></svg>` {
+		t.Fatalf("unexpected icon SVG: %q", svg)
+	}
+	svg, ok = set.renderSVG("arrow-left")
+	if !ok || !strings.Contains(svg, `translate(24 0) scale(-1 1)`) {
+		t.Fatalf("unexpected flipped alias SVG: %q", svg)
+	}
+	svg, ok = set.renderSVG("double")
+	if !ok || strings.Contains(svg, "transform") {
+		t.Fatalf("expected cancelling flips without transform: %q", svg)
+	}
+	svg, ok = set.renderSVG("square")
+	if !ok || !strings.Contains(svg, `width="32"`) {
+		t.Fatalf("expected icon dimensions to override set default: %q", svg)
+	}
+	if _, ok := set.renderSVG("missing"); ok {
+		t.Fatal("expected missing icon to fail")
 	}
 }
 
