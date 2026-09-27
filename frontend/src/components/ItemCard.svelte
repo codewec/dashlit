@@ -151,7 +151,7 @@
     {/if}
 
     {#if itemSize === '1x1'}
-      <Icon icon={item.icon} iconDark={item.iconDark} size={40} class="shrink-0 rounded-xl" />
+      <Icon icon={item.icon} iconDark={item.iconDark} size={40} class="shrink-0" />
     {:else}
       <Icon icon={item.icon} iconDark={item.iconDark} size={28} class="shrink-0 rounded-lg" />
       <div class="min-w-0 flex-1">
