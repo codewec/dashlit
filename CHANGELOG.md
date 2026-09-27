@@ -1,6 +1,22 @@
 # Changelog
 
 All notable changes to DashLit are documented in this file.
+## [1.1.3] - 2026-09-27
+
+### Features
+
+- Remove rounded icon for 1x1 item #46 ([a053350](https://github.com/codewec/dashlit/commit/a053350a821e360444ee5156b65994f80c175231))
+
+
+### Fixes
+
+- Restore black theme #45 ([0aabfbc](https://github.com/codewec/dashlit/commit/0aabfbcbd8fd1d526c8c7847e5d9c09abb99077b))
+
+
+### Chores
+
+- Enhancement ([252adf6](https://github.com/codewec/dashlit/commit/252adf648c54e3155a4d9354341fa42f5e4bb672))
+
 ## [1.1.2] - 2026-09-24
 
 ### Features
