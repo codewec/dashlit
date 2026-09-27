@@ -76,7 +76,7 @@
       <img src={logoUrl} alt="" class="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-xl" />
       <h1 class="text-xl font-semibold tracking-tight">DashLit</h1>
       <p class="mt-1 text-sm text-text-muted">
-        {mode === 'login' ? 'Sign in to your dashboard' : 'Create an account (first user is admin)'}
+        {mode === 'login' ? 'Sign in to your dashboard' : 'Create an account'}
       </p>
     </div>
 
