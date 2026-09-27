@@ -200,7 +200,7 @@ func (s *Service) UpdateProfile(ctx context.Context, user *models.User, username
 
 var allowedThemes = map[string]bool{
 	"system": true, "crema": true, "latte": true, "frappe": true,
-	"macchiato": true, "mocha": true, "custom": true,
+	"macchiato": true, "mocha": true, "black": true, "custom": true,
 }
 
 var hexColorRegex = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)

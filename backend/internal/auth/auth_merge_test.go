@@ -110,10 +110,17 @@ func TestUpdateThemePersistsCustomPalette(t *testing.T) {
 	if loaded.Theme != "custom" || loaded.CustomTheme == "" {
 		t.Fatalf("theme was not persisted: theme=%q custom=%q", loaded.Theme, loaded.CustomTheme)
 	}
-	if err := svc.UpdateTheme(context.Background(), user, "mocha", ""); err != nil {
+	if err := svc.UpdateTheme(context.Background(), user, "black", ""); err != nil {
 		t.Fatal(err)
 	}
-	if user.Theme != "mocha" || user.CustomTheme != "" {
+	if user.Theme != "black" || user.CustomTheme != "" {
 		t.Fatalf("preset theme clear failed: theme=%q custom=%q", user.Theme, user.CustomTheme)
+	}
+	loaded, err = svc.GetUser(context.Background(), user.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.Theme != "black" || loaded.CustomTheme != "" {
+		t.Fatalf("preset theme was not persisted: theme=%q custom=%q", loaded.Theme, loaded.CustomTheme)
 	}
 }
