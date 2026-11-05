@@ -84,3 +84,19 @@ func TestOIDCUserMergeIsEnabledByDefault(t *testing.T) {
 		t.Fatal("OIDC user merge must be enabled by default")
 	}
 }
+
+func TestJWTSecretIsGeneratedAndPersistedWhenUnset(t *testing.T) {
+	t.Setenv("JWT_SECRET", "")
+	dir := t.TempDir()
+	first := jwtSecret(dir)
+	if len(first) < 32 || first == jwtSecret(t.TempDir()) {
+		t.Fatalf("weak or non-random secret %q", first)
+	}
+	if got := jwtSecret(dir); got != first {
+		t.Fatalf("secret not persisted: %q != %q", got, first)
+	}
+	t.Setenv("JWT_SECRET", "from-env")
+	if got := jwtSecret(dir); got != "from-env" {
+		t.Fatalf("JWT_SECRET must win, got %q", got)
+	}
+}

@@ -40,7 +40,7 @@ Set `DISABLE_OIDC_REGISTRATION=true` when accounts should be provisioned in Dash
 
 ## Account linking
 
-By default, DashLit links an incoming OIDC identity to a password account with the same normalized username. The existing account retains its password and gains OIDC login.
+By default, DashLit links an incoming OIDC identity to a password account with the same normalized username when the provider reports `email_verified: true`. The existing account retains its password and gains OIDC login. Admin accounts are never linked automatically.
 
 Set `DISABLE_OIDC_USER_MERGE=true` to prevent automatic linking. A conflicting username then receives a numeric suffix such as `alex-2`.
 

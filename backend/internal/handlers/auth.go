@@ -23,10 +23,11 @@ type AuthHandler struct {
 	cfg    *config.Config
 	oidc   *auth.OIDCAuthenticator
 	legacy *legacy.Migrator
+	logins *loginLimiter
 }
 
 func NewAuthHandler(svc *auth.Service, cfg *config.Config, oidcAuthenticator *auth.OIDCAuthenticator, legacyMigrator *legacy.Migrator) *AuthHandler {
-	return &AuthHandler{svc: svc, cfg: cfg, oidc: oidcAuthenticator, legacy: legacyMigrator}
+	return &AuthHandler{svc: svc, cfg: cfg, oidc: oidcAuthenticator, legacy: legacyMigrator, logins: newLoginLimiter()}
 }
 
 type authConfigResponse struct {
@@ -68,17 +69,24 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "username and password required")
 		return
 	}
+	if h.logins.blocked(req.Username) {
+		writeError(w, http.StatusTooManyRequests, "too many failed logins, try again later")
+		return
+	}
 	user, token, err := h.svc.Login(r.Context(), req.Username, req.Password)
 	if err != nil {
+		h.logins.fail(req.Username)
 		writeError(w, http.StatusUnauthorized, "invalid credentials")
 		return
 	}
+	h.logins.succeed(req.Username)
 	http.SetCookie(w, &http.Cookie{
 		Name:     "token",
 		Value:    token,
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
+		Secure:   isHTTPS(r),
 		MaxAge:   7 * 24 * 3600,
 	})
 	writeJSON(w, http.StatusOK, map[string]any{
@@ -127,6 +135,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
+		Secure:   isHTTPS(r),
 		MaxAge:   7 * 24 * 3600,
 	})
 	writeJSON(w, http.StatusCreated, map[string]any{
@@ -288,6 +297,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
+		Secure:   isHTTPS(r),
 		MaxAge:   -1,
 		Expires:  time.Unix(0, 0),
 	})
@@ -359,4 +369,10 @@ func (h *AuthHandler) UpdateTheme(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, user)
+}
+
+// isHTTPS reports whether the client reached us over TLS, directly or through
+// a proxy that sets X-Forwarded-Proto.
+func isHTTPS(r *http.Request) bool {
+	return r.TLS != nil || strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https")
 }

@@ -27,14 +27,19 @@ type GroupItemHandler struct {
 func NewGroupItemHandler(db *bun.DB) *GroupItemHandler {
 	insecureTransport := http.DefaultTransport.(*http.Transport).Clone()
 	insecureTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true} //nolint:gosec -- explicit per-item opt-in
+	// A 3xx already counts as "up"; following it would let a pinged URL steer
+	// the server to arbitrary hosts.
+	noRedirect := func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
 	return &GroupItemHandler{
 		db: db,
 		httpClient: &http.Client{
-			Timeout: 5 * time.Second,
+			Timeout:       5 * time.Second,
+			CheckRedirect: noRedirect,
 		},
 		insecureHTTPClient: &http.Client{
-			Timeout:   5 * time.Second,
-			Transport: insecureTransport,
+			Timeout:       5 * time.Second,
+			Transport:     insecureTransport,
+			CheckRedirect: noRedirect,
 		},
 	}
 }
@@ -205,6 +210,10 @@ func (h *GroupItemHandler) CreateItem(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "title and url required")
 		return
 	}
+	if err := ValidateItemURL(req.URL); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
 	if req.Icon == "" {
 		req.Icon = "mdi:link"
 	}
@@ -318,6 +327,10 @@ func (h *GroupItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		item.Description = *req.Description
 	}
 	if req.URL != nil {
+		if err := ValidateItemURL(*req.URL); err != nil {
+			writeError(w, http.StatusBadRequest, err.Error())
+			return
+		}
 		item.URL = *req.URL
 	}
 	if req.Icon != nil {
@@ -467,6 +480,7 @@ func (h *GroupItemHandler) CloneGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, ok := h.canEditDashboard(r, g.DashboardID); !ok {
+		writeError(w, http.StatusForbidden, "forbidden")
 		return
 	}
 	var maxPos int
@@ -626,6 +640,7 @@ func (h *GroupItemHandler) CloneItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, ok := h.canEditDashboard(r, g.DashboardID); !ok {
+		writeError(w, http.StatusForbidden, "forbidden")
 		return
 	}
 	var maxPos int

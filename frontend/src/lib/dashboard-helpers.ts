@@ -231,3 +231,13 @@ export function pageContainerClass(wide: boolean, reserveControls = false): stri
   const spacing = reserveControls ? 'pb-20 pt-6' : 'py-6'
   return wide ? `mx-auto max-w-none px-4 ${spacing}` : `mx-auto max-w-6xl px-4 ${spacing}`
 }
+
+// Script-capable schemes are rejected by the API too; this guards rows that predate that check.
+export function safeHref(url: string): string | undefined {
+  try {
+    const protocol = new URL(url, location.href).protocol
+    return ['javascript:', 'vbscript:', 'data:'].includes(protocol) ? undefined : url
+  } catch {
+    return undefined
+  }
+}

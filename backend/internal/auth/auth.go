@@ -322,10 +322,12 @@ func (s *Service) FindOrCreateOIDCUser(ctx context.Context, identity *OIDCIdenti
 		return nil, err
 	}
 	base := oidcUsername(identity)
-	if !s.cfg.DisableOIDCUserMerge {
+	// The username comes from claims the IdP user may control, so only link
+	// verified identities and never take over an admin account this way.
+	if !s.cfg.DisableOIDCUserMerge && identity.EmailVerified {
 		existing := new(models.User)
 		err := s.db.NewSelect().Model(existing).Where("username = ?", base).Scan(ctx)
-		if err == nil && existing.OIDCIssuer == nil && existing.OIDCSubject == nil {
+		if err == nil && existing.Role != models.RoleAdmin && existing.OIDCIssuer == nil && existing.OIDCSubject == nil {
 			res, err := s.db.NewUpdate().Model(existing).
 				Set("oidc_issuer = ?", identity.Issuer).
 				Set("oidc_subject = ?", identity.Subject).

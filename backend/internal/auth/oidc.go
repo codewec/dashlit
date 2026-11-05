@@ -23,6 +23,7 @@ type OIDCIdentity struct {
 	Subject           string
 	PreferredUsername string
 	Email             string
+	EmailVerified     bool
 	Name              string
 }
 
@@ -93,6 +94,7 @@ func (a *OIDCAuthenticator) Authenticate(ctx context.Context, code, expectedNonc
 	var claims struct {
 		PreferredUsername string `json:"preferred_username"`
 		Email             string `json:"email"`
+		EmailVerified     bool   `json:"email_verified"`
 		Name              string `json:"name"`
 	}
 	if err := idToken.Claims(&claims); err != nil {
@@ -106,6 +108,7 @@ func (a *OIDCAuthenticator) Authenticate(ctx context.Context, code, expectedNonc
 		Subject:           idToken.Subject,
 		PreferredUsername: claims.PreferredUsername,
 		Email:             claims.Email,
+		EmailVerified:     claims.EmailVerified,
 		Name:              claims.Name,
 	}, nil
 }

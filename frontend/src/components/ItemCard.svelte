@@ -5,6 +5,7 @@
   import type { Item, ItemSize } from '../lib/api'
   import { editMode, searchQuery } from '../lib/stores'
   import { cn } from '../lib/cn'
+  import { safeHref } from '../lib/dashboard-helpers'
   import { api } from '../lib/api'
 
   let {
@@ -76,7 +77,7 @@
 
 <div class="relative h-full w-full" {@attach ref}>
   <a
-    href={$editMode ? undefined : item.url}
+    href={$editMode ? undefined : safeHref(item.url)}
     target={$editMode ? undefined : openInNewTab ? '_blank' : undefined}
     rel={openInNewTab ? 'noopener' : undefined}
     tabindex={isOverlay ? undefined : (tabIndex ?? 0)}

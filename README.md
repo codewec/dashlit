@@ -145,7 +145,7 @@ Most container installations only need to set `JWT_SECRET` and, when required, t
 
 | Variable                        | Default             | Description                                            |
 | ------------------------------- | ------------------- | ------------------------------------------------------ |
-| `JWT_SECRET`                    | Development value   | Signing secret; always replace in production           |
+| `JWT_SECRET`                    | Generated           | Signing secret; if unset, a random one is stored in `DATA_DIR/jwt_secret` |
 | `INITIAL_ADMIN_USERNAME`        | Empty               | Username for one-time first administrator creation     |
 | `INITIAL_ADMIN_PASSWORD`        | Empty               | Password for one-time first administrator creation     |
 | `DEV_MODE`                      | `false`             | Enable development diagnostics                         |

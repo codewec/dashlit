@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"path/filepath"
 	"testing"
 
@@ -61,5 +63,25 @@ func TestCloneGroupToDashboardCopiesItemsAndAppendsGroup(t *testing.T) {
 	clonedItem := clone.Items[0]
 	if clonedItem.ID == item.ID || clonedItem.GroupID != clone.ID || clonedItem.Title != item.Title || clonedItem.PingURL != item.PingURL || !clonedItem.PingSkipTLS || clonedItem.Hotkey != item.Hotkey || clonedItem.HotkeyLabel != item.HotkeyLabel || clonedItem.Position != item.Position {
 		t.Fatalf("unexpected cloned item: %#v", clonedItem)
+	}
+}
+
+func TestPingClientsDoNotFollowRedirects(t *testing.T) {
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Error("redirect was followed")
+	}))
+	defer target.Close()
+	redirector := httptest.NewServer(http.RedirectHandler(target.URL, http.StatusFound))
+	defer redirector.Close()
+	h := NewGroupItemHandler(nil)
+	for _, client := range []*http.Client{h.httpClient, h.insecureHTTPClient} {
+		resp, err := client.Get(redirector.URL)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_ = resp.Body.Close()
+		if resp.StatusCode != http.StatusFound {
+			t.Fatalf("status = %d", resp.StatusCode)
+		}
 	}
 }

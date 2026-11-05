@@ -8,7 +8,7 @@ Most container installations only need a secure `JWT_SECRET`. Docker already pro
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `JWT_SECRET` | Development value | Secret used to sign sessions. Always replace it in production. |
+| `JWT_SECRET` | Generated | Secret used to sign sessions. If unset, a random secret is generated and stored in `DATA_DIR/jwt_secret`. |
 | `INITIAL_ADMIN_USERNAME` | Empty | Username used to create the first administrator automatically. |
 | `INITIAL_ADMIN_PASSWORD` | Empty | Password used to create the first administrator automatically. |
 | `DEV_MODE` | `false` | Enables verbose database diagnostics for development. |

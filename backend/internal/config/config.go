@@ -1,6 +1,9 @@
 package config
 
 import (
+	"crypto/rand"
+	"encoding/hex"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -49,7 +52,7 @@ func Load() *Config {
 		Addr:                        env("ADDR", ":8080"),
 		DataDir:                     dataDir,
 		DatabasePath:                env("DATABASE_PATH", filepath.Join(dataDir, "bookmarks.db")),
-		JWTSecret:                   env("JWT_SECRET", "change-me-in-production-please-use-long-secret"),
+		JWTSecret:                   jwtSecret(dataDir),
 		IconsDir:                    iconsDir,
 		IconCacheDir:                cacheDir,
 		OIDCIssuer:                  os.Getenv("OIDC_ISSUER"),
@@ -100,4 +103,27 @@ func envBool(key string, fallback bool) bool {
 		}
 	}
 	return fallback
+}
+
+// jwtSecret returns JWT_SECRET, or a random secret persisted in the data
+// directory so an unset variable never falls back to a publicly known value.
+func jwtSecret(dataDir string) string {
+	if v := os.Getenv("JWT_SECRET"); v != "" {
+		return v
+	}
+	path := filepath.Join(dataDir, "jwt_secret")
+	if b, err := os.ReadFile(path); err == nil && len(strings.TrimSpace(string(b))) >= 32 {
+		return strings.TrimSpace(string(b))
+	}
+	buf := make([]byte, 32)
+	if _, err := rand.Read(buf); err != nil {
+		log.Fatalf("generate JWT secret: %v", err)
+	}
+	secret := hex.EncodeToString(buf)
+	if err := os.WriteFile(path, []byte(secret+"\n"), 0600); err != nil {
+		log.Printf("WARNING: JWT_SECRET is not set and %s is not writable (%v); sessions will not survive a restart", path, err)
+	} else {
+		log.Printf("JWT_SECRET is not set; using the generated secret stored in %s", path)
+	}
+	return secret
 }

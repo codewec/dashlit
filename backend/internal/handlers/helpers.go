@@ -44,6 +44,29 @@ func ValidateSlug(slug string) error {
 	return nil
 }
 
+// ValidateItemURL rejects schemes that run script when used as a link target.
+// Everything else (http, ssh:, smb:, relative paths...) stays allowed.
+func ValidateItemURL(raw string) error {
+	// Normalize like browsers do before reading the scheme: tab/CR/LF are
+	// dropped anywhere and leading control characters or spaces are ignored.
+	s := strings.Map(func(r rune) rune {
+		if r == '\t' || r == '\n' || r == '\r' {
+			return -1
+		}
+		return r
+	}, raw)
+	s = strings.TrimLeftFunc(s, func(r rune) bool { return r <= ' ' })
+	scheme, _, ok := strings.Cut(s, ":")
+	if !ok {
+		return nil
+	}
+	switch strings.ToLower(scheme) {
+	case "javascript", "vbscript", "data":
+		return errInvalid("url scheme is not allowed")
+	}
+	return nil
+}
+
 type apiError struct {
 	msg string
 }

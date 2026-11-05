@@ -2,11 +2,13 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"path/filepath"
 	"testing"
 
 	"github.com/bookmarks-dashboard/backend/internal/config"
 	appdb "github.com/bookmarks-dashboard/backend/internal/db"
+	"github.com/bookmarks-dashboard/backend/internal/models"
 )
 
 func newMergeTestService(t *testing.T, disableMerge bool) *Service {
@@ -26,13 +28,17 @@ func newMergeTestService(t *testing.T, disableMerge bool) *Service {
 
 func TestFindOrCreateOIDCUserMergesPasswordUserByDefault(t *testing.T) {
 	svc := newMergeTestService(t, false)
+	// The first account becomes admin, which is never merged.
+	if _, err := svc.Register(context.Background(), "admin", "password"); err != nil {
+		t.Fatal(err)
+	}
 	passwordUser, err := svc.Register(context.Background(), "alice", "password")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	oidcUser, err := svc.FindOrCreateOIDCUser(context.Background(), &OIDCIdentity{
-		Issuer: "https://id.example.com", Subject: "alice-subject", PreferredUsername: "alice",
+		Issuer: "https://id.example.com", Subject: "alice-subject", PreferredUsername: "alice", EmailVerified: true,
 	}, false)
 	if err != nil {
 		t.Fatal(err)
@@ -122,5 +128,36 @@ func TestUpdateThemePersistsCustomPalette(t *testing.T) {
 	}
 	if loaded.Theme != "black" || loaded.CustomTheme != "" {
 		t.Fatalf("preset theme was not persisted: theme=%q custom=%q", loaded.Theme, loaded.CustomTheme)
+	}
+}
+
+func TestFindOrCreateOIDCUserDoesNotMergeAdminsOrUnverifiedIdentities(t *testing.T) {
+	svc := newMergeTestService(t, false)
+	admin, err := svc.Register(context.Background(), "admin", "password")
+	if err != nil {
+		t.Fatal(err)
+	}
+	alice, err := svc.Register(context.Background(), "alice", "password")
+	if err != nil {
+		t.Fatal(err)
+	}
+	cases := []struct {
+		target *models.User
+		id     *OIDCIdentity
+	}{
+		{admin, &OIDCIdentity{Issuer: "https://id.example.com", Subject: "s1", PreferredUsername: "admin", EmailVerified: true}},
+		{alice, &OIDCIdentity{Issuer: "https://id.example.com", Subject: "s2", PreferredUsername: "alice"}},
+	}
+	for _, c := range cases {
+		if _, err := svc.FindOrCreateOIDCUser(context.Background(), c.id, false); !errors.Is(err, ErrOIDCRegistrationDisabled) {
+			t.Fatalf("%s: expected no merge, got err=%v", c.target.Username, err)
+		}
+		got, err := svc.FindOrCreateOIDCUser(context.Background(), c.id, true)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got.ID == c.target.ID || got.Username != c.target.Username+"-2" {
+			t.Fatalf("%s: OIDC identity was linked to the existing account (%q)", c.target.Username, got.Username)
+		}
 	}
 }

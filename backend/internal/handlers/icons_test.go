@@ -120,3 +120,16 @@ func TestSearchSelfhstMatchesNameReferenceAndTags(t *testing.T) {
 		}
 	}
 }
+
+func TestIconNamePatternRejectsDotNames(t *testing.T) {
+	for _, name := range []string{"..", ".", ".hidden", "-x", ""} {
+		if iconNamePattern.MatchString(name) {
+			t.Errorf("%q accepted", name)
+		}
+	}
+	for _, name := range []string{"mdi", "home-assistant", "1password", "a.b_c"} {
+		if !iconNamePattern.MatchString(name) {
+			t.Errorf("%q rejected", name)
+		}
+	}
+}

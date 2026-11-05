@@ -13,6 +13,7 @@
     reorderGroups,
     applyItemMove,
     type DashListItem,
+    safeHref,
   } from '../lib/dashboard-helpers'
   import GroupCard from './GroupCard.svelte'
   import ItemCard from './ItemCard.svelte'
@@ -234,7 +235,9 @@
         window.getSelection()?.removeAllRanges()
         for (const item of matchingItems) {
           const newTab = shouldOpenInNewTab(item)
-          window.open(item.url, newTab ? '_blank' : '_self', newTab ? 'noopener' : undefined)
+          const href = safeHref(item.url)
+          if (!href) continue
+          window.open(href, newTab ? '_blank' : '_self', newTab ? 'noopener' : undefined)
         }
         requestAnimationFrame(() => window.getSelection()?.removeAllRanges())
         return

@@ -539,6 +539,9 @@ func (h *DashboardHandler) importPayload(ctx context.Context, user *models.User,
 	for gi := range src.Groups {
 		for ii := range src.Groups[gi].Items {
 			item := &src.Groups[gi].Items[ii]
+			if err := ValidateItemURL(item.URL); err != nil {
+				return nil, err
+			}
 			item.Hotkey = normalizeHotkey(item.Hotkey)
 			if canonicalHotkey(src.Hotkey) != "" && canonicalHotkey(src.Hotkey) == canonicalHotkey(item.Hotkey) {
 				return nil, hotkeyConflictError(item.Hotkey, item.HotkeyLabel)
