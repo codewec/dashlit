@@ -704,7 +704,9 @@ func (h *GroupItemHandler) PingItem(w http.ResponseWriter, r *http.Request) {
 		fallbackToGET := requestErr != nil
 		if requestErr == nil {
 			resp.Body.Close()
-			if resp.StatusCode == http.StatusMethodNotAllowed || resp.StatusCode == http.StatusNotImplemented {
+			// Some services reject HEAD with 400 or 401 instead of 405/501.
+			// Confirm any error response with GET before marking them down.
+			if resp.StatusCode >= http.StatusBadRequest {
 				fallbackToGET = true
 			} else {
 				reachable = resp.StatusCode >= 200 && resp.StatusCode < 400

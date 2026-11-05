@@ -2,15 +2,105 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"path/filepath"
+	"slices"
 	"testing"
+
+	"github.com/go-chi/chi/v5"
 
 	"github.com/bookmarks-dashboard/backend/internal/config"
 	appdb "github.com/bookmarks-dashboard/backend/internal/db"
 	"github.com/bookmarks-dashboard/backend/internal/models"
 )
+
+func TestPingItemFallsBackToGETOnHEADErrors(t *testing.T) {
+	cfg := &config.Config{DatabasePath: filepath.Join(t.TempDir(), "ping.db")}
+	database, err := appdb.Connect(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = database.Close() })
+	ctx := context.Background()
+	user := &models.User{ID: "ping-user", Username: "ping-user"}
+	dashboard := &models.Dashboard{ID: "ping-dashboard", OwnerID: user.ID, Name: "Ping", Slug: "ping", Privacy: models.PrivacyPublic}
+	group := &models.Group{ID: "ping-group", DashboardID: dashboard.ID, Title: "Ping"}
+	for _, model := range []any{user, dashboard, group} {
+		if _, err := database.NewInsert().Model(model).Exec(ctx); err != nil {
+			t.Fatal(err)
+		}
+	}
+	tests := []struct {
+		name                  string
+		headStatus, getStatus int
+		wantGET, reachable    bool
+	}{
+		{"healthy HEAD", 200, 500, false, true},
+		{"HEAD redirect", 302, 500, false, true},
+		{"PBS bad request", 400, 200, true, true},
+		{"HEAD unauthorized", 401, 200, true, true},
+		{"HEAD forbidden", 403, 200, true, true},
+		{"HEAD not found", 404, 200, true, true},
+		{"method not allowed", 405, 206, true, true},
+		{"HEAD server error", 500, 200, true, true},
+		{"HEAD not implemented", 501, 200, true, true},
+		{"GET unauthorized", 401, 401, true, false},
+		{"GET server error", 400, 503, true, false},
+		{"GET redirect", 400, 302, true, true},
+	}
+	h := NewGroupItemHandler(database)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var methods []string
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				methods = append(methods, r.Method)
+				if r.URL.Path != "/" {
+					t.Error("redirect was followed")
+				}
+				w.Header().Set("Location", "/redirect-target")
+				if r.Method == http.MethodHead {
+					w.WriteHeader(tc.headStatus)
+					return
+				}
+				if r.Header.Get("Range") != "bytes=0-0" {
+					t.Error("GET must request a limited range")
+				}
+				w.WriteHeader(tc.getStatus)
+			}))
+			defer server.Close()
+			item := &models.Item{ID: tc.name, GroupID: group.ID, Title: tc.name, URL: server.URL, PingEnabled: true}
+			if _, err := database.NewInsert().Model(item).Exec(ctx); err != nil {
+				t.Fatal(err)
+			}
+			router := chi.NewRouter()
+			router.Get("/items/{id}/ping", h.PingItem)
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/items/"+url.PathEscape(item.ID)+"/ping", nil))
+			var result struct {
+				Reachable bool `json:"reachable"`
+			}
+			if rec.Code != http.StatusOK {
+				t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+			}
+			if err := json.Unmarshal(rec.Body.Bytes(), &result); err != nil {
+				t.Fatal(err)
+			}
+			if result.Reachable != tc.reachable {
+				t.Errorf("reachable = %v, want %v", result.Reachable, tc.reachable)
+			}
+			wantMethods := []string{http.MethodHead}
+			if tc.wantGET {
+				wantMethods = append(wantMethods, http.MethodGet)
+			}
+			if !slices.Equal(methods, wantMethods) {
+				t.Errorf("methods = %v, want %v", methods, wantMethods)
+			}
+		})
+	}
+}
 
 func TestCloneGroupToDashboardCopiesItemsAndAppendsGroup(t *testing.T) {
 	cfg := &config.Config{DatabasePath: filepath.Join(t.TempDir(), "clone.db")}
