@@ -6,6 +6,8 @@ Sign in, create a dashboard, and choose a unique URL slug. The slug becomes part
 
 Use edit mode to drag groups into a new order or move links within and between groups. Layout changes are saved to the server.
 
+Dashboard links use `noreferrer` by default, so opening a link does not send the dashboard address in the `Referer` header. This also applies to keyboard shortcuts and links opened in the current tab.
+
 ## Visibility
 
 Choose visibility based on who should reach the dashboard:

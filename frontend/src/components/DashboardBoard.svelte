@@ -237,7 +237,7 @@
           const newTab = shouldOpenInNewTab(item)
           const href = safeHref(item.url)
           if (!href) continue
-          window.open(href, newTab ? '_blank' : '_self', newTab ? 'noopener' : undefined)
+          window.open(href, newTab ? '_blank' : '_self', 'noopener,noreferrer')
         }
         requestAnimationFrame(() => window.getSelection()?.removeAllRanges())
         return

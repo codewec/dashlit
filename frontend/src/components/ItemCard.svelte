@@ -79,7 +79,7 @@
   <a
     href={$editMode ? undefined : safeHref(item.url)}
     target={$editMode ? undefined : openInNewTab ? '_blank' : undefined}
-    rel={openInNewTab ? 'noopener' : undefined}
+    rel="noopener noreferrer"
     tabindex={isOverlay ? undefined : (tabIndex ?? 0)}
     data-dashboard-item
     data-native-navigation
